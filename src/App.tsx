@@ -32,6 +32,7 @@ import MatureContentPage from "./pages/MatureContent/MatureContent";
 // Context/Provider
 import { LanguageProvider } from "@/contexts/LanguageProvider";
 import { UserProvider } from "@/contexts/UserProvider";
+import Collection from "./features/collections";
 
 const authRoutes = [
   { path: "/login", element: <Login /> },
@@ -49,6 +50,7 @@ const InAppPublicRoutes = [
   { path: "/posts/:postId", element: <Post /> },
   { path: "/blogs", element: <Blogs /> },
   { path: "/shop", element: <Shop /> },
+  { path: "/collections", element: <Collection /> },
 ];
 
 const InAppPrivateRoutes = [

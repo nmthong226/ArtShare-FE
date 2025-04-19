@@ -14,7 +14,7 @@ const PostTags: React.FC<PostTagsProps> = ({ categories }) => {
             key={category.id}
             className="bg-mountain-50 px-2 py-1 rounded text-xs"
           >
-            {category.cateName}
+            {category.name}
           </div>
         ))}
       </div>

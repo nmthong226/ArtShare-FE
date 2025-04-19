@@ -4,7 +4,7 @@ export interface Media {
   media_type: MediaType;
   description?: string;
   url: string;
-  creator_id: number;
+  creator_id: string;
   downloads: number;
   created_at: Date;
 }

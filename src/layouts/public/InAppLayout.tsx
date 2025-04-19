@@ -52,6 +52,7 @@ import { FiLogIn } from "react-icons/fi";
 import { IoMailOutline } from "react-icons/io5";
 import { IoNotificationsOutline } from "react-icons/io5";
 import { FaPenToSquare, FaRegPenToSquare } from "react-icons/fa6";
+import { User } from "@/types";
 
 const UserFunctionality: React.FC<{
   user?: User | null;
@@ -476,7 +477,7 @@ const InAppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             />
           </aside>
           <div
-            className={`border-l-1 border-l-mountain-100 dark:border-l-mountain-700  h-full ${location.pathname === "/explore" || location.pathname === "/short" ? "w-[calc(100vw-5rem)]" : "w-full"}`}
+            className={`border-l-1 border-l-mountain-100 dark:border-l-mountain-700  h-full ${location.pathname !== "/posts/new" ? "w-[calc(100vw-5rem)]" : "w-full"}`}
           >
             {children}
           </div>
