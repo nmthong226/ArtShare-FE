@@ -82,8 +82,8 @@ const Post: React.FC = () => {
   }
 
   return (
-    <div className="relative flex-grow bg-mountain-50 p-4 h-[calc(100vh-4rem)] overflow-y-scroll no-scrollbar">
-      <div className="md:hidden relative flex flex-col bg-white shadow p-4 rounded-2xl h-full">
+    <div className="relative flex-grow bg-mountain-50 dark:bg-gradient-to-b dark:from-mountain-1000 dark:to-mountain-950 p-4 h-[calc(100vh-4rem)] overflow-y-scroll no-scrollbar">
+      <div className="md:hidden relative flex flex-col bg-white shadow p-4 rounded-2xl h-full dark:bg-mountain-950">
         <div className="rounded-2xl h-full overflow-y-auto">
           <PostArtist artist={postData!.user} postData={postData!} />
           <PostAssets medias={postData!.medias} />
@@ -104,7 +104,7 @@ const Post: React.FC = () => {
         <div className="flex flex-grow justify-center items-center h-full">
           <PostAssets medias={postData!.medias} />
         </div>
-        <div className="relative flex-shrink-0 bg-white shadow py-0 pl-4 rounded-2xl sm:w-[256px] md:w-[384px] lg:w-[448px]">
+        <div className="relative flex-shrink-0 bg-white dark:bg-mountain-950 shadow py-0 pl-4 rounded-2xl sm:w-[256px] md:w-[384px] lg:w-[448px]">
           <div className="flex flex-col gap-4 rounded-2xl h-full overflow-y-scroll custom-scrollbar">
             <PostArtist artist={postData!.user} postData={postData!} />
             <PostInfo

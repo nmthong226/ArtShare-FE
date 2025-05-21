@@ -77,7 +77,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
           <div className="flex-grow" />
           <div
             onClick={() => setExpand(!expand)}
-            className={`flex justify-center items-center rounded-full w-6 h-6 hover:cursor-pointer max-pointer-events-none`}>
+            className={`flex dark:hover:bg-mountain-800 justify-center items-center rounded-full w-6 h-6 hover:cursor-pointer max-pointer-events-none`}>
             {expand ? (
               <GoSidebarExpand className="size-5 text-gray-600" />
             ) : (
@@ -154,7 +154,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               className="flex flex-col w-full"
             >
               <CollapsibleTrigger asChild onClick={handleClick('ai')}>
-                <button className={`group flex pl-4 pr-2 text-violet-800 justify-between items-center  hover: py-2 rounded-md w-full transition hover:text-mountain-950 hover:cursor-pointer`}>
+                <button className={`group flex px-4 text-mountain-500 dark:text-mountain-300 justify-between items-center  hover:bg-gray-100 dark:hover:bg-mountain-800 py-2 rounded-md w-full transition`}>
                   <div className="flex items-center space-x-2">
                     <RiImageAiLine className="size-5" />
                     <p className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} font-thin`}>
@@ -237,7 +237,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               className="flex flex-col w-full"
             >
               <CollapsibleTrigger asChild onClick={handleClick('auto')}>
-                <button className={`group flex pl-4 pr-2 text-violet-800 justify-between items-center  hover: py-2 rounded-md w-full transition hover:text-mountain-950 hover:cursor-pointer`}>
+                <button className={`group flex pl-4 pr-2 text-violet-800 dark:text-mountain-300 justify-between items-center  hover: py-2 rounded-md w-full transition hover:text-mountain-950 dark:text-mountain-300 justify-between items-center  hover:bg-gray-100 dark:hover:bg-mountain-800 hover:cursor-pointer`}>
                   <div className="flex items-center space-x-2">
                     <MdAutoMode className="size-5" />
                     <p className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} font-thin`}>

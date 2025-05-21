@@ -35,7 +35,7 @@ const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
 
   return (
     artist && (
-      <div className="bg-white shadow p-4 md:border-b md:border-b-mountain-200 rounded-2xl md:rounded-b-none overflow-none">
+      <div className="bg-white dark:bg-mountain-950 shadow p-4 md:border-b md:border-b-mountain-200 rounded-2xl md:rounded-b-none overflow-none">
         <CardHeader
           className="p-0"
           action={
