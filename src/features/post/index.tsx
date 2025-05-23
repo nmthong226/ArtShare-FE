@@ -82,8 +82,8 @@ const Post: React.FC = () => {
   }
 
   return (
-    <div className="relative flex-grow bg-mountain-50 dark:bg-gradient-to-b dark:from-mountain-1000 dark:to-mountain-950 p-4 h-[calc(100vh-4rem)] overflow-y-scroll no-scrollbar">
-      <div className="md:hidden relative flex flex-col bg-white shadow p-4 rounded-2xl h-full dark:bg-mountain-950">
+    <div className="relative flex-grow bg-mountain-50 dark:bg-gradient-to-b dark:from-mountain-1000 dark:to-mountain-950 p-4 h-[calc(100vh-4rem)] overflow-y-scroll no-scrollbar dark:bg-mountain-950">
+      <div className="md:hidden relative flex flex-col bg-white shadow p-4 rounded-2xl h-full">
         <div className="rounded-2xl h-full overflow-y-auto">
           <PostArtist artist={postData!.user} postData={postData!} />
           <PostAssets medias={postData!.medias} />
