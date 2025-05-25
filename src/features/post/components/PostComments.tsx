@@ -325,6 +325,7 @@ const CommentRow = ({
                 onClick={() =>
                   requireAuth("like comments", () => onLike(comment.id))
                 }
+                disabled={false} // We'll handle the debouncing in the parent
               >
                 <Heart
                   size={16}
@@ -694,7 +695,16 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
     };
 
     /* -------------------- LIKE ------------------------------------ */
+    const [likingComments, setLikingComments] = useState<Set<number>>(
+      new Set(),
+    );
+
     const handleLike = async (id: number) => {
+      // Prevent multiple simultaneous like operations on the same comment
+      if (likingComments.has(id)) {
+        return;
+      }
+
       const comment = comments
         .flatMap(function findAll(c): CommentUI[] {
           return [c, ...(c.replies ? c.replies.flatMap(findAll) : [])];
@@ -703,7 +713,12 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
 
       const alreadyLiked = comment?.likedByCurrentUser;
 
+      // Mark this comment as being processed
+      setLikingComments((prev) => new Set(prev).add(id));
+
+      // Optimistically update UI
       setComments((prev) => toggleLikeRecursive(prev, id));
+
       try {
         if (alreadyLiked) {
           await unlikeComment(id);
@@ -712,8 +727,16 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
         }
       } catch (err) {
         console.error(err);
-        setComments((prev) => toggleLikeRecursive(prev, id)); // Revert on error
+        // Revert the optimistic update on error
+        setComments((prev) => toggleLikeRecursive(prev, id));
         showSnackbar("Failed to update like", "error");
+      } finally {
+        // Remove the comment from the processing set
+        setLikingComments((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
       }
     };
 
