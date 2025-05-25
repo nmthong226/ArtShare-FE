@@ -16,6 +16,7 @@ import { useUser } from "@/contexts/UserProvider";
 // 👉 Like/unlike API helpers
 import { likePost, unlikePost } from "../api/post.api";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 interface SimpleCollection {
   id: number;
@@ -32,11 +33,7 @@ type PostInfoProps = {
   setCommentCount: React.Dispatch<React.SetStateAction<number>>; // Accept setState function for comment count
 };
 
-const PostInfo = ({
-  postData,
-  // commentCount,
-  // setCommentCount,
-}: PostInfoProps) => {
+const PostInfo = ({ postData }: PostInfoProps) => {
   const { postCommentsRef } = useFocusContext();
   const { showSnackbar } = useSnackbar();
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -55,6 +52,7 @@ const PostInfo = ({
   const [likeCount, setLikeCount] = useState<number>(postData.like_count);
   const [isLiking, setIsLiking] = useState(false);
   const [isFetchingLike] = useState(false);
+  const requireAuth = useRequireAuth();
 
   useEffect(() => {
     const loadCollectionNames = async () => {
@@ -73,11 +71,7 @@ const PostInfo = ({
     };
     loadCollectionNames();
   }, [postData.id]);
-  // const handleCommentAdded = () => {
-  //   console.log("Comment added. Previous count:", commentCount);
-  //   setCommentCount((prev) => prev + 1); // Increment comment count when a comment is added
-  //   console.log("Updated comment count:", commentCount + 1);
-  // };
+
   const handleOpenSaveDialog = () => {
     setIsCreateDialogOpen(false);
     setIsSaveDialogOpen(true);
@@ -105,31 +99,32 @@ const PostInfo = ({
   );
 
   // Like / Unlike handler (optimistic update)
-  const handleLikeClick = async () => {
-    if (!user) {
-      showSnackbar("Please log in to like", "error");
-      return;
-    }
-    console.log("HELLO");
-    if (isLiking || isFetchingLike) return;
-    const willLike = !userLike;
-    setUserLike(willLike);
-    setLikeCount((prev) => (willLike ? prev + 1 : Math.max(prev - 1, 0)));
-    setIsLiking(true);
-    try {
-      willLike ? await likePost(postData.id) : await unlikePost(postData.id);
-    } catch (error) {
-      console.error(error)
-      setUserLike(!willLike);
-      setLikeCount((prev) => (willLike ? Math.max(prev - 1, 0) : prev + 1));
-    } finally {
-      setIsLiking(false);
-    }
-  };
+  const handleLikeClick = () =>
+    requireAuth("like this post", async () => {
+      if (!user) {
+        showSnackbar("Please log in to like", "error");
+        return;
+      }
+      if (isLiking || isFetchingLike) return;
+      const willLike = !userLike;
+      setUserLike(willLike);
+      setLikeCount((prev) => (willLike ? prev + 1 : Math.max(prev - 1, 0)));
+      setIsLiking(true);
+      try {
+        willLike ? await likePost(postData.id) : await unlikePost(postData.id);
+      } catch (error) {
+        console.error("Error toggling like status:", error);
+        setUserLike(!willLike);
+        setLikeCount((prev) => (willLike ? Math.max(prev - 1, 0) : prev + 1));
+      } finally {
+        setIsLiking(false);
+      }
+    });
 
-  const handleOpenLikesDialog = () => {
-    if (likeCount > 0) setIsLikesDialogOpen(true);
-  };
+  const handleOpenLikesDialog = () =>
+    requireAuth("view likes", () => {
+      if (likeCount > 0) setIsLikesDialogOpen(true);
+    });
   const handleCloseLikesDialog = () => setIsLikesDialogOpen(false);
 
   const handleFocusCommentInput = () => {

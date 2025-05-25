@@ -6,7 +6,7 @@ const PostAssets = ({ medias }: { medias: MediaDto[] }) => {
   return (
     <PhotoProvider maskOpacity={0.9}>
       <div
-        className={`flex flex-col items-center ${medias.length === 1 && "justify-center"} bg-white md:shadow rounded-2xl pb-4 md:h-full w-full overflow-y-scroll no-scrollbar`}
+        className={`flex flex-col items-center ${medias.length === 1 && "justify-center"} bg-white md:shadow rounded-2xl pb-4 md:h-full w-full overflow-y-auto no-scrollbar`}
       >
         {medias &&
           medias.map((media) => (

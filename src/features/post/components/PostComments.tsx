@@ -13,7 +13,7 @@ import {
   MenuItem,
   TextareaAutosize,
   CircularProgress,
-  Snackbar,
+  Typography,
 } from "@mui/material";
 import {
   ChevronDown,
@@ -34,24 +34,60 @@ import {
 import { CommentUI, CreateCommentDto } from "@/types/comment";
 import { useUser } from "@/contexts/UserProvider";
 import { User } from "@/types";
+import { Link as RouterLink } from "react-router-dom";
+import MuiLink from "@mui/material/Link";
+import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 /* ------------------------------------------------------------------ */
 /* Constants & helpers                                                */
 /* ------------------------------------------------------------------ */
-const INDENT = 40;
+const INDENT = 44;
+
+const DATETIME_FORMAT_OPTIONS_FOR_TITLE: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+};
+
+const getTimeAgo = (date: string | Date): string => {
+  const now = new Date().getTime();
+  const then = new Date(date).getTime();
+  const seconds = Math.floor((now - then) / 1000);
+  if (seconds < 60) {
+    return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+  }
+  const days = Math.floor(hours / 24);
+  return `${days} day${days !== 1 ? "s" : ""} ago`;
+};
 
 const addReplyRecursive = (
   list: CommentUI[],
   parentId: number,
   reply: CommentUI,
 ): CommentUI[] =>
-  list.map((c) =>
-    c.id === parentId
-      ? { ...c, replies: c.replies ? [...c.replies, reply] : [reply] }
-      : c.replies?.length
-        ? { ...c, replies: addReplyRecursive(c.replies, parentId, reply) }
-        : c,
-  );
+  list.map((c) => {
+    if (c.id === parentId) {
+      return {
+        ...c,
+        replies: c.replies ? [...c.replies, reply] : [reply],
+        reply_count: (c.reply_count ?? 0) + 1,
+      };
+    }
+    return c.replies?.length
+      ? { ...c, replies: addReplyRecursive(c.replies, parentId, reply) }
+      : c;
+  });
 
 const toggleLikeRecursive = (list: CommentUI[], id: number): CommentUI[] =>
   list.map((c) =>
@@ -66,12 +102,32 @@ const toggleLikeRecursive = (list: CommentUI[], id: number): CommentUI[] =>
         : c,
   );
 
-const removeRecursive = (list: CommentUI[], id: number): CommentUI[] =>
-  list
+const removeRecursive = (list: CommentUI[], id: number): CommentUI[] => {
+  return list
     .filter((c) => c.id !== id)
-    .map((c) =>
-      c.replies?.length ? { ...c, replies: removeRecursive(c.replies, id) } : c,
-    );
+    .map((c) => {
+      if (c.replies?.length) {
+        const originalReplyCount = c.replies.length;
+        const updatedReplies = removeRecursive(c.replies, id);
+        const newReplyCount = updatedReplies.length;
+
+        // If we removed a reply, update the reply_count
+        if (originalReplyCount !== newReplyCount) {
+          return {
+            ...c,
+            replies: updatedReplies,
+            reply_count: Math.max(
+              0,
+              (c.reply_count ?? 0) - (originalReplyCount - newReplyCount),
+            ),
+          };
+        }
+
+        return { ...c, replies: updatedReplies };
+      }
+      return c;
+    });
+};
 
 const updateContentRecursive = (
   list: CommentUI[],
@@ -97,7 +153,6 @@ interface RowProps {
   onReply: (id: number, username: string) => void;
   onDelete: (id: number) => void;
   onRepliesFetched: (id: number, replies: CommentUI[]) => void;
-  /* edit handlers */
   editingId: number | null;
   onStartEdit: (id: number) => void;
   onAbortEdit: () => void;
@@ -118,11 +173,12 @@ const CommentRow = ({
   onCommitEdit,
 }: RowProps) => {
   const { user } = useUser();
+  const { showSnackbar } = useSnackbar();
   const CURRENT_USER_ID = user?.id;
   const isMine = comment.user_id === CURRENT_USER_ID;
   const isEditing = editingId === comment.id;
   const editRef = useRef<HTMLTextAreaElement>(null);
-  const prevReplyCountRef = useRef(comment.replies?.length || 0); //// keep track of how many replies we *had* last render
+  const prevReplyCountRef = useRef(comment.replies?.length || 0);
   const [showReplies, setShowReplies] = useState(false);
   const [loading, setLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -130,46 +186,34 @@ const CommentRow = ({
   const handleMenu = (e: MouseEvent<HTMLButtonElement>) =>
     setAnchorEl(e.currentTarget);
   const closeMenu = () => setAnchorEl(null);
-
-  // Date formatting options
-  const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  };
-
-  const DATETIME_FORMAT_OPTIONS_FOR_TITLE: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  };
+  const requireAuth = useRequireAuth();
 
   useEffect(() => {
     const prev = prevReplyCountRef.current;
     const curr = comment.replies?.length ?? 0;
-    // if we went from 0 → >0, open the thread
-    if (prev === 0 && curr > 0) {
+    if (prev === 0 && curr > 0 && !showReplies) {
       setShowReplies(true);
     }
     prevReplyCountRef.current = curr;
-  }, [comment.replies]);
+  }, [comment.replies, showReplies]);
 
   const toggleReplies = async () => {
-    if (!showReplies && comment.replies === undefined) {
+    const needsToFetch =
+      !showReplies &&
+      (comment.replies === undefined ||
+        (comment.replies.length === 0 && (comment.reply_count ?? 0) > 0));
+
+    if (needsToFetch) {
       try {
         setLoading(true);
-        const replies = await fetchComments(postId, comment.id);
-
-        onRepliesFetched(comment.id, replies as CommentUI[]);
+        const fetchedReplies = await fetchComments(postId, comment.id);
+        onRepliesFetched(comment.id, fetchedReplies as CommentUI[]);
       } catch (err) {
-        console.error(err);
-        Snackbar({
-          open: true,
-          message: "Failed to load replies.",
-          autoHideDuration: 3000,
-        });
+        console.error(
+          "Failed to load replies for comment " + comment.id + ":",
+          err,
+        );
+        showSnackbar("Failed to load replies", "error");
       } finally {
         setLoading(false);
       }
@@ -177,13 +221,36 @@ const CommentRow = ({
     setShowReplies((s) => !s);
   };
 
+  const getReplyButtonTextContent = () => {
+    const count = comment.reply_count ?? 0;
+    return `${count} ${count === 1 ? "reply" : "replies"}`;
+  };
+
+  const renderContent = (text: string) => {
+    const parts = text.split(/(@\w+)/g);
+    return parts.map((part, i) => {
+      const m = part.match(/^@(\w+)$/);
+      if (m) {
+        const username = m[1];
+        return (
+          <MuiLink
+            key={i}
+            component={RouterLink}
+            to={`/${username}`}
+            color="primary"
+            underline="hover"
+          >
+            @{username}
+          </MuiLink>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
   return (
-    <div className="w-full">
-      {/* Row */}
-      <div
-        className="flex gap-3 py-3 w-full"
-        style={{ marginLeft: depth * INDENT }}
-      >
+    <div id={`comment-${comment.id}`} className="w-full">
+      <div className="flex gap-3 py-3 w-full">
         {comment.user.profile_picture_url ? (
           <img
             src={comment.user.profile_picture_url}
@@ -213,10 +280,7 @@ const CommentRow = ({
                   : undefined
               }
             >
-              {new Date(comment.created_at).toLocaleDateString(
-                undefined,
-                DATE_FORMAT_OPTIONS,
-              )}
+              {getTimeAgo(comment.created_at)}
               {new Date(comment.updated_at).getTime() !==
                 new Date(comment.created_at).getTime() && " (edited)"}
             </span>
@@ -248,33 +312,67 @@ const CommentRow = ({
               </div>
             </div>
           ) : (
-            <div className="text-sm whitespace-pre-wrap">{comment.content}</div>
+            <div className="text-sm whitespace-pre-wrap">
+              {renderContent(comment.content)}
+            </div>
           )}
 
-          <div className="flex items-center gap-4 mt-1 text-xs text-neutral-600">
-            <button
-              onClick={() => onLike(comment.id)}
-              className={`flex items-center gap-1 hover:text-black ${
-                comment.likedByCurrentUser ? "text-blue-600 font-semibold" : ""
-              }`}
-            >
-              <Heart size={16} />
-              <span>{comment.like_count ?? 0}</span>
-            </button>
-            <button
-              onClick={() => onReply(comment.id, comment.user.username)}
-              className="hover:text-black"
-            >
-              Reply
-            </button>
-          </div>
+          {!isEditing && (
+            <div className="flex items-center gap-1 mt-1">
+              <IconButton
+                size="small"
+                color={comment.likedByCurrentUser ? "primary" : "default"}
+                onClick={() =>
+                  requireAuth("like comments", () => onLike(comment.id))
+                }
+                disabled={false} // We'll handle the debouncing in the parent
+              >
+                <Heart
+                  size={16}
+                  fill={comment.likedByCurrentUser ? "currentColor" : "none"}
+                  stroke="currentColor"
+                />
+              </IconButton>
+              <Typography variant="caption" sx={{ mr: 2 }}>
+                {comment.like_count ?? 0}
+              </Typography>
+
+              <Button
+                size="small"
+                color="primary"
+                onClick={() =>
+                  requireAuth("reply to comments", () =>
+                    onReply(comment.id, comment.user.username),
+                  )
+                }
+              >
+                Reply
+              </Button>
+            </div>
+          )}
         </div>
 
         {isMine && !isEditing && (
           <>
-            <IconButton onClick={handleMenu} className="!p-1">
-              <MoreVertical size={20} />
+            <IconButton
+              size="small"
+              edge="end"
+              disableRipple
+              onClick={handleMenu}
+              sx={{
+                // -- keep it compact
+                width: 28,
+                height: 28,
+                p: 0.5,
+                borderRadius: "50%",
+                "&:hover": {
+                  backgroundColor: "action.hover", // subtle, uses theme value
+                },
+              }}
+            >
+              <MoreVertical size={18} />
             </IconButton>
+
             <Menu anchorEl={anchorEl} open={openMenu} onClose={closeMenu}>
               <MenuItem
                 onClick={() => {
@@ -285,9 +383,13 @@ const CommentRow = ({
                 Edit
               </MenuItem>
               <MenuItem
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   closeMenu();
-                  onDelete(comment.id);
+                  setTimeout(() => {
+                    onDelete(comment.id);
+                  }, 0);
                 }}
               >
                 Delete
@@ -298,33 +400,32 @@ const CommentRow = ({
       </div>
 
       {/* Replies */}
-      {(comment.replies === undefined || comment.replies.length > 0) && (
-        <div className="ml-[32px] flex flex-col gap-1">
+      {((comment.reply_count ?? 0) > 0 ||
+        (comment.replies?.length ?? 0) > 0) && (
+        <div className="flex flex-col gap-1" style={{ marginLeft: INDENT }}>
           <button
             onClick={toggleReplies}
-            className="flex items-center gap-1 text-xs text-blue-600"
+            disabled={loading && !showReplies}
+            className="flex items-center gap-1 text-xs text-blue-600 disabled:text-neutral-400"
           >
-            {showReplies ? <ChevronUp size={14} /> : <ChevronDown size={14} />}{" "}
-            {showReplies ? "Hide" : "View"}{" "}
-            {(() => {
-              // how many replies do we know about?
-              const count =
-                comment.replies !== undefined
-                  ? comment.replies.length
-                  : (comment.reply_count ?? 0);
-
-              return count
-                ? `${count} ${count === 1 ? "reply" : "replies"}`
-                : "replies";
-            })()}
+            {loading && !showReplies ? ( // Spinner when fetching to expand
+              <CircularProgress
+                size={14}
+                color="inherit"
+                sx={{ marginRight: "4px" }}
+              />
+            ) : showReplies ? (
+              <ChevronUp size={14} />
+            ) : (
+              <ChevronDown size={14} />
+            )}
+            {showReplies ? "Hide" : "View"} {getReplyButtonTextContent()}
           </button>
-          {loading && (
-            <div className="flex items-center gap-1 text-xs text-neutral-500 p-2">
-              <CircularProgress size={12} /> Loading replies…
-            </div>
-          )}
+
           {showReplies &&
-            comment.replies?.map((r: CommentUI) => (
+            comment.replies &&
+            comment.replies.length > 0 &&
+            comment.replies.map((r: CommentUI) => (
               <CommentRow
                 postId={postId}
                 key={r.id}
@@ -359,23 +460,41 @@ interface Props {
 const PostComments = forwardRef<HTMLDivElement, Props>(
   ({ comments: initial, postId, onCommentAdded, onCommentDeleted }, _ref) => {
     const { user } = useUser();
+    const { showSnackbar } = useSnackbar();
     const CURRENT_USER_ID = user?.id;
     const { postCommentsRef } = useFocusContext();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const listRef = useRef<HTMLDivElement>(null); // scroll target
+    const listRef = useRef<HTMLDivElement>(null);
     const [comments, setComments] = useState<CommentUI[]>(initial);
     const [newComment, setNewComment] = useState("");
     const [replyParentId, setReplyParentId] = useState<number | null>(null);
     const [isPosting, setIsPosting] = useState(false);
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const requireAuth = useRequireAuth();
 
     useEffect(() => {
       setComments(initial);
     }, [initial]);
 
     useImperativeHandle(postCommentsRef, () => ({
-      focusInput: () => textareaRef.current?.focus(),
+      focusInput: () => {
+        if (!user) {
+          showSnackbar(
+            "Please login to comment",
+            "warning",
+            <Button
+              size="small"
+              color="inherit"
+              onClick={() => (window.location.href = "/login")}
+            >
+              Login
+            </Button>,
+          );
+          return;
+        }
+        textareaRef.current?.focus();
+      },
     }));
 
     const attachReplies = (id: number, replies: CommentUI[]) => {
@@ -389,6 +508,7 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
         ),
       );
     };
+
     const attachRepliesTo = (
       list: CommentUI[],
       id: number,
@@ -409,8 +529,8 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
 
       const tmpId = Date.now();
       const now = new Date();
+      const parentId = replyParentId;
 
-      // Create optimistic comment
       const optimistic: CommentUI = {
         id: tmpId,
         user_id: CURRENT_USER_ID || "",
@@ -431,10 +551,10 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
         reply_count: 0,
       };
 
-      // Optimistically update UI to show the new comment
+      // Optimistically update UI to show the new reply (and bump reply_count)
       setComments((prev) =>
-        replyParentId
-          ? addReplyRecursive(prev, replyParentId, optimistic)
+        parentId
+          ? addReplyRecursive(prev, parentId, optimistic)
           : [optimistic, ...prev],
       );
 
@@ -450,13 +570,13 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
           content,
           target_id: postId,
           target_type: "POST",
-          parent_comment_id: replyParentId ?? undefined,
+          parent_comment_id: parentId ?? undefined,
         };
 
         const { data } = await createComment(payload);
 
         // Replace the optimistic comment while preserving hierarchy
-        if (replyParentId) {
+        if (parentId) {
           // For replies, update within the nested structure
           setComments((prev) =>
             prev.map((comment) => {
@@ -489,10 +609,8 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
           setComments((prev) => prev.map((c) => (c.id === tmpId ? data : c)));
         }
 
-        // Scroll the list to see the new comment
         setTimeout(() => {
           if (replyParentId) {
-            // Find the parent comment element and scroll to it
             const parentEl = document.getElementById(
               `comment-${replyParentId}`,
             );
@@ -500,20 +618,19 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
               parentEl.scrollIntoView({ behavior: "smooth", block: "center" });
             }
           } else {
-            // For top-level comments, scroll to top
             listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
           }
         }, 100);
+        setReplyParentId(null);
       } catch (err) {
         console.error(err);
         setComments((prev) => removeRecursive(prev, tmpId));
-        alert("Failed to post comment.");
+        showSnackbar("Failed to post comment", "error");
       } finally {
         setIsPosting(false);
       }
     };
 
-    // Helper function to update a reply in a nested comment structure
     const updateReplyInNestedStructure = (
       replies: CommentUI[],
       parentId: number,
@@ -522,14 +639,12 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
     ): CommentUI[] => {
       return replies.map((reply) => {
         if (reply.id === parentId) {
-          // This is the parent, replace the temp reply
           return {
             ...reply,
             replies:
               reply.replies?.map((r) => (r.id === tmpId ? newData : r)) || [],
           };
         } else if (reply.replies?.length) {
-          // Continue searching
           return {
             ...reply,
             replies: updateReplyInNestedStructure(
@@ -543,6 +658,7 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
         return reply;
       });
     };
+
     /* -------------------- DELETE ---------------------------------- */
     const handleDelete = async (id: number) => {
       const prev = comments;
@@ -554,7 +670,7 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
       } catch (err) {
         console.error(err);
         setComments(prev);
-        alert("Could not delete comment.");
+        showSnackbar("Could not delete comment", "error");
       } finally {
         setDeletingId(null);
       }
@@ -574,13 +690,21 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
       } catch (err) {
         console.error(err);
         setComments(prev);
-        alert("Could not update comment.");
+        showSnackbar("Could not update comment", "error");
       }
     };
 
     /* -------------------- LIKE ------------------------------------ */
+    const [likingComments, setLikingComments] = useState<Set<number>>(
+      new Set(),
+    );
+
     const handleLike = async (id: number) => {
-      // Find the comment to check if it's already liked
+      // Prevent multiple simultaneous like operations on the same comment
+      if (likingComments.has(id)) {
+        return;
+      }
+
       const comment = comments
         .flatMap(function findAll(c): CommentUI[] {
           return [c, ...(c.replies ? c.replies.flatMap(findAll) : [])];
@@ -588,21 +712,30 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
         .find((c) => c.id === id);
 
       const alreadyLiked = comment?.likedByCurrentUser;
-      console.log(alreadyLiked);
 
+      // Mark this comment as being processed
+      setLikingComments((prev) => new Set(prev).add(id));
+
+      // Optimistically update UI
       setComments((prev) => toggleLikeRecursive(prev, id));
+
       try {
         if (alreadyLiked) {
           await unlikeComment(id);
         } else {
           await likeComment(id);
         }
-      } catch (_err) {
-        console.error(_err);
-        Snackbar({
-          open: true,
-          message: "Failed to load replies.",
-          autoHideDuration: 3000,
+      } catch (err) {
+        console.error(err);
+        // Revert the optimistic update on error
+        setComments((prev) => toggleLikeRecursive(prev, id));
+        showSnackbar("Failed to update like", "error");
+      } finally {
+        // Remove the comment from the processing set
+        setLikingComments((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
         });
       }
     };
@@ -611,17 +744,17 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
     useEffect(() => {
       const loadComments = async () => {
         try {
-          const data = await fetchComments(postId); // already nested
+          const data = await fetchComments(postId);
           setComments(data as CommentUI[]);
         } catch (err) {
           console.error("Failed to load comments:", err);
+          showSnackbar("Failed to load comments", "error");
         }
       };
       if (postId) {
-        // Ensure postId is available
         loadComments();
       }
-    }, [postId]);
+    }, [postId, showSnackbar]);
 
     return (
       <div
@@ -669,9 +802,16 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
               alt={user.username}
               className="w-8 h-8 rounded-full object-cover"
             />
+          ) : user ? (
+            <Avatar
+              name={user.username || ""}
+              size={32}
+              variant="beam"
+              colors={["#84bfc3", "#ff9b62", "#d96153"]}
+            />
           ) : (
             <Avatar
-              name={user?.username || ""}
+              name="Guest"
               size={32}
               variant="beam"
               colors={["#84bfc3", "#ff9b62", "#d96153"]}
@@ -680,16 +820,39 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
           <div className="flex flex-grow gap-2">
             <TextareaAutosize
               ref={textareaRef}
-              placeholder={replyParentId ? `Replying to...` : "Add a comment"}
-              className="border border-neutral-300 rounded-lg p-3 w-full resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 "
+              placeholder={
+                user
+                  ? replyParentId
+                    ? `Replying to...`
+                    : "Add a comment"
+                  : "Login to add a comment"
+              }
+              className="border border-neutral-300 rounded-lg p-3 w-full resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              disabled={isPosting}
+              disabled={isPosting || !user}
+              onFocus={() => {
+                if (!user) {
+                  showSnackbar(
+                    "Please login to comment",
+                    "warning",
+                    <Button
+                      size="small"
+                      color="inherit"
+                      onClick={() => (window.location.href = "/login")}
+                    >
+                      Login
+                    </Button>,
+                  );
+                  textareaRef.current?.blur();
+                }
+              }}
               onKeyDown={(e) => {
-                // submit on Enter, new line on Shift+Enter
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  if (newComment.trim()) handleAdd();
+                  if (newComment.trim()) {
+                    requireAuth("comment", handleAdd);
+                  }
                 }
               }}
             />
@@ -697,8 +860,8 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
             <Button
               variant="contained"
               className="p-0.5 min-w-auto h-12 aspect-[1/1]"
-              onClick={handleAdd}
-              disabled={!newComment.trim() || isPosting}
+              onClick={() => requireAuth("comment", handleAdd)}
+              disabled={!newComment.trim() || isPosting || !user}
             >
               {isPosting ? (
                 <CircularProgress size={24} color="inherit" />
@@ -711,7 +874,7 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
 
         {deletingId && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center text-sm">
-            <CircularProgress size={20} />{" "}
+            <CircularProgress size={20} />
             <span className="ml-2">Deleting…</span>
           </div>
         )}

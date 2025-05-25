@@ -29,7 +29,7 @@ import {
 import { AxiosError } from "axios";
 import { createLike, removeLike } from "./api/like-blog";
 import { TargetType } from "@/types/likes";
-// import parse from "html-react-parser";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const BlogDetails = () => {
   const { blogId } = useParams<{ blogId: string }>(); // get blogId from URL
@@ -40,6 +40,7 @@ const BlogDetails = () => {
   const { showSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
+  const requireAuth = useRequireAuth();
   const {
     data: blog,
     isLoading,
@@ -132,23 +133,11 @@ const BlogDetails = () => {
 
   const isOwnProfile = user?.id === blog?.user.id;
   const isFollowing = blog?.user.is_following;
-  const toggleFollow = () => {
-    if (!user) {
-      showSnackbar(
-        "Please login to follow users",
-        "warning",
-        <Button
-          size="small"
-          color="inherit"
-          onClick={() => (window.location.href = "/login")}
-        >
-          Login
-        </Button>,
-      );
-      return;
-    }
-    isFollowing ? unfollowMutation.mutate() : followMutation.mutate();
-  };
+
+  const toggleFollow = () =>
+    requireAuth("follow/unfollow users", () =>
+      isFollowing ? unfollowMutation.mutate() : followMutation.mutate(),
+    );
 
   const followBtnLoading =
     followMutation.isPending || unfollowMutation.isPending;
@@ -157,29 +146,10 @@ const BlogDetails = () => {
   const likeCount = blog?.like_count || 0;
 
   // Function to handle toggling like status
-  const handleToggleLike = () => {
-    if (!user) {
-      showSnackbar(
-        "Please login to like this blog.",
-        "warning",
-        // action slot:
-        <Button
-          size="small"
-          color="inherit"
-          onClick={() => (window.location.href = "/login")}
-        >
-          Login
-        </Button>,
-      );
-      return;
-    }
-
-    if (isLiked) {
-      unlikeMutation.mutate();
-    } else {
-      likeMutation.mutate();
-    }
-  };
+  const handleToggleLike = () =>
+    requireAuth("like this blog", () => {
+      isLiked ? unlikeMutation.mutate() : likeMutation.mutate();
+    });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -194,23 +164,8 @@ const BlogDetails = () => {
     };
   }, []);
 
-  const handleOpenLikesDialog = () => {
-    if (!user) {
-      showSnackbar(
-        "Please login to see who liked this",
-        "warning",
-        <Button
-          size="small"
-          color="inherit"
-          onClick={() => (window.location.href = "/login")}
-        >
-          Login
-        </Button>,
-      );
-      return;
-    }
-    setLikesDialogOpen(true);
-  };
+  const handleOpenLikesDialog = () =>
+    requireAuth("view likes", () => setLikesDialogOpen(true));
 
   const handleCloseLikesDialog = () => {
     setLikesDialogOpen(false);
