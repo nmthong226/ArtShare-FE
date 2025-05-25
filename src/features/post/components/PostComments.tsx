@@ -36,13 +36,40 @@ import { useUser } from "@/contexts/UserProvider";
 import { User } from "@/types";
 import { Link as RouterLink } from "react-router-dom";
 import MuiLink from "@mui/material/Link";
-import { useSnackbar } from "@/contexts/SnackbarProvider"; // Add this import
+import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 /* ------------------------------------------------------------------ */
 /* Constants & helpers                                                */
 /* ------------------------------------------------------------------ */
 const INDENT = 44;
+
+const DATETIME_FORMAT_OPTIONS_FOR_TITLE: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+};
+
+const getTimeAgo = (date: string | Date): string => {
+  const now = new Date().getTime();
+  const then = new Date(date).getTime();
+  const seconds = Math.floor((now - then) / 1000);
+  if (seconds < 60) {
+    return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+  }
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+  }
+  const days = Math.floor(hours / 24);
+  return `${days} day${days !== 1 ? "s" : ""} ago`;
+};
 
 const addReplyRecursive = (
   list: CommentUI[],
@@ -160,32 +187,6 @@ const CommentRow = ({
     setAnchorEl(e.currentTarget);
   const closeMenu = () => setAnchorEl(null);
   const requireAuth = useRequireAuth();
-  const DATETIME_FORMAT_OPTIONS_FOR_TITLE: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  };
-
-  const getTimeAgo = (date: string | Date): string => {
-    const now = new Date().getTime();
-    const then = new Date(date).getTime();
-    const seconds = Math.floor((now - then) / 1000);
-    if (seconds < 60) {
-      return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
-    }
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) {
-      return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
-    }
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) {
-      return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
-    }
-    const days = Math.floor(hours / 24);
-    return `${days} day${days !== 1 ? "s" : ""} ago`;
-  };
 
   useEffect(() => {
     const prev = prevReplyCountRef.current;
@@ -458,7 +459,7 @@ interface Props {
 const PostComments = forwardRef<HTMLDivElement, Props>(
   ({ comments: initial, postId, onCommentAdded, onCommentDeleted }, _ref) => {
     const { user } = useUser();
-    const { showSnackbar } = useSnackbar(); // Add this
+    const { showSnackbar } = useSnackbar();
     const CURRENT_USER_ID = user?.id;
     const { postCommentsRef } = useFocusContext();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
