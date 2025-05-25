@@ -7,6 +7,10 @@ import { PostMenu } from "./PostMenu";
 import { auth } from "@/firebase";
 import { deletePost } from "@/api/post/post";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useReport } from "@/features/user-profile-public/hooks/useReport";
+import ReportDialog from "@/features/user-profile-public/components/ReportDialog";
+import { useState } from "react";
+import { ReportTargetType } from "@/features/user-profile-public/api/report.api";
 
 const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
   const navigate = useNavigate();
@@ -29,8 +33,22 @@ const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
     }
   };
 
-  const handleReport = () => {
-    showSnackbar("Reported post", "info");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const {mutate: reportPost, isPending: isLoadingReportUser } = useReport();
+
+  const handleReport = (reason: string) => {
+    reportPost(
+      { targetId: postData?.id, reason, targetType: ReportTargetType.POST },
+      {
+        onSuccess: () => {
+          setDialogOpen(false);
+          showSnackbar('Your report will be reviewed soon! Thanks for your report', 'success');
+        },
+        onError: (err) => {
+          showSnackbar(err.message, 'error');
+        },
+      }
+    );
   };
 
   return (
@@ -44,7 +62,7 @@ const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
                 isOwner={!!isOwner}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
-                onReport={handleReport}
+                onReport={() => setDialogOpen(true)}
               />
               <Link to="/explore">
                 <IconButton>
@@ -79,6 +97,12 @@ const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
             </div>
           </div>
         </CardContent>
+        <ReportDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            onSubmit={handleReport}
+            submitting={isLoadingReportUser}
+          />
       </div>
     )
   );
