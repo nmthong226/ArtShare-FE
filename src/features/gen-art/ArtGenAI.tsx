@@ -25,6 +25,8 @@ import { MockModelOptionsData } from './mock/Data';
 
 //API Backend
 import api from '@/api/baseApi';
+import { useQueryClient } from '@tanstack/react-query';
+import { generateImages } from './api/generate-imges.api';
 
 {/*
 A stunning realistic scene featuring a woman astronaut curiously peeking out of 
@@ -39,15 +41,31 @@ with stars twinkling in the background creating a sense of vastness in space.
 
 const PAGE_SIZE = 5;
 
+const getPromptResult = (userPrompt: string, numberOfImages: number, imageUrls: string[]): PromptResult => {
+    return {
+        id: -1, // Placeholder ID, replace with actual ID if needed
+        user_prompt: userPrompt,
+        final_prompt: '', // Placeholder, replace with actual final prompt if needed
+        aspect_ratio: '',
+        created_at: new Date().toISOString(),
+        camera: '',
+        lighting: '',
+        model_key: ModelKey.GPT_IMAGE_1,
+        number_of_images_generated: numberOfImages,
+        style: '',
+        user_id: '', // Placeholder, replace with actual user ID if needed
+        image_urls: imageUrls,
+    };
+}
+
 const ArtGenAI = () => {
     const [promptResultList, setPromptResultList] = useState<PromptResult[]>([]);
-    const [promptResult, setPromptResult] = useState<PromptResult>();
-    const [tokenNumber] = useState<number>(35);
     const [expanded, setExpanded] = useState<boolean>(true);
     const [promptExpanded, setPromptExpanded] = useState<boolean>(false);
     const [userPrompt, setUserPrompt] = useState('');
-    const [committedPrompt, setCommittedPrompt] = useState('');
-    const [generatingImage, setGeneratingImage] = useState<boolean | null>(null);
+
+    const [generatingImage, setGeneratingImage] = useState<boolean>(false);
+
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [loading, setLoading] = useState(true);
     const [historyFilter, setHistoryFilter] = useState(HistoryFilter.TODAY)
@@ -64,6 +82,8 @@ const ArtGenAI = () => {
     const [lighting, setLighting] = useState<LightingOption>(lightingOptions[0]);
     const [camera, setCamera] = useState<CameraOption>(cameraOptions[0]);
     const [numberOfImages, setNumberOfImages] = useState<number>(1);
+
+    const queryClient = useQueryClient();
 
     const handleGetPromptHistory = async () => {
         try {
@@ -181,7 +201,6 @@ const ArtGenAI = () => {
         if (!userPrompt.trim() || generatingImage) return;
 
         setGeneratingImage(true);
-        setCommittedPrompt(userPrompt);
 
         setTimeout(() => {
             scrollRef.current?.scrollTo({
@@ -199,13 +218,27 @@ const ArtGenAI = () => {
             lighting: lighting.value,
             camera: camera.value
         };
-        console.log(payload);
         try {
-            const response = await api.post('/art-generation/text-to-image', payload);
-            setPromptResult(response.data);
+            const { prompt, urls } = await generateImages(payload);
+
+            // append this prompt result to the displayed results
+            setDisplayedResults(prev => {
+                const newPromptResult = getPromptResult(
+                    prompt,
+                    numberOfImages,
+                    urls
+                );
+                const updated = [...prev, newPromptResult];
+                // Ensure we don't exceed the page size
+                console.log('Updated Displayed Results:', updated);
+
+                if (updated.length > PAGE_SIZE) {
+                    return updated.slice(-PAGE_SIZE);
+                }
+                return updated;
+            });
+
             setUserPrompt('');
-            setGeneratingImage(false);
-            if (intervalRef.current) clearInterval(intervalRef.current);
 
             setTimeout(() => {
                 scrollRef.current?.scrollTo({
@@ -216,8 +249,10 @@ const ArtGenAI = () => {
 
         } catch (e) {
             console.error('Image generation failed:', e);
+        } finally {
             if (intervalRef.current) clearInterval(intervalRef.current);
             setGeneratingImage(false);
+            queryClient.invalidateQueries({ queryKey: ['subscriptionInfo']})
         }
     };
 
@@ -305,7 +340,7 @@ const ArtGenAI = () => {
                                 </DropdownMenu>
                             </div>
                         </div>
-                        <TokenPopover tokenNumber={tokenNumber} />
+                        <TokenPopover />
                         <PurchaseButton />
                     </div>
                 </div>
@@ -320,28 +355,24 @@ const ArtGenAI = () => {
                             </div>
                         ) : (
                             <div ref={scrollRef} onScroll={handleScroll} className='flex flex-col space-y-10 pr-4 w-full h-full overflow-y-auto custom-scrollbar'>
-                                {(displayedResults && displayedResults.length > 0) || generatingImage ? displayedResults
-                                    .map((result, index) => (
+                                {(displayedResults && displayedResults.length > 0)
+                                    ? displayedResults.map((result, index) => (
                                         <PromptResult
                                             key={index}
                                             result={result}
-                                            generating={false}
                                         />
                                     )) : (
-                                    <div className='flex justify-center items-center h-full text-mountain-600'>
-                                        <BiInfoCircle className='mr-2 size-5' />
-                                        <p className=''>There is no prompt result. What's on your mind?</p>
-                                    </div>
-                                )}
+                                        <div className='flex justify-center items-center h-full text-mountain-600'>
+                                            <BiInfoCircle className='mr-2 size-5' />
+                                            <p className=''>There is no prompt result. What's on your mind?</p>
+                                        </div>
+                                    )}
                                 {generatingImage &&
-                                    <>
-                                        <PromptResult
-                                            tempPrompt={" " + committedPrompt}
-                                            tempResult={Array(numberOfImages).fill('https://res.cloudinary.com/dqxtf297o/image/upload/f_auto,q_auto/v1/artshare-asset/utzac220yrts0ujnjjq1?blur=300&q=1')}
-                                            generating={true}
-                                            result={promptResult!}
-                                        />
-                                    </>
+                                    <PromptResult
+                                        generating={true}
+                                        tempPrompt={userPrompt}
+                                        tempImageCount={numberOfImages}
+                                    />
                                 }
                                 <div className='flex flex-col space-y-2'>
                                     <div className='flex h-64' />
