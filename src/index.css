@@ -169,7 +169,6 @@ body {
   scrollbar-width: thin;
   background: transparent;
 
-
   &::-webkit-scrollbar {
     width: 6px;
   }
@@ -182,8 +181,9 @@ body {
     background: transparent;
   }
 
-  mask-image: linear-gradient(to top, transparent, black),
-  linear-gradient(to left, transparent 17px, black 17px);
+  mask-image:
+    linear-gradient(to top, transparent, black),
+    linear-gradient(to left, transparent 17px, black 17px);
   mask-size: 100% 20000px;
   mask-position: left bottom;
   -webkit-mask-image:
@@ -191,8 +191,9 @@ body {
     linear-gradient(to left, transparent 17px, black 17px);
   -webkit-mask-size: 100% 20000px;
   -webkit-mask-position: left bottom;
-  transition: mask-position 0.3s,
-  -webkit-mask-position 0.3s;
+  transition:
+    mask-position 0.3s,
+    -webkit-mask-position 0.3s;
 }
 
 .sidebar:hover {
@@ -216,5 +217,14 @@ body {
   .dark input[type="date"]::-moz-calendar-picker-indicator {
     filter: invert(1) brightness(0.8);
     cursor: pointer;
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent; /* no white bar when thumb absent */
+  }
+  .custom-scrollbar {
+    scrollbar-width: thin; /* Firefox */
   }
 }

@@ -14,6 +14,19 @@ import { useEffect, useState } from "react";
 const Post: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
 
+  // Effect to control body overflow
+  useEffect(() => {
+    // Store the original body overflow style
+    const originalBodyOverflow = document.body.style.overflow;
+    // Hide the main scrollbar
+    document.body.style.overflow = "hidden";
+
+    // Cleanup function to restore original body overflow when component unmounts
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+    };
+  }, []); // Empty dependency array ensures this effect runs only on mount and unmount
+
   const {
     data: postData,
     isLoading: isPostLoading,
@@ -58,7 +71,7 @@ const Post: React.FC = () => {
     if (postData) {
       // Directly update postData.comment_count
       postData.comment_count += 1; // This ensures that postData.comment_count is updated
-      refetchPostData;
+      refetchPostData();
     }
   };
   const handleCommentDeleted = () => {
@@ -66,7 +79,7 @@ const Post: React.FC = () => {
     if (postData) {
       // Directly update postData.comment_count
       postData.comment_count -= 1; // This ensures that postData.comment_count is updated
-      refetchPostData; // Refetch the post data to trigger a re-render of PostInfo
+      refetchPostData();
     }
   };
   if (isPostLoading || isCommentsLoading) {
@@ -82,7 +95,7 @@ const Post: React.FC = () => {
   }
 
   return (
-    <div className="relative flex-grow bg-mountain-50 dark:bg-gradient-to-b dark:from-mountain-1000 dark:to-mountain-950 p-4 h-[calc(100vh-4rem)] overflow-y-scroll no-scrollbar dark:bg-mountain-950">
+    <div className="relative flex-grow bg-mountain-50 dark:bg-gradient-to-b dark:from-mountain-1000 dark:to-mountain-950 p-4 h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar dark:bg-mountain-950">
       <div className="md:hidden relative flex flex-col bg-white shadow p-4 rounded-2xl h-full">
         <div className="rounded-2xl h-full overflow-y-auto">
           <PostArtist artist={postData!.user} postData={postData!} />
@@ -105,7 +118,7 @@ const Post: React.FC = () => {
           <PostAssets medias={postData!.medias} />
         </div>
         <div className="relative flex-shrink-0 bg-white dark:bg-mountain-950 shadow py-0 pl-4 rounded-2xl sm:w-[256px] md:w-[384px] lg:w-[448px]">
-          <div className="flex flex-col gap-4 rounded-2xl h-full overflow-y-scroll custom-scrollbar">
+          <div className="flex flex-col gap-4 rounded-2xl h-full overflow-y-auto custom-scrollbar">
             <PostArtist artist={postData!.user} postData={postData!} />
             <PostInfo
               postData={postData!}

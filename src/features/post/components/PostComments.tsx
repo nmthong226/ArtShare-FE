@@ -221,7 +221,6 @@ const CommentRow = ({
     setShowReplies((s) => !s);
   };
 
-
   const renderContent = (text: string) => {
     const parts = text.split(/(@\w+)/g);
     return parts.map((part, i) => {
@@ -752,10 +751,7 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
       >
         <h4 className="font-bold text-sm">Comments</h4>
 
-        <div
-          ref={listRef}
-          className="flex flex-col divide-y divide-neutral-100 overflow-y-auto"
-        >
+        <div ref={listRef} className="flex flex-col overflow-y-auto">
           {comments.length === 0 ? (
             <p className="text-sm text-center text-mountain-500 py-4">
               No comments yet. Be the first to comment!
