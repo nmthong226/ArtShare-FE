@@ -48,7 +48,7 @@ const UserInAppConfigs = () => {
     );
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open}>
       <PopoverTrigger asChild>
         <div>
           <Button

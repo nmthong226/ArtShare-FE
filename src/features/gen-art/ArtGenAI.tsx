@@ -1,5 +1,5 @@
 //Core
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 //Components
 import { Button, CircularProgress, TextareaAutosize } from '@mui/material';
@@ -24,7 +24,15 @@ import { aspectOptions, cameraOptions, HistoryFilter, lightingOptions, ModelKey 
 import { MockModelOptionsData } from './mock/Data';
 
 //API Backend
-import api from '@/api/baseApi';
+import { useQueryClient } from '@tanstack/react-query';
+import { generateImages } from './api/generate-imges.api';
+import { useSnackbar } from '@/contexts/SnackbarProvider';
+import { useSubscriptionInfo } from '@/hooks/useSubscription';
+import axios, { AxiosError } from 'axios';
+import { BackendErrorResponse, DEFAULT_ERROR_MSG } from '@/api/types/error-response.type';
+import { buildTempPromptResult } from './helper/image-gen.helper';
+import { useScrollBottom } from '@/hooks/useScrollBottom';
+import { usePromptHistory } from '@/hooks/usePromptHistory';
 
 {/*
 A stunning realistic scene featuring a woman astronaut curiously peeking out of 
@@ -40,22 +48,12 @@ with stars twinkling in the background creating a sense of vastness in space.
 const PAGE_SIZE = 5;
 
 const ArtGenAI = () => {
-    const [promptResultList, setPromptResultList] = useState<PromptResult[]>([]);
-    const [promptResult, setPromptResult] = useState<PromptResult>();
-    const [tokenNumber] = useState<number>(35);
+    const { showSnackbar } = useSnackbar();
     const [expanded, setExpanded] = useState<boolean>(true);
     const [promptExpanded, setPromptExpanded] = useState<boolean>(false);
     const [userPrompt, setUserPrompt] = useState('');
-    const [committedPrompt, setCommittedPrompt] = useState('');
-    const [generatingImage, setGeneratingImage] = useState<boolean | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const [loading, setLoading] = useState(true);
-    const [historyFilter, setHistoryFilter] = useState(HistoryFilter.TODAY)
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [loadedCount, setLoadedCount] = useState(PAGE_SIZE);
-    const [displayedResults, setDisplayedResults] = useState<PromptResult[]>([]);
-    const [initialScrollDone, setInitialScrollDone] = useState(false);
-    const [loadingMore, setLoadingMore] = useState(false);
+    const [scrollTrigger, setScrollTrigger] = useState(0);
 
     //Setting Panel
     const [modelKey] = useState<ModelKey>(ModelKey.GPT_IMAGE_1);
@@ -65,159 +63,74 @@ const ArtGenAI = () => {
     const [camera, setCamera] = useState<CameraOption>(cameraOptions[0]);
     const [numberOfImages, setNumberOfImages] = useState<number>(1);
 
-    const handleGetPromptHistory = async () => {
-        try {
-            const response = await api.get('/art-generation/prompt-history')
-            setPromptResultList(response.data);
-        } catch (e) {
-            console.log(e);
-        }
-    }
+    // Subscription
+    const queryClient = useQueryClient();
+    const { data: subscriptionInfo } = useSubscriptionInfo();
 
-    useEffect(() => {
-        const fetchHistory = async () => {
-            try {
-                await handleGetPromptHistory();
-            } finally {
-                setLoading(false);
-            }
-        };
+    // Prompt History results and filtering management
+    const {
+        scrollRef,
+        displayedResults,
+        setDisplayedResults,
+        loading, historyFilter,
+        setHistoryFilter
+    } = usePromptHistory();
+    useScrollBottom(scrollRef, [scrollTrigger], 200);
 
-        fetchHistory();
-    }, []);
-
-    const isInFilterRange = (createdAt: string): boolean => {
-        const createdDate = new Date(createdAt);
-        const now = new Date();
-
-        switch (historyFilter) {
-            case HistoryFilter.TODAY:
-                return createdDate.toDateString() === now.toDateString();
-
-            case HistoryFilter.YESTERDAY: {
-                const yesterday = new Date();
-                yesterday.setDate(now.getDate() - 1);
-                return createdDate.toDateString() === yesterday.toDateString();
-            }
-
-            case HistoryFilter.LAST7DAYS: {
-                const sevenDaysAgo = new Date();
-                sevenDaysAgo.setDate(now.getDate() - 6);
-                return createdDate >= sevenDaysAgo && createdDate <= now;
-            }
-
-            case HistoryFilter.LAST30DAYS: {
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(now.getDate() - 29);
-                return createdDate >= thirtyDaysAgo && createdDate <= now;
-            }
-
-            default:
-                return true;
-        }
-    };
-
-    const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
-
-    useEffect(() => {
-        setLoadedCount(PAGE_SIZE);
-        setInitialScrollDone(false);
-    }, [historyFilter, promptResultList]);
-
-    const filtered = useMemo(() => {
-        return promptResultList.filter(result => isInFilterRange(result.created_at));
-    }, [promptResultList, historyFilter]);
-
-    const reversed = useMemo(() => filtered.slice().reverse(), [filtered]);
-
-    useEffect(() => {
-        const startIndex = Math.max(0, reversed.length - loadedCount);
-        const slice = reversed.slice(startIndex);
-        setDisplayedResults(slice);
-    }, [reversed, loadedCount]);
-
-    useLayoutEffect(() => {
-        if (!initialScrollDone && scrollRef.current && displayedResults.length > 0) {
-            const container = scrollRef.current;
-            container.scrollTop = container.scrollHeight;
-            setInitialScrollDone(true);
-        }
-    }, [displayedResults, initialScrollDone]);
-
-    const handleScroll = useCallback(() => {
-        const container = scrollRef.current;
-        if (!container || loadingMore) return;
-
-        if (container.scrollTop < 100 && displayedResults.length < reversed.length) {
-            const prevScrollHeight = container.scrollHeight;
-
-            setLoadingMore(true);
-            setLoadedCount(prev => prev + PAGE_SIZE);
-
-            // Restore scroll position after more items are added
-            scrollTimeout.current = setTimeout(() => {
-                const newScrollHeight = container.scrollHeight;
-                container.scrollTop = newScrollHeight - prevScrollHeight + container.scrollTop;
-                setLoadingMore(false);
-            }, 50);
-        }
-    }, [loadingMore, displayedResults.length, reversed.length]);
-
-    useEffect(() => {
-        const container = scrollRef.current;
-        if (!container) return;
-
-        container.addEventListener('scroll', handleScroll);
-
-        return () => {
-            container.removeEventListener('scroll', handleScroll);
-            if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-        };
-    }, [handleScroll]);
-
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const placeholderIdRef = useRef<number>(-1);
 
     const handleGenerate = async () => {
-        if (!userPrompt.trim() || generatingImage) return;
+        if (!userPrompt.trim()) return;
+        if (subscriptionInfo?.aiCreditRemaining === 0) {
+            showSnackbar(
+                'You’ve run out of AI credits. Upgrade your plan or come back later.',
+                'warning'
+            );
+            return;
+        }
 
-        setGeneratingImage(true);
-        setCommittedPrompt(userPrompt);
+        const promptText = userPrompt.trim();
 
-        setTimeout(() => {
-            scrollRef.current?.scrollTo({
-                top: scrollRef.current.scrollHeight,
-                behavior: 'smooth',
-            });
-        }, 100);
-
-        const payload = {
-            prompt: userPrompt,
-            modelKey: modelKey,
-            style: style.name.toLowerCase(),
-            n: numberOfImages,
-            aspectRatio: aspectRatio.value,
-            lighting: lighting.value,
-            camera: camera.value
+        const placeholder: PromptResult = {
+            ...buildTempPromptResult(promptText, numberOfImages),
+            id: placeholderIdRef.current--,
+            generating: true,
         };
-        console.log(payload);
+
+        setDisplayedResults(prev =>
+            [...prev, placeholder].slice(-PAGE_SIZE)
+        );
+        setUserPrompt('');
+        setScrollTrigger(prev => prev + 1);
+
         try {
-            const response = await api.post('/art-generation/text-to-image', payload);
-            setPromptResult(response.data);
-            setUserPrompt('');
-            setGeneratingImage(false);
-            if (intervalRef.current) clearInterval(intervalRef.current);
+            const newPromptResult = await generateImages({
+                prompt: promptText,
+                modelKey,
+                style: style.name.toLowerCase(),
+                n: numberOfImages,
+                aspectRatio: aspectRatio.value,
+                lighting: lighting.value,
+                camera: camera.value,
+            });
 
-            setTimeout(() => {
-                scrollRef.current?.scrollTo({
-                    top: scrollRef.current.scrollHeight,
-                    behavior: 'smooth',
-                });
-            }, 100);
-
+            setDisplayedResults(prev =>
+                prev.map(r => (r.id === placeholder.id ? newPromptResult : r))
+            );
+            setScrollTrigger(prev => prev + 1);
         } catch (e) {
+            // Remove the placeholder result
+            setDisplayedResults(prev =>
+                prev.filter(r => r.id !== placeholder.id)
+            );
+            const msg = axios.isAxiosError(e)
+                ? (e as AxiosError<BackendErrorResponse>).response?.data?.message ?? DEFAULT_ERROR_MSG
+                : DEFAULT_ERROR_MSG;
+
+            showSnackbar(msg, "error");
             console.error('Image generation failed:', e);
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            setGeneratingImage(false);
+        } finally {
+            queryClient.invalidateQueries({ queryKey: ['subscriptionInfo'] })
         }
     };
 
@@ -305,7 +218,7 @@ const ArtGenAI = () => {
                                 </DropdownMenu>
                             </div>
                         </div>
-                        <TokenPopover tokenNumber={tokenNumber} />
+                        <TokenPopover />
                         <PurchaseButton />
                     </div>
                 </div>
@@ -319,30 +232,19 @@ const ArtGenAI = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div ref={scrollRef} onScroll={handleScroll} className='flex flex-col space-y-10 pr-4 w-full h-full overflow-y-auto custom-scrollbar'>
-                                {(displayedResults && displayedResults.length > 0) || generatingImage ? displayedResults
-                                    .map((result, index) => (
+                            <div ref={scrollRef} className='flex flex-col space-y-10 pr-4 w-full h-full overflow-y-auto custom-scrollbar'>
+                                {(displayedResults && displayedResults.length > 0)
+                                    ? displayedResults.map(result => (
                                         <PromptResult
-                                            key={index}
+                                            key={result.id}
                                             result={result}
-                                            generating={false}
                                         />
                                     )) : (
-                                    <div className='flex justify-center items-center h-full text-mountain-600'>
-                                        <BiInfoCircle className='mr-2 size-5' />
-                                        <p className=''>There is no prompt result. What's on your mind?</p>
-                                    </div>
-                                )}
-                                {generatingImage &&
-                                    <>
-                                        <PromptResult
-                                            tempPrompt={" " + committedPrompt}
-                                            tempResult={Array(numberOfImages).fill('https://res.cloudinary.com/dqxtf297o/image/upload/f_auto,q_auto/v1/artshare-asset/utzac220yrts0ujnjjq1?blur=300&q=1')}
-                                            generating={true}
-                                            result={promptResult!}
-                                        />
-                                    </>
-                                }
+                                        <div className='flex justify-center items-center h-full text-mountain-600'>
+                                            <BiInfoCircle className='mr-2 size-5' />
+                                            <p className=''>There is no prompt result. What's on your mind?</p>
+                                        </div>
+                                    )}
                                 <div className='flex flex-col space-y-2'>
                                     <div className='flex h-64' />
                                 </div>

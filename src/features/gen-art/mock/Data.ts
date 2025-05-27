@@ -161,6 +161,11 @@ export const MockModelOptionsData = [
         description: 'Anime-style images with a cyberpunk aesthetic, featuring futuristic elements and vibrant neon colors.',
         images: [model12_img1, model12_img2, model12_img3, model12_img4, model12_img5]
     },
+    {
+        name: 'Ghibli',
+        description: 'Inspired by Studio Ghibli, this style captures the whimsical and enchanting essence of their animated films.',
+        images: ['https://elight.edu.vn/wp-content/uploads/2020/05/ho%CC%A3c-tie%CC%82%CC%81ng-anh-vo%CC%9B%CC%81i-phim-hoa%CC%A3t-hi%CC%80nh-cu%CC%89a-studio-ghibli.jpeg']
+    }
 ];
 
 

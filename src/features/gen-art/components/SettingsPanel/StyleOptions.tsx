@@ -17,6 +17,7 @@ import { MockModelOptionsData } from '../../mock/Data';
 import { IoIosArrowForward } from "react-icons/io";
 import { Button } from '@mui/material';
 import { Input } from '@/components/ui/input';
+import StyleOption from './StyleOption';
 
 const StyleOptions: React.FC<StyleOptionsProp> = ({ style, selectStyle }) => {
     const [open, setOpen] = useState(false);
@@ -62,73 +63,34 @@ const StyleOptions: React.FC<StyleOptionsProp> = ({ style, selectStyle }) => {
             </DialogTrigger>
             <DialogContent className='gap-0 space-y-0 bg-white p-0 border-0 rounded-xl min-w-5xl'>
                 <DialogHeader className='p-4 border-mountain-200 border-b-[1px]'>
-                    <DialogTitle className='font-normal text-mountain-700'>Models</DialogTitle>
+                    <DialogTitle className='font-normal text-mountain-700'>Styles</DialogTitle>
                     <DialogDescription hidden>Image Description</DialogDescription>
                 </DialogHeader>
                 <div className='relative flex w-full h-[600px]'>
                     <div className='flex flex-col space-y-4 p-4 border-mountain-200 border-r-[1px] w-[717px]'>
                         <div className='flex justify-end items-end'>
-                            <Input autoFocus={false} className='bg-mountain-50 w-64 placeholder:text-mountain-400' placeholder='Search model' />
+                            <Input autoFocus={false} className='bg-mountain-50 w-64 placeholder:text-mountain-400' placeholder='Search styles' />
                         </div>
-                        <div className='flex flex-col justify-between h-full'>
-                            <div className='flex justify-between w-full'>
-                                {MockModelOptionsData.slice(0, 5).map((style, index) => {
-                                    const isSelected = selectedStyle === style;
-                                    return (
-                                        <div key={index} className='group flex flex-col items-center space-y-2' onClick={() => setSelectedStyle(style)}>
-                                            <div className='relative flex w-32 h-32 hover:cursor-pointer'>
-                                                <img src={style.images[0]} loading="lazy" className='rounded-lg w-fit h-auto object-cover' />
-                                                {/* Show "Selected ✅" only if selected */}
-                                                {isSelected && (
-                                                    <div className='absolute inset-0 flex justify-center items-end bg-gradient-to-b from-black/10 to-black/70 p-2 rounded-lg'>
-                                                        <p className='font-thin text-white text-xs'>Selected ✅</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <p>{style.name}</p>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                            <div className='flex justify-between w-full'>
-                                {MockModelOptionsData.slice(5, 10).map((style, index) => {
-                                    const isSelected = selectedStyle === style;
-                                    return (
-                                        <div key={index} className='group flex flex-col items-center space-y-2' onClick={() => setSelectedStyle(style)}>
-                                            <div className='relative flex w-32 h-32 hover:cursor-pointer'>
-                                                <img src={style.images[0]} loading="lazy" className='rounded-lg w-fit h-auto object-cover' />
-                                                {/* Show "Selected ✅" only if selected */}
-                                                {isSelected && (
-                                                    <div className='absolute inset-0 flex justify-center items-end bg-gradient-to-b from-black/10 to-black/70 p-2 rounded-lg'>
-                                                        <p className='font-thin text-white text-xs'>Selected ✅</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <p>{style.name}</p>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                            <div className='flex justify-start space-x-3 w-full'>
-                                {MockModelOptionsData.slice(10, 12).map((style, index) => {
-                                    const isSelected = selectedStyle === style;
-                                    return (
-                                        <div key={index} className='group flex flex-col items-center space-y-2' onClick={() => setSelectedStyle(style)}>
-                                            <div className='relative flex w-32 h-32 hover:cursor-pointer'>
-                                                <img src={style.images[0]} loading="lazy" className='rounded-lg w-fit h-auto object-cover' />
-                                                {/* Show "Selected ✅" only if selected */}
-                                                {isSelected && (
-                                                    <div className='absolute inset-0 flex justify-center items-end bg-gradient-to-b from-black/10 to-black/70 p-2 rounded-lg'>
-                                                        <p className='font-thin text-white text-xs'>Selected ✅</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <p>{style.name}</p>
-                                        </div>
-                                    )
-                                })}
-                            </div>
+
+                        <div
+                            className="
+                                grid
+                                grid-cols-[repeat(auto-fill,minmax(8rem,1fr))]
+                                gap-4
+                                overflow-y-auto
+                                h-[500px]
+                            "
+                        >
+                            {MockModelOptionsData.map((style) => (
+                                <StyleOption
+                                    key={style.name}
+                                    style={style}
+                                    isSelected={style === selectedStyle}
+                                    onClick={() => setSelectedStyle(style)}
+                                />
+                            ))}
                         </div>
+
                     </div>
                     <div className='flex flex-col items-start space-y-4 py-4 border-mountain-200 w-[307px] overflow-hidden'>
                         <div className='flex justify-center w-full'>
@@ -142,8 +104,10 @@ const StyleOptions: React.FC<StyleOptionsProp> = ({ style, selectStyle }) => {
                         </div>
                         <div className='flex flex-col justify-between w-full h-full'>
                             <div>
-                                <p className='flex mb-1 px-6 w-full font-medium'>Sample Result</p>
-                                <div className='flex space-x-2 w-[500px] duration-300 ease-in-out' style={{ transform: `translateX(${translateValue}px)` }}>
+                                <p className='flex mb-1 px-6 w-full font-medium'>Sample Results</p>
+                                <div className='flex space-x-2 w-[500px] duration-300 ease-in-out overflow-x-auto'
+                                    style={{ transform: `translateX(${translateValue}px)` }}
+                                >
                                     {selectedStyle?.images.map((img, idx) => (
                                         <div
                                             key={idx}
@@ -158,7 +122,7 @@ const StyleOptions: React.FC<StyleOptionsProp> = ({ style, selectStyle }) => {
                                 </div>
                             </div>
                             <div className='flex px-6' onClick={() => SelectSelectedStyle(selectedStyle!)}>
-                                <Button className='flex justify-center items-center bg-indigo-200 w-full'>Use This Model</Button>
+                                <Button className='flex justify-center items-center bg-indigo-200 w-full'>Use This Style</Button>
                             </div>
                         </div>
                     </div>
