@@ -27,19 +27,13 @@ import { RiShareBoxFill } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
 
 interface promptResultProps {
-    result?: PromptResult,
-    generating?: boolean,
+    result: PromptResult,
     useToShare?: boolean | null
-    tempPrompt?: string,
-    tempImageCount?: number,
 }
 
 const PromptResult: React.FC<promptResultProps> = ({
     result,
-    generating = false,
     useToShare,
-    tempPrompt,
-    tempImageCount,
 }) => {
     const [open, setOpen] = useState(false);
 
@@ -57,10 +51,6 @@ const PromptResult: React.FC<promptResultProps> = ({
     }, [open]);
 
     const navigate = useNavigate();
-
-    const imageUrls: string[] = generating ?
-        Array(tempImageCount!).fill('') : result!.image_urls;
-
 
     const handleDownloadAll = async () => {
         const zip = new JSZip();
@@ -83,8 +73,8 @@ const PromptResult: React.FC<promptResultProps> = ({
     return (
         <div className='flex flex-col space-y-2 w-full'>
             <div className='flex justify-between items-center space-x-2 w-full'>
-                <p className='line-clamp-1'><span className='mr-2 font-sans font-medium'>Prompt</span>{tempPrompt ?? result?.user_prompt}</p>
-                {!generating && <div className='flex items-center space-x-2'>
+                <p className='line-clamp-1'><span className='mr-2 font-sans font-medium'>Prompt</span>{result.user_prompt}</p>
+                {!result.generating && <div className='flex items-center space-x-2'>
                     <Tooltip title="Share Post" placement='bottom' arrow>
                         <Button onClick={() => handleNavigateToUploadPost(result!)} className={`flex bg-mountain-100 ${useToShare ? 'w-36' : 'w-8'}`}>
                             <RiShareBoxFill className='size-5' />
@@ -130,17 +120,9 @@ const PromptResult: React.FC<promptResultProps> = ({
                 }
             </div>
             <ImageList cols={4} gap={8} sx={{ width: '100%', minHeight: '268px' }}>
-                {imageUrls.map((__, index) => (
+                {result.image_urls.map((__, index) => (
                     <ImageListItem key={index} className='flex h-full object-cover'>
-                        {result ? (
-                            <GenImage
-                                result={result}
-                                otherImages={result.image_urls}
-                                index={index}
-                                useToShare={useToShare}
-                            // onDelete={onDeleteSingle!}
-                            />
-                        ) : (
+                        {result.generating ? (
                             <div
                                 className="relative flex justify-center items-center bg-mountain-100 rounded-[8px] h-full"
                             >
@@ -149,7 +131,14 @@ const PromptResult: React.FC<promptResultProps> = ({
                                     Loading
                                 </p>
                             </div>
-
+                        ) : (
+                            <GenImage
+                                result={result}
+                                otherImages={result.image_urls}
+                                index={index}
+                                useToShare={useToShare}
+                            // onDelete={onDeleteSingle!}
+                            />
                         )}
                     </ImageListItem>
                 ))}

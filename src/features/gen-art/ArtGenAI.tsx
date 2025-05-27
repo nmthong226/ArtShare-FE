@@ -30,7 +30,8 @@ import { generateImages } from './api/generate-imges.api';
 import { useSnackbar } from '@/contexts/SnackbarProvider';
 import { useSubscriptionInfo } from '@/hooks/useSubscription';
 import axios, { AxiosError } from 'axios';
-import { BackendErrorResponse } from '@/api/types/error-response.type';
+import { BackendErrorResponse, DEFAULT_ERROR_MSG } from '@/api/types/error-response.type';
+import { buildTempPromptResult } from './helper/image-gen.helper';
 
 {/*
 A stunning realistic scene featuring a woman astronaut curiously peeking out of 
@@ -45,31 +46,11 @@ with stars twinkling in the background creating a sense of vastness in space.
 
 const PAGE_SIZE = 5;
 
-const getPromptResult = (userPrompt: string, numberOfImages: number, imageUrls: string[]): PromptResult => {
-    return {
-        id: -1, // Placeholder ID, replace with actual ID if needed
-        user_prompt: userPrompt,
-        final_prompt: '', // Placeholder, replace with actual final prompt if needed
-        aspect_ratio: '',
-        created_at: new Date().toISOString(),
-        camera: '',
-        lighting: '',
-        model_key: ModelKey.GPT_IMAGE_1,
-        number_of_images_generated: numberOfImages,
-        style: '',
-        user_id: '', // Placeholder, replace with actual user ID if needed
-        image_urls: imageUrls,
-    };
-}
-
 const ArtGenAI = () => {
     const [promptResultList, setPromptResultList] = useState<PromptResult[]>([]);
     const [expanded, setExpanded] = useState<boolean>(true);
     const [promptExpanded, setPromptExpanded] = useState<boolean>(false);
     const [userPrompt, setUserPrompt] = useState('');
-
-    const [generatingImage, setGeneratingImage] = useState<boolean>(false);
-
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [loading, setLoading] = useState(true);
     const [historyFilter, setHistoryFilter] = useState(HistoryFilter.TODAY)
@@ -204,78 +185,72 @@ const ArtGenAI = () => {
     }, [handleScroll]);
 
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const placeholderIdRef = useRef<number>(-1);
+
+    useEffect(() => {
+        if (!scrollRef.current) return;
+
+        // give the browser a moment to lay out images
+        const id = window.setTimeout(() => {
+            scrollRef.current!.scrollTo({
+                top: scrollRef.current!.scrollHeight,
+                behavior: 'smooth',
+            });
+        }, 200);    // tweak 100–200ms to taste
+
+        return () => window.clearTimeout(id);
+    }, [displayedResults]);
 
     const handleGenerate = async () => {
-        if (!userPrompt.trim() || generatingImage) return;
-
+        if (!userPrompt.trim()) return;
         if (subscriptionInfo?.aiCreditRemaining === 0) {
-            showSnackbar("You run out of AI credits, please upgrade your plan to continue or comeback together.", "warning");
+            showSnackbar(
+                'You’ve run out of AI credits. Upgrade your plan or come back later.',
+                'warning'
+            );
             return;
         }
 
-        setGeneratingImage(true);
+        const promptText = userPrompt.trim();
 
-        setTimeout(() => {
-            scrollRef.current?.scrollTo({
-                top: scrollRef.current.scrollHeight,
-                behavior: 'smooth',
-            });
-        }, 100);
-
-        const payload = {
-            prompt: userPrompt,
-            modelKey: modelKey,
-            style: style.name.toLowerCase(),
-            n: numberOfImages,
-            aspectRatio: aspectRatio.value,
-            lighting: lighting.value,
-            camera: camera.value
+        const placeholder: PromptResult = {
+            ...buildTempPromptResult(promptText, numberOfImages),
+            id: placeholderIdRef.current--,
+            generating: true,
         };
+
+        setDisplayedResults(prev =>
+            [...prev, placeholder].slice(-PAGE_SIZE)
+        );
+        setUserPrompt('');
+
         try {
-            const { prompt, urls } = await generateImages(payload);
-
-            // append this prompt result to the displayed results
-            setDisplayedResults(prev => {
-                const newPromptResult = getPromptResult(
-                    prompt,
-                    numberOfImages,
-                    urls
-                );
-                const updated = [...prev, newPromptResult];
-                // Ensure we don't exceed the page size
-                console.log('Updated Displayed Results:', updated);
-
-                if (updated.length > PAGE_SIZE) {
-                    return updated.slice(-PAGE_SIZE);
-                }
-                return updated;
+            const newPromptResult = await generateImages({
+                prompt: promptText,
+                modelKey,
+                style: style.name.toLowerCase(),
+                n: numberOfImages,
+                aspectRatio: aspectRatio.value,
+                lighting: lighting.value,
+                camera: camera.value,
             });
 
-            setUserPrompt('');
-
-            setTimeout(() => {
-                scrollRef.current?.scrollTo({
-                    top: scrollRef.current.scrollHeight,
-                    behavior: 'smooth',
-                });
-            }, 100);
-
+            setDisplayedResults(prev =>
+                prev.map(r => (r.id === placeholder.id ? newPromptResult : r))
+            );
         } catch (e) {
-            let msg = 'Failed to generate image';
-
-            if (axios.isAxiosError(e)) {
-                const axiosErr = e as AxiosError<BackendErrorResponse>;
-                msg = axiosErr.response?.data?.message ?? 'Failed to generate image';
-            }
-            else if (e instanceof Error) {
-                msg = e.message;
-            }
+            // Remove the placeholder result
+            setDisplayedResults(prev =>
+                prev.filter(r => r.id !== placeholder.id)
+            );
+            const msg = axios.isAxiosError(e)
+                ? (e as AxiosError<BackendErrorResponse>).response?.data?.message ?? DEFAULT_ERROR_MSG
+                : DEFAULT_ERROR_MSG;
 
             showSnackbar(msg, "error");
             console.error('Image generation failed:', e);
         } finally {
             if (intervalRef.current) clearInterval(intervalRef.current);
-            setGeneratingImage(false);
             queryClient.invalidateQueries({ queryKey: ['subscriptionInfo'] })
         }
     };
@@ -380,9 +355,9 @@ const ArtGenAI = () => {
                         ) : (
                             <div ref={scrollRef} onScroll={handleScroll} className='flex flex-col space-y-10 pr-4 w-full h-full overflow-y-auto custom-scrollbar'>
                                 {(displayedResults && displayedResults.length > 0)
-                                    ? displayedResults.map((result, index) => (
+                                    ? displayedResults.map(result => (
                                         <PromptResult
-                                            key={index}
+                                            key={result.id}
                                             result={result}
                                         />
                                     )) : (
@@ -391,13 +366,6 @@ const ArtGenAI = () => {
                                             <p className=''>There is no prompt result. What's on your mind?</p>
                                         </div>
                                     )}
-                                {generatingImage &&
-                                    <PromptResult
-                                        generating={true}
-                                        tempPrompt={userPrompt}
-                                        tempImageCount={numberOfImages}
-                                    />
-                                }
                                 <div className='flex flex-col space-y-2'>
                                     <div className='flex h-64' />
                                 </div>
