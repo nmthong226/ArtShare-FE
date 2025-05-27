@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 
 //Components
 import { Button, CircularProgress, IconButton, Tooltip } from "@mui/material";
-import BlogComments from "./components/BlogComments";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Blog } from "@/types/blog";
 //Icons
@@ -17,6 +16,7 @@ import { MdBookmarkBorder } from "react-icons/md";
 import { LuPlus } from "react-icons/lu";
 import { LikesDialog } from "@/components/like/LikesDialog";
 import { fetchBlogDetails } from "./api/blog";
+import CommentSection from "../post/components/CommentSection";
 import { fetchBlogComments } from "../post/api/comment.api";
 import { formatDistanceToNow } from "date-fns";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,6 +30,7 @@ import { AxiosError } from "axios";
 import { createLike, removeLike } from "./api/like-blog";
 import { TargetType } from "@/types/likes";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { CommentTargetType } from "@/utils/constants";
 
 const BlogDetails = () => {
   const { blogId } = useParams<{ blogId: string }>(); // get blogId from URL
@@ -287,11 +288,14 @@ const BlogDetails = () => {
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
-          <BlogComments
-            blogId={Number(blogId)}
+          <CommentSection
+            inputPosition="top"
             comments={comments}
+            targetId={Number(blogId)}
+            targetType={CommentTargetType.BLOG}
             onCommentAdded={handleCommentAdded}
             onCommentDeleted={handleCommentDeleted}
+            hideWrapper
           />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
           <RelatedBlogs />

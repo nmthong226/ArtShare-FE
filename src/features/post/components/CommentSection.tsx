@@ -146,7 +146,8 @@ const updateContentRecursive = (
 /* Single comment row                                                 */
 /* ------------------------------------------------------------------ */
 interface RowProps {
-  postId: number;
+  targetId: number;
+  targetType: "POST" | "BLOG";
   depth?: number;
   comment: CommentUI;
   onLike: (id: number) => void;
@@ -160,7 +161,8 @@ interface RowProps {
 }
 
 const CommentRow = ({
-  postId,
+  targetId,
+  targetType,
   depth = 0,
   comment,
   onLike,
@@ -206,7 +208,11 @@ const CommentRow = ({
     if (needsToFetch) {
       try {
         setLoading(true);
-        const fetchedReplies = await fetchComments(postId, comment.id);
+        const fetchedReplies = await fetchComments(
+          targetId,
+          targetType,
+          comment.id,
+        );
         onRepliesFetched(comment.id, fetchedReplies as CommentUI[]);
       } catch (err) {
         console.error(
@@ -427,8 +433,9 @@ const CommentRow = ({
             comment.replies.length > 0 &&
             comment.replies.map((r: CommentUI) => (
               <CommentRow
-                postId={postId}
+                targetId={targetId}
                 key={r.id}
+                targetType={targetType}
                 depth={depth + 1}
                 comment={r}
                 onLike={onLike}
@@ -452,13 +459,31 @@ const CommentRow = ({
 /* ------------------------------------------------------------------ */
 interface Props {
   comments: CommentUI[];
-  postId: number;
+  /** id of the post or blog we are commenting on */
+  targetId: number;
+  /** where to show the input bar - defaults to bottom (post layout) */
+  inputPosition?: "top" | "bottom";
+  /** distinguishes which table to update on the back-end */
+  targetType: "POST" | "BLOG";
   onCommentAdded(): void;
   onCommentDeleted(): void;
+  /** if true, don’t draw the white rounded box around comments */
+  hideWrapper?: boolean;
 }
 
-const PostComments = forwardRef<HTMLDivElement, Props>(
-  ({ comments: initial, postId, onCommentAdded, onCommentDeleted }, _ref) => {
+const CommentSection = forwardRef<HTMLDivElement, Props>(
+  (
+    {
+      comments: initial,
+      targetId,
+      targetType = "POST",
+      inputPosition = "bottom",
+      onCommentAdded,
+      onCommentDeleted,
+      hideWrapper = false,
+    },
+    _ref,
+  ) => {
     const { user } = useUser();
     const { showSnackbar } = useSnackbar();
     const CURRENT_USER_ID = user?.id;
@@ -540,8 +565,8 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
           profile_picture_url: user?.profile_picture_url,
         } as User,
         parent_comment_id: replyParentId,
-        target_id: postId,
-        target_type: "POST",
+        target_id: targetId,
+        target_type: targetType,
         content,
         created_at: now,
         updated_at: now,
@@ -568,8 +593,8 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
       try {
         const payload: CreateCommentDto = {
           content,
-          target_id: postId,
-          target_type: "POST",
+          target_id: targetId,
+          target_type: targetType,
           parent_comment_id: parentId ?? undefined,
         };
 
@@ -744,25 +769,92 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
     useEffect(() => {
       const loadComments = async () => {
         try {
-          const data = await fetchComments(postId);
+          const data = await fetchComments(targetId, targetType);
           setComments(data as CommentUI[]);
         } catch (err) {
           console.error("Failed to load comments:", err);
           showSnackbar("Failed to load comments", "error");
         }
       };
-      if (postId) {
+      if (targetId) {
         loadComments();
       }
-    }, [postId, showSnackbar]);
+    }, [targetId, showSnackbar, targetType]);
+
+    const InputBar = (
+      <div
+        className={
+          inputPosition === "bottom"
+            ? // bottom-fixed version stays the same
+              "absolute inset-x-0 bottom-0 flex items-center gap-2 bg-white p-4 border-t border-mountain-200"
+            : // top version, but if hideWrapper remove border & rounding
+              hideWrapper
+              ? "flex items-center gap-2 bg-white p-4 mb-4"
+              : "flex items-center gap-2 bg-white p-4 border border-mountain-200 rounded-lg mb-4"
+        }
+      >
+        {/* Avatar */}
+        {user?.profile_picture_url ? (
+          <img
+            src={user.profile_picture_url}
+            alt={user.username}
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        ) : (
+          <Avatar
+            name={user?.username || "Guest"}
+            size={32}
+            variant="beam"
+            colors={["#84bfc3", "#ff9b62", "#d96153"]}
+          />
+        )}
+
+        {/* Text input + Send button */}
+        <div className="flex flex-grow gap-2">
+          <TextareaAutosize
+            ref={textareaRef}
+            placeholder={
+              user
+                ? replyParentId
+                  ? "Replying…"
+                  : "Add a comment"
+                : "Login to add a comment"
+            }
+            className="border border-neutral-300 rounded-lg p-3 w-full resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            disabled={isPosting || !user}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                newComment.trim() && requireAuth("comment", handleAdd);
+              }
+            }}
+          />
+
+          <Button
+            variant="contained"
+            className="p-0.5 min-w-auto h-12 aspect-[1/1]"
+            onClick={() => requireAuth("comment", handleAdd)}
+            disabled={!newComment.trim() || isPosting || !user}
+          >
+            {isPosting ? <CircularProgress size={24} /> : <SendHorizontal />}
+          </Button>
+        </div>
+      </div>
+    );
+
+    const wrapperClass = [
+      "relative flex flex-col gap-4 w-full pb-28",
+      !hideWrapper && "bg-white rounded-2xl",
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     return (
-      <div
-        ref={_ref}
-        className="flex flex-col gap-4 bg-white rounded-2xl w-full pb-28"
-      >
-        <h4 className="font-bold text-sm">Comments</h4>
-
+      <div ref={_ref} className={wrapperClass}>
+        <span className="font-bold text-md">Comments</span>
+        {inputPosition === "top" && InputBar}
         <div
           ref={listRef}
           className="flex flex-col divide-y divide-neutral-100 overflow-y-auto"
@@ -774,7 +866,8 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
           ) : (
             comments.map((c) => (
               <CommentRow
-                postId={postId}
+                targetId={targetId}
+                targetType={targetType}
                 key={c.id}
                 comment={c}
                 onLike={handleLike}
@@ -793,84 +886,8 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
             ))
           )}
         </div>
-
+        {inputPosition === "bottom" && InputBar}
         {/* input */}
-        <div className="right-0 bottom-0 left-0 absolute flex gap-2 bg-white p-4 border-t-[1px] border-mountain-200 rounded-2xl rounded-t-none">
-          {user?.profile_picture_url ? (
-            <img
-              src={user.profile_picture_url}
-              alt={user.username}
-              className="w-8 h-8 rounded-full object-cover"
-            />
-          ) : user ? (
-            <Avatar
-              name={user.username || ""}
-              size={32}
-              variant="beam"
-              colors={["#84bfc3", "#ff9b62", "#d96153"]}
-            />
-          ) : (
-            <Avatar
-              name="Guest"
-              size={32}
-              variant="beam"
-              colors={["#84bfc3", "#ff9b62", "#d96153"]}
-            />
-          )}
-          <div className="flex flex-grow gap-2">
-            <TextareaAutosize
-              ref={textareaRef}
-              placeholder={
-                user
-                  ? replyParentId
-                    ? `Replying to...`
-                    : "Add a comment"
-                  : "Login to add a comment"
-              }
-              className="border border-neutral-300 rounded-lg p-3 w-full resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              disabled={isPosting || !user}
-              onFocus={() => {
-                if (!user) {
-                  showSnackbar(
-                    "Please login to comment",
-                    "warning",
-                    <Button
-                      size="small"
-                      color="inherit"
-                      onClick={() => (window.location.href = "/login")}
-                    >
-                      Login
-                    </Button>,
-                  );
-                  textareaRef.current?.blur();
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  if (newComment.trim()) {
-                    requireAuth("comment", handleAdd);
-                  }
-                }
-              }}
-            />
-
-            <Button
-              variant="contained"
-              className="p-0.5 min-w-auto h-12 aspect-[1/1]"
-              onClick={() => requireAuth("comment", handleAdd)}
-              disabled={!newComment.trim() || isPosting || !user}
-            >
-              {isPosting ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                <SendHorizontal />
-              )}
-            </Button>
-          </div>
-        </div>
 
         {deletingId && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center text-sm">
@@ -883,5 +900,5 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
   },
 );
 
-PostComments.displayName = "PostComments";
-export default PostComments;
+CommentSection.displayName = "PostComments";
+export default CommentSection;

@@ -1,8 +1,6 @@
 import { User } from "./user";
 
-
 /**Supported resources a comment can belong to (extend as you add more). */
-
 
 export type TargetType = "POST" | "BLOG" | string;
 
@@ -16,7 +14,6 @@ export interface Comment {
 
   /** FK to Users table – always present even though `user` is expanded below */
   user_id: string;
-
 
   /** If this is a reply, you get the parent’s id; otherwise null */
 
@@ -36,7 +33,6 @@ export interface Comment {
   like_count: number;
 
   /** Expanded author record (already defined in ./user) */
-
 
   user: User;
 
