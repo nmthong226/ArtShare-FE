@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, Tooltip } from "@mui/material";
+import { Box, Button, Tooltip } from "@mui/material";
 import UploadForm from "./components/UploadForm"; // Adjust import path as needed
 import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { createPost } from "./api/create-post";
-import Backdrop from "@mui/material/Backdrop";
-import CircularProgress from "@mui/material/CircularProgress";
 
 import { useLocation, useNavigate } from "react-router-dom";
 import MediaSelection from "./components/media-selection";
@@ -15,6 +13,11 @@ import { PostMedia } from "./types/post-media";
 import { createFormData } from "./helpers/upload-post.helper";
 import { MEDIA_TYPE } from "@/utils/constants";
 import { usePostMediaUploader } from "./hooks/use-post-medias-uploader";
+import axios, { AxiosError } from "axios";
+import { BackendErrorResponse, DEFAULT_ERROR_MSG } from "@/api/types/error-response.type";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSubscriptionInfo } from "@/hooks/useSubscription";
+import Loading from "@/pages/Loading";
 
 const UploadPost: React.FC = () => {
   const navigate = useNavigate();
@@ -49,6 +52,9 @@ const UploadPost: React.FC = () => {
     handleUploadVideo,
     handleUploadImageFile,
   } = usePostMediaUploader();
+
+  const queryClient = useQueryClient();
+  const { data: subscriptionInfo } = useSubscriptionInfo();
 
   const validateVideoDuration = (
     file: File,
@@ -200,6 +206,15 @@ const UploadPost: React.FC = () => {
       showSnackbar("Please upload an image first.", "error");
       return;
     }
+
+    if (subscriptionInfo?.aiCreditRemaining === 0) {
+      showSnackbar(
+        'You’ve run out of AI credits. Upgrade your plan or come back later.',
+        'warning'
+      );
+      return;
+    }
+
     try {
       setIsLoading(true);
       const formData = new FormData();
@@ -210,36 +225,22 @@ const UploadPost: React.FC = () => {
       setTitle(title);
       setDescription(description);
       setCateIds(categories.map(cate => cate.id));
-    } catch (error) {
-      console.error("Error generating content:", error);
-      showSnackbar("Failed to generate content.", "error");
+    } catch (e) {
+      const msg = axios.isAxiosError(e)
+        ? (e as AxiosError<BackendErrorResponse>).response?.data?.message ?? DEFAULT_ERROR_MSG
+        : DEFAULT_ERROR_MSG;
+      showSnackbar(msg, "error");
+      console.error("Error generating content:", e);
     } finally {
       setIsLoading(false);
+      queryClient.invalidateQueries({ queryKey: ['subscriptionInfo'] })
     }
   };
 
   return (
     <Box className="dark:bg-mountain-950 w-full h-full">
       {isLoading && (
-        <Backdrop
-          open
-          sx={{
-            color: "#fff",
-            zIndex: (theme) => theme.zIndex.modal + 1,
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            flexDirection: "column",
-            backdropFilter: "blur(3px)",
-          }}
-        >
-          <CircularProgress color="inherit" />
-          <Typography variant="h6" sx={{ mt: 2, color: "white" }}>
-            Processing...
-          </Typography>
-        </Backdrop>
+        <Loading />
       )}
 
       <Box
@@ -264,7 +265,7 @@ const UploadPost: React.FC = () => {
           </Box> */}
           {/* Form fields */}
           <Box className="relative pr-4 rounded-md w-full overflow-y-auto custom-scrollbar">
-            <Tooltip title="Auto Generate Content (title, description, categories)" arrow placement="left">
+            <Tooltip title="Auto generate content (title, description, categories) - Credit cost: ~2" arrow placement="left">
               <Button
                 className="top-2 z-50 sticky flex justify-center items-center bg-gradient-to-b from-blue-400 to-purple-400 shadow-md ml-auto p-0 rounded-full w-12 min-w-0 h-12 hover:scale-105 duration-300 ease-in-out hover:cursor-pointer transform"
                 onClick={handleGenerateContent}

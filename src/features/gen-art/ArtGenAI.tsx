@@ -69,10 +69,9 @@ const ArtGenAI = () => {
     const [numberOfImages, setNumberOfImages] = useState<number>(1);
 
     const queryClient = useQueryClient();
-
     const { data: subscriptionInfo } = useSubscriptionInfo();
-    const { showSnackbar } = useSnackbar();
 
+    const { showSnackbar } = useSnackbar();
 
     const handleGetPromptHistory = async () => {
         try {

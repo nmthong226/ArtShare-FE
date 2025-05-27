@@ -4,14 +4,16 @@ const Loading = () => (
   <Backdrop
     open
     sx={{
+      color: "#fff",
       zIndex: (theme) => theme.zIndex.modal + 1,
       position: "fixed",
-      inset: 0, // shorthand for top:0; right:0; bottom:0; left:0
-      backgroundColor: "transparent",
+      inset: 0,
+      flexDirection: "column",
+      backdropFilter: "blur(3px)",
     }}
   >
     <CircularProgress color="inherit" />
-    <Typography variant="h6" sx={{ m: 2, color: "white" }}>
+    <Typography variant="h6" sx={{ mt: 2, color: "white" }}>
       Processing...
     </Typography>
   </Backdrop>
