@@ -1,5 +1,5 @@
 //Core
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 //Components
 import { Button, CircularProgress, TextareaAutosize } from '@mui/material';
@@ -32,6 +32,8 @@ import { useSubscriptionInfo } from '@/hooks/useSubscription';
 import axios, { AxiosError } from 'axios';
 import { BackendErrorResponse, DEFAULT_ERROR_MSG } from '@/api/types/error-response.type';
 import { buildTempPromptResult } from './helper/image-gen.helper';
+import { useInfiniteTopScroll } from '@/hooks/useInfiniteTopScroll';
+import { useScrollBottom } from '@/hooks/useScrollBottom';
 
 {/*
 A stunning realistic scene featuring a woman astronaut curiously peeking out of 
@@ -58,7 +60,7 @@ const ArtGenAI = () => {
     const [loadedCount, setLoadedCount] = useState(PAGE_SIZE);
     const [displayedResults, setDisplayedResults] = useState<PromptResult[]>([]);
     const [initialScrollDone, setInitialScrollDone] = useState(false);
-    const [loadingMore, setLoadingMore] = useState(false);
+    const [scrollTrigger, setScrollTrigger] = useState(0);
 
     //Setting Panel
     const [modelKey] = useState<ModelKey>(ModelKey.GPT_IMAGE_1);
@@ -125,11 +127,9 @@ const ArtGenAI = () => {
         }
     };
 
-    const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
-
     useEffect(() => {
         setLoadedCount(PAGE_SIZE);
-        setInitialScrollDone(false);
+        // setInitialScrollDone(false);
     }, [historyFilter, promptResultList]);
 
     const filtered = useMemo(() => {
@@ -152,53 +152,15 @@ const ArtGenAI = () => {
         }
     }, [displayedResults, initialScrollDone]);
 
-    const handleScroll = useCallback(() => {
-        const container = scrollRef.current;
-        if (!container || loadingMore) return;
-
-        if (container.scrollTop < 100 && displayedResults.length < reversed.length) {
-            const prevScrollHeight = container.scrollHeight;
-
-            setLoadingMore(true);
-            setLoadedCount(prev => prev + PAGE_SIZE);
-
-            // Restore scroll position after more items are added
-            scrollTimeout.current = setTimeout(() => {
-                const newScrollHeight = container.scrollHeight;
-                container.scrollTop = newScrollHeight - prevScrollHeight + container.scrollTop;
-                setLoadingMore(false);
-            }, 50);
-        }
-    }, [loadingMore, displayedResults.length, reversed.length]);
-
-    useEffect(() => {
-        const container = scrollRef.current;
-        if (!container) return;
-
-        container.addEventListener('scroll', handleScroll);
-
-        return () => {
-            container.removeEventListener('scroll', handleScroll);
-            if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-        };
-    }, [handleScroll]);
-
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const placeholderIdRef = useRef<number>(-1);
 
-    useEffect(() => {
-        if (!scrollRef.current) return;
+    useScrollBottom(scrollRef, [scrollTrigger], 200);
 
-        // give the browser a moment to lay out images
-        const id = window.setTimeout(() => {
-            scrollRef.current!.scrollTo({
-                top: scrollRef.current!.scrollHeight,
-                behavior: 'smooth',
-            });
-        }, 200);    // tweak 100–200ms to taste
-
-        return () => window.clearTimeout(id);
-    }, [displayedResults]);
+    useInfiniteTopScroll(
+        scrollRef,
+        displayedResults.length < reversed.length,
+        () => setLoadedCount(c => c + PAGE_SIZE)
+    );
 
     const handleGenerate = async () => {
         if (!userPrompt.trim()) return;
@@ -222,6 +184,7 @@ const ArtGenAI = () => {
             [...prev, placeholder].slice(-PAGE_SIZE)
         );
         setUserPrompt('');
+        setScrollTrigger(prev => prev + 1);
 
         try {
             const newPromptResult = await generateImages({
@@ -237,6 +200,7 @@ const ArtGenAI = () => {
             setDisplayedResults(prev =>
                 prev.map(r => (r.id === placeholder.id ? newPromptResult : r))
             );
+            setScrollTrigger(prev => prev + 1);
         } catch (e) {
             // Remove the placeholder result
             setDisplayedResults(prev =>
@@ -249,7 +213,6 @@ const ArtGenAI = () => {
             showSnackbar(msg, "error");
             console.error('Image generation failed:', e);
         } finally {
-            if (intervalRef.current) clearInterval(intervalRef.current);
             queryClient.invalidateQueries({ queryKey: ['subscriptionInfo'] })
         }
     };
@@ -352,7 +315,7 @@ const ArtGenAI = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div ref={scrollRef} onScroll={handleScroll} className='flex flex-col space-y-10 pr-4 w-full h-full overflow-y-auto custom-scrollbar'>
+                            <div ref={scrollRef} className='flex flex-col space-y-10 pr-4 w-full h-full overflow-y-auto custom-scrollbar'>
                                 {(displayedResults && displayedResults.length > 0)
                                     ? displayedResults.map(result => (
                                         <PromptResult

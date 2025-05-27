@@ -59,8 +59,6 @@ export function PricingCard({ tier, paymentFrequency }: PricingCardProps) {
 
   const { data: subscriptionInfo } = useSubscriptionInfo();
 
-  console.log('Subscription Info:', subscriptionInfo?.plan, tier.id);
-
   const handleProceedToCheckout = async () => {
     if (tier.actionType !== "checkout") return;
 

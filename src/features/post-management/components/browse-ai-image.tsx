@@ -220,7 +220,6 @@ const BrowseAiImages: React.FC<BrowseAiImagesProps> = () => {
                       <PromptResult
                         key={index}
                         result={result}
-                        generating={false}
                         useToShare={true}
                       />
                     ))
