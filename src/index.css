@@ -224,7 +224,4 @@ body {
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent; /* no white bar when thumb absent */
   }
-  .custom-scrollbar {
-    scrollbar-width: thin; /* Firefox */
-  }
 }
