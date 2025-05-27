@@ -71,7 +71,7 @@ const Post: React.FC = () => {
   };
   if (isPostLoading || isCommentsLoading) {
     return (
-      <div className="flex m-4 text-center">
+      <div className="flex justify-center items-center m-4 h-screen text-center">
         <CircularProgress size={36} />
         <p>Loading...</p>
       </div>
@@ -82,9 +82,9 @@ const Post: React.FC = () => {
   }
 
   return (
-    <div className="relative flex-grow bg-mountain-50 p-4 h-[calc(100vh-4rem)] overflow-y-scroll no-scrollbar">
-      <div className="md:hidden relative flex flex-col bg-white shadow p-4 rounded-2xl h-full">
-        <div className="rounded-2xl h-full overflow-y-auto">
+    <div className="relative flex-grow h-[calc(100vh-4rem)] overflow-hidden">
+      <div className="md:hidden relative flex flex-col bg-white shadow p-4 rounded-t-3xl h-full overflow-hidden">
+        <div className="h-full overflow-y-auto sidebar">
           <PostArtist artist={postData!.user} postData={postData!} />
           <PostAssets medias={postData!.medias} />
           <PostInfo
@@ -100,12 +100,12 @@ const Post: React.FC = () => {
           />
         </div>
       </div>
-      <div className="hidden md:flex flex-row gap-4 h-full">
-        <div className="flex flex-grow justify-center items-center h-full overflow-y-scroll no-scrollbar">
+      <div className="hidden md:flex flex-row rounded-t-3xl h-full overflow-hidden">
+        <div className="flex flex-grow justify-center items-center bg-mountain-50 h-full overflow-hidden sidebar">
           <PostAssets medias={postData!.medias} />
         </div>
-        <div className="relative flex-shrink-0 bg-white shadow py-0 pl-4 rounded-2xl sm:w-[256px] md:w-[384px] lg:w-[448px]">
-          <div className="flex flex-col gap-4 rounded-2xl h-full overflow-y-scroll custom-scrollbar">
+        <div className="relative flex-shrink-0 bg-white shadow py-0 pl-4 sm:w-[256px] md:w-[384px] lg:w-[448px] overflow-hidden">
+          <div className="flex flex-col gap-4 h-full sidebar">
             <PostArtist artist={postData!.user} postData={postData!} />
             <PostInfo
               postData={postData!}

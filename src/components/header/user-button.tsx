@@ -16,6 +16,7 @@ import { Skeleton } from "../ui/skeleton";
 
 //Types
 import { User } from "@/types";
+import UserPlan from "../sidebar/subscription";
 
 const UserButton: React.FC<{
   user?: User | null;
@@ -60,27 +61,10 @@ const UserButton: React.FC<{
     <>
       <Link
         to="/messages"
-        className={`hidden xs:flex group items-center h-full ${
-          location.pathname === "/messages"
-            ? "dark:text-mountain-50 text-mountain-950"
-            : "dark:text-mountain-500 text-mountain-700"
-        }`}
-      >
-        <div className="flex items-center hover:bg-mountain-100 dark:hover:bg-mountain-1000 mt-1 p-2 rounded-lg hover:text-mountain-800 dark:hover:text-mountain-50 hover:cursor-pointer">
-          {location.pathname === "/messages" ? (
-            <IoMail className="size-5" />
-          ) : (
-            <IoMailOutline className="size-5" />
-          )}
-        </div>
-      </Link>
-      <Link
-        to="/messages"
-        className={`hidden xs:flex group items-center mr-2 h-full ${
-          location.pathname === "/messages"
-            ? "dark:text-mountain-50 text-mountain-950"
-            : "dark:text-mountain-500 text-mountain-700"
-        }`}
+        className={`hidden xs:flex group items-center mr-2 h-full ${location.pathname === "/messages"
+          ? "dark:text-mountain-50 text-mountain-950"
+          : "dark:text-mountain-500 text-mountain-700"
+          }`}
       >
         <div className="flex items-center hover:bg-mountain-100 dark:hover:bg-mountain-1000 mt-1 p-2 rounded-lg hover:text-mountain-800 dark:hover:text-mountain-50 hover:cursor-pointer">
           {location.pathname === "/updates" ? (

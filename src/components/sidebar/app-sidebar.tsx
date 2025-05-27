@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
           </div>
         </div>
         {/* Sidebar Body */}
-        <div className={`flex flex-col ${expand ? 'sidebar' : ''} space-y-6  px-2 h-[calc(100vh-10rem)] overflow-x-hidden text-mountain-800 `}>
+        <div className={`flex flex-col ${expand ? 'sidebar' : ''} space-y-6  px-2 h-[calc(100vh-8rem)] overflow-x-hidden text-mountain-800 `}>
           <div className="flex flex-col justify-between items-center space-y-1 w-full">
             {[
               { icon: Home, label: 'Dashboard', href: '/dashboard' },
@@ -319,7 +319,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
         </div>
       </div>
       {/* Sidebar Footer */}
-      <div className="bottom-4 absolute flex pl-2 w-full">
+      <div className="bottom-2 absolute flex pl-2 w-full">
         <UserPlan expand={expand} />
       </div>
     </aside >

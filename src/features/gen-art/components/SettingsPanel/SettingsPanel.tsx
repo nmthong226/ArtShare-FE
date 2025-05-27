@@ -70,9 +70,9 @@ const SettingsPanel: React.FC<PanelProps> = ({
                     },
                 }}
                 className={`flex ${isExpanded ? '' : 'hidden'} flex-col m-0 z-10 bg-white shadow-md border border-mountain-300 rounded-xl rounded-t-none w-[300px] ${isExpanded ? 'max-h-[calc(100vh-9.5rem)]' : 'h-fit'
-                    } overflow-y-auto custom-scrollbar`}>
+                    } overflow-y-auto`}>
 
-                <AccordionDetails className="flex flex-col flex-1 p-0 min-h-0 overflow-y-auto custom-scrollbar">
+                <AccordionDetails className="flex flex-col flex-1 p-0 min-h-0 overflow-y-auto">
                     {/* Nested Accordions */}
                     <Accordion className="shadow-none" defaultExpanded>
                         <AccordionSummary

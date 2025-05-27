@@ -315,7 +315,6 @@ const ArtGenAI = () => {
                             <div className="flex justify-center items-start mt-4 w-full h-full">
                                 <div className='flex items-center space-x-4'>
                                     <CircularProgress size={32} thickness={4} />
-                                    <p className='text-sm'>Loading...</p>
                                 </div>
                             </div>
                         ) : (

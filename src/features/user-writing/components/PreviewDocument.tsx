@@ -1,3 +1,4 @@
+import { useEditor, EditorContent } from "@tiptap/react";
 import Bold from '@tiptap/extension-bold'
 import BulletList from '@tiptap/extension-bullet-list'
 import { Color } from '@tiptap/extension-color'
@@ -29,56 +30,13 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { FontSizeExtension } from "../extensions/font-size";
 import { LineHeightExtension } from "../extensions/line-height";
 
-import { EditorContent, useEditor } from '@tiptap/react'
 
-import '../styles/editor.css'
-
-import { useEditorStore } from '../stores/use-editor-store'
-import { forwardRef, useImperativeHandle } from 'react'
-import { CircularProgress } from '@mui/material'
-
-type EditorProps = {
-    isLoading?: boolean;
+type MiniTiptapPreviewProps = {
+    content: any;
 };
 
-export type EditorHandle = {
-    getContent: () => string | undefined;
-    setContent: (html: string) => void;
-};
-
-const Editor = forwardRef<EditorHandle, EditorProps>(({ isLoading }, ref) => {
-    const { setEditor } = useEditorStore();
+export function MiniTiptapPreview({ content }: MiniTiptapPreviewProps) {
     const editor = useEditor({
-        onCreate({ editor }) {
-            setEditor(editor);
-        },
-        onDestroy() {
-            setEditor(null);
-        },
-        onUpdate({ editor }) {
-            setEditor(editor);
-        },
-        onSelectionUpdate({ editor }) {
-            setEditor(editor);
-        },
-        onTransaction({ editor }) {
-            setEditor(editor);
-        },
-        onBlur({ editor }) {
-            setEditor(editor);
-        },
-        onFocus({ editor }) {
-            setEditor(editor);
-        },
-        onContentError({ editor }) {
-            setEditor(editor);
-        },
-        editorProps: {
-            attributes: {
-                style: "padding-left: 56px; padding-right: 56px;",
-                class: 'focus:outline-none print:border-0 bg-white border border-[#C7C7C7] flex flex-col min-h-full w-[816px] pt-10 pr-14 pb-10 cursor-text'
-            }
-        },
         extensions: [
             Bold,
             BulletList,
@@ -188,28 +146,21 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ isLoading }, ref) => {
                 },
             }),
         ],
-        content: ``,
+        content: content,
     })
 
-    useImperativeHandle(ref, () => ({
-        getContent: () => editor?.getHTML(),
-        setContent: (html: string) => {
-            if (editor && html) {
-                editor.commands.setContent(html);
-            }
-        },
-    }));
-
-    if (isLoading)
-        return (
-            <div className='flex justify-center items-center py-10 w-full h-full'>
-                <CircularProgress size={36}/>
-            </div>
-        )
+    if (!editor) return null;
 
     return (
-        <EditorContent editor={editor} className="max-w-full prose" />
-    )
-})
-
-export default Editor
+        <div className="relative bg-white rounded w-full aspect-square overflow-hidden">
+            <div
+                className="w-[700%] h-[800%] scale-[0.15] origin-top-left pointer-events-none"
+                style={{
+                    transformOrigin: "top left",
+                }}
+            >
+                <EditorContent editor={editor} />
+            </div>
+        </div>
+    );
+}

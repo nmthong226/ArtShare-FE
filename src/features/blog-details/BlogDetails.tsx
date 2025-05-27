@@ -29,7 +29,7 @@ import {
 import { AxiosError } from "axios";
 import { createLike, removeLike } from "./api/like-blog";
 import { TargetType } from "@/types/likes";
-// import parse from "html-react-parser";
+import parse from "html-react-parser";
 
 const BlogDetails = () => {
   const { blogId } = useParams<{ blogId: string }>(); // get blogId from URL
@@ -227,8 +227,9 @@ const BlogDetails = () => {
   /* ───────── loading / error ───────── */
   if (isLoading || commentsLoading)
     return (
-      <div className="flex justify-center items-center h-full">
-        <CircularProgress />
+      <div className="flex justify-center items-center space-x-4 h-screen">
+        <CircularProgress size={36} />
+        <p>Loading…</p>
       </div>
     );
   if (error || commentsError)
@@ -265,12 +266,12 @@ const BlogDetails = () => {
     <div className="flex flex-col items-center py-12 w-full h-screen sidebar">
       <div className="flex w-full h-full">
         <div className="relative flex flex-col w-[20%]">
-          <div className="top-100 z-10 sticky flex justify-center items-center bg-white shadow-md mr-4 ml-auto rounded-full w-12 h-12">
+          {/* <div className="top-100 z-10 sticky flex justify-center items-center bg-white shadow-md mr-4 ml-auto rounded-full w-12 h-12">
             <LuTableOfContents className="size-5" />
-          </div>
-          <div className="right-4 bottom-4 z-50 fixed flex justify-center items-center bg-blue-400 shadow-md rounded-full w-12 h-12">
+          </div> */}
+          {/* <div className="right-4 bottom-4 z-50 fixed flex justify-center items-center bg-blue-400 shadow-md rounded-full w-12 h-12">
             <IoIosArrowUp className="mb-1 size-5 text-white" />
-          </div>
+          </div> */}
         </div>
         <div className="group flex flex-col space-y-4 p-4 w-[60%]">
           <div className="flex space-x-2 w-full">
@@ -300,7 +301,6 @@ const BlogDetails = () => {
                   {blog.user.username.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-
               <div className="flex flex-col">
                 <p className="font-medium text-gray-900 text-lg">
                   {blog.user.full_name}
@@ -328,7 +328,7 @@ const BlogDetails = () => {
           </div>
           {/* Blog Content */}
           <div className="p-2 rounded-md max-w-none prose lg:prose-xl">
-            {blog.content}
+            {parse(blog.content)}
           </div>
           <hr className="flex border-mountain-200 border-t-1 w-full" />
           <BlogComments
@@ -341,9 +341,7 @@ const BlogDetails = () => {
           <RelatedBlogs />
         </div>
         <div className="relative flex flex-col w-[20%]">
-          <div
-            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} space-y-2 flex-col transition ease-in-out duration-300 top-64 z-10 sticky flex justify-center items-center mr-auto ml-4 rounded-full w-14 h-76`}
-          >
+          {/* <div className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} space-y-2 flex-col transition ease-in-out duration-300 top-64 z-10 sticky flex justify-center items-center mr-auto ml-4 rounded-full w-14 h-76`}>
             <div className="relative flex justify-center items-center w-12 h-12">
               <Avatar>
                 <AvatarImage
@@ -413,7 +411,7 @@ const BlogDetails = () => {
                 </IconButton>
               </Tooltip>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
       <LikesDialog

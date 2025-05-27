@@ -25,16 +25,18 @@ const UserPlan: React.FC<UserPlan> = ({ expand }) => {
     return (
         <DropdownMenu modal={false}>
             <DropdownMenuTrigger className='flex justify-center items-center mt-4 w-full h-12'>
-                <div className={`${!expand ? 'hidden' : "px-4"} duration-500 ease-in-out flex items-center justify-between bg-indigo-50 rounded-lg h-full w-full`}>
+                <div className={`${!expand ? 'hidden' : "px-2"} duration-500 ease-in-out flex items-center shadow-sm justify-between bg-white rounded-lg h-full w-full`}>
                     <div className={`flex items-center space-x-2`}>
-                        <TbChessQueenFilled className='flex-none shrink-0' />
-                        <p className={`transition-all duration-300 font-normal origin-left ${expand ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'} line-clamp-1 text-sm`}>
+                        <div className='flex justify-center items-center bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full w-8 h-8 text-white shrink-0'>
+                            <TbChessQueenFilled className='flex-none shrink-0' />
+                        </div>
+                        <p className={`transition-all ease-in-out duration-300 font-normal origin-left ${expand ? 'opacity-100 scale-x-100 text-mountain-950' : 'text-indigo-50 opacity-0 scale-x-0'} line-clamp-1 text-sm`}>
                             User Plan<span className='text-mountain-400'> - Free</span>
                         </p>
                     </div>
                     <BsChevronExpand />
                 </div>
-                <p className={`${expand ? 'opacity-0 w-0' : 'opacity-100 w-fit'} shadow px-2 py-2 border bg-indigo-50 border-mountain-100 rounded-lg text-mountain-600 text-sm`}>Plan</p>
+                <p className={`${expand ? 'opacity-0 w-0' : 'opacity-100 w-fit'} px-2 py-2 border text-white from-indigo-600 to-purple-600  bg-gradient-to-br border-mountain-100 rounded-lg shadow-sm text-sm`}>Plan</p>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="mb-2 ml-2 border-mountain-100 w-56" side='right'>
                 <DropdownMenuLabel className="flex flex-col space-y-1">

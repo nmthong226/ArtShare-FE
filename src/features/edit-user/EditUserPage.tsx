@@ -59,7 +59,7 @@ export default function EditUser() {
   }
 
   return (
-    <Container disableGutters className="px-15 pt-6 h-full">
+    <Container disableGutters className="px-15 pt-6 rounded-t-3xl h-screen">
       {/* <ProfileHeader /> */}
 
       <Box>
