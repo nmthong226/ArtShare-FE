@@ -4,7 +4,7 @@ import { AvatarSection } from "./components/AvatarSection";
 import {
   getUserProfile,
   UserProfile,
-} from "../user-profile-public/api/user-profile.api";
+} from "../user-profile-public/api/user-profile.api"; // Make sure this path is correct
 import { useQuery } from "@tanstack/react-query";
 import EditProfileForm from "./components/EditProfileForm";
 
@@ -17,12 +17,17 @@ export default function EditUser() {
     queryFn: () => getUserProfile(),
   });
 
+  // Initialize formData with a structure that matches UserProfile,
+  // or null if profileData is not yet available.
+  const [formData, setFormData] = useState<UserProfile | null>(null);
+
   useEffect(() => {
     if (profileData) {
       setFormData(profileData);
     }
   }, [profileData]);
 
+  // Commented out mutation logic as it was in the original snippet
   // const { mutate: saveProfile } = useMutation<
   //   UserProfile,
   //   Error,
@@ -41,25 +46,18 @@ export default function EditUser() {
   //   },
   // });
 
-  const [formData, setFormData] = useState<UserProfile | null>({
-    id: profileData?.id ?? "",
-    username: profileData?.username ?? "",
-    email: profileData?.email ?? "",
-    full_name: profileData?.full_name ?? "",
-    bio: profileData?.bio ?? "",
-    profile_picture_url: profileData?.profile_picture_url ?? "",
-    followings_count: profileData?.followings_count ?? 0,
-    followers_count: profileData?.followers_count ?? 0,
-    isFollowing: profileData?.isFollowing ?? false,
-    birthday: profileData?.birthday ?? "",
-  });
-
   if (loadingProfile || !formData) {
+    // Check !formData as well, since it's initialized to null
     return <div className="m-4 text-center">Loading....</div>;
   }
 
   return (
-    <Container disableGutters className="px-15 pt-6 h-full">
+    <Container
+      disableGutters
+      // Added bg-mountain-600 here
+      // Also added min-h-screen to ensure the background covers the whole screen if content is short
+      className="px-15 pt-6 h-full bg-mountain-600 min-h-screen"
+    >
       {/* <ProfileHeader /> */}
 
       <Box>
@@ -74,15 +72,11 @@ export default function EditUser() {
         />
       </Box>
 
-      {/* <ProfileForm
-          formData={formData}
-          handleChange={handleChange}
-          onSubmit={handleSave}
-          isSubmitting={saving}
-        /> */}
+      {/* Render EditProfileForm only if profileData (and thus initialData) is available */}
       {profileData && <EditProfileForm initialData={profileData} />}
 
-      {/* <Box className="p-6 pt-3">
+      {/* Commented out Save button as it was in the original snippet
+      <Box className="p-6 pt-3">
         <Button
           variant="contained"
           onClick={handleSave}
