@@ -27,6 +27,8 @@ import { MockModelOptionsData } from './mock/Data';
 import api from '@/api/baseApi';
 import { useQueryClient } from '@tanstack/react-query';
 import { generateImages } from './api/generate-imges.api';
+import { useSnackbar } from '@/contexts/SnackbarProvider';
+import { useSubscriptionInfo } from '@/hooks/useSubscription';
 
 {/*
 A stunning realistic scene featuring a woman astronaut curiously peeking out of 
@@ -84,6 +86,10 @@ const ArtGenAI = () => {
     const [numberOfImages, setNumberOfImages] = useState<number>(1);
 
     const queryClient = useQueryClient();
+
+    const { data: subscriptionInfo } = useSubscriptionInfo();
+    const { showSnackbar } = useSnackbar();
+
 
     const handleGetPromptHistory = async () => {
         try {
@@ -200,6 +206,11 @@ const ArtGenAI = () => {
     const handleGenerate = async () => {
         if (!userPrompt.trim() || generatingImage) return;
 
+        if (subscriptionInfo?.aiCreditRemaining === 0) {
+            showSnackbar("You run out of AI credits, please upgrade your plan to continue or comeback together.", "warning");
+            return;
+        }
+
         setGeneratingImage(true);
 
         setTimeout(() => {
@@ -252,7 +263,7 @@ const ArtGenAI = () => {
         } finally {
             if (intervalRef.current) clearInterval(intervalRef.current);
             setGeneratingImage(false);
-            queryClient.invalidateQueries({ queryKey: ['subscriptionInfo']})
+            queryClient.invalidateQueries({ queryKey: ['subscriptionInfo'] })
         }
     };
 

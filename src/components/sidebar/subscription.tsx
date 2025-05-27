@@ -16,20 +16,31 @@ import {
 //Icons
 import { BsChevronExpand } from "react-icons/bs";
 import { TbChessQueenFilled } from 'react-icons/tb';
+import { getDisplayPlanName, useSubscriptionInfo } from '@/hooks/useSubscription';
+import AsyncWrapper from '../AsyncWrapper';
 
 type UserPlan = {
     expand: boolean
 }
 
 const UserPlan: React.FC<UserPlan> = ({ expand }) => {
+    const {
+        data: subscriptionInfo,
+        isLoading: loadingSubscriptionInfo,
+        isError: isSubscriptionError,
+    } = useSubscriptionInfo();
+
     return (
         <DropdownMenu modal={false}>
-            <DropdownMenuTrigger className='flex justify-center items-center mt-4 w-full h-12'>
+            <DropdownMenuTrigger className='flex justify-center items-center mt-4 w-full h-12 hover:cursor-pointer'>
                 <div className={`${!expand ? 'hidden' : "px-4"} duration-500 ease-in-out flex items-center justify-between bg-indigo-50 rounded-lg h-full w-full`}>
                     <div className={`flex items-center space-x-2`}>
                         <TbChessQueenFilled className='flex-none shrink-0' />
                         <p className={`transition-all duration-300 font-normal origin-left ${expand ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'} line-clamp-1 text-sm`}>
-                            User Plan<span className='text-mountain-400'> - Free</span>
+                            User Plan
+                            <AsyncWrapper loading={loadingSubscriptionInfo} error={isSubscriptionError}>
+                                <span className='text-mountain-400'> - {subscriptionInfo && getDisplayPlanName(subscriptionInfo.plan)}</span>
+                            </AsyncWrapper>
                         </p>
                     </div>
                     <BsChevronExpand />
