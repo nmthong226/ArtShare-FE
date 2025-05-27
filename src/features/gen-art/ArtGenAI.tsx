@@ -1,5 +1,5 @@
 //Core
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 //Components
 import { Button, CircularProgress, TextareaAutosize } from '@mui/material';
@@ -24,7 +24,6 @@ import { aspectOptions, cameraOptions, HistoryFilter, lightingOptions, ModelKey 
 import { MockModelOptionsData } from './mock/Data';
 
 //API Backend
-import api from '@/api/baseApi';
 import { useQueryClient } from '@tanstack/react-query';
 import { generateImages } from './api/generate-imges.api';
 import { useSnackbar } from '@/contexts/SnackbarProvider';
@@ -32,8 +31,8 @@ import { useSubscriptionInfo } from '@/hooks/useSubscription';
 import axios, { AxiosError } from 'axios';
 import { BackendErrorResponse, DEFAULT_ERROR_MSG } from '@/api/types/error-response.type';
 import { buildTempPromptResult } from './helper/image-gen.helper';
-import { useInfiniteTopScroll } from '@/hooks/useInfiniteTopScroll';
 import { useScrollBottom } from '@/hooks/useScrollBottom';
+import { usePromptHistory } from '@/hooks/usePromptHistory';
 
 {/*
 A stunning realistic scene featuring a woman astronaut curiously peeking out of 
@@ -49,17 +48,11 @@ with stars twinkling in the background creating a sense of vastness in space.
 const PAGE_SIZE = 5;
 
 const ArtGenAI = () => {
-    const [promptResultList, setPromptResultList] = useState<PromptResult[]>([]);
+    const { showSnackbar } = useSnackbar();
     const [expanded, setExpanded] = useState<boolean>(true);
     const [promptExpanded, setPromptExpanded] = useState<boolean>(false);
     const [userPrompt, setUserPrompt] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const [loading, setLoading] = useState(true);
-    const [historyFilter, setHistoryFilter] = useState(HistoryFilter.TODAY)
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [loadedCount, setLoadedCount] = useState(PAGE_SIZE);
-    const [displayedResults, setDisplayedResults] = useState<PromptResult[]>([]);
-    const [initialScrollDone, setInitialScrollDone] = useState(false);
     const [scrollTrigger, setScrollTrigger] = useState(0);
 
     //Setting Panel
@@ -70,97 +63,21 @@ const ArtGenAI = () => {
     const [camera, setCamera] = useState<CameraOption>(cameraOptions[0]);
     const [numberOfImages, setNumberOfImages] = useState<number>(1);
 
+    // Subscription
     const queryClient = useQueryClient();
     const { data: subscriptionInfo } = useSubscriptionInfo();
 
-    const { showSnackbar } = useSnackbar();
-
-    const handleGetPromptHistory = async () => {
-        try {
-            const response = await api.get('/art-generation/prompt-history')
-            setPromptResultList(response.data);
-        } catch (e) {
-            console.log(e);
-        }
-    }
-
-    useEffect(() => {
-        const fetchHistory = async () => {
-            try {
-                await handleGetPromptHistory();
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchHistory();
-    }, []);
-
-    const isInFilterRange = (createdAt: string): boolean => {
-        const createdDate = new Date(createdAt);
-        const now = new Date();
-
-        switch (historyFilter) {
-            case HistoryFilter.TODAY:
-                return createdDate.toDateString() === now.toDateString();
-
-            case HistoryFilter.YESTERDAY: {
-                const yesterday = new Date();
-                yesterday.setDate(now.getDate() - 1);
-                return createdDate.toDateString() === yesterday.toDateString();
-            }
-
-            case HistoryFilter.LAST7DAYS: {
-                const sevenDaysAgo = new Date();
-                sevenDaysAgo.setDate(now.getDate() - 6);
-                return createdDate >= sevenDaysAgo && createdDate <= now;
-            }
-
-            case HistoryFilter.LAST30DAYS: {
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(now.getDate() - 29);
-                return createdDate >= thirtyDaysAgo && createdDate <= now;
-            }
-
-            default:
-                return true;
-        }
-    };
-
-    useEffect(() => {
-        setLoadedCount(PAGE_SIZE);
-        // setInitialScrollDone(false);
-    }, [historyFilter, promptResultList]);
-
-    const filtered = useMemo(() => {
-        return promptResultList.filter(result => isInFilterRange(result.created_at));
-    }, [promptResultList, historyFilter]);
-
-    const reversed = useMemo(() => filtered.slice().reverse(), [filtered]);
-
-    useEffect(() => {
-        const startIndex = Math.max(0, reversed.length - loadedCount);
-        const slice = reversed.slice(startIndex);
-        setDisplayedResults(slice);
-    }, [reversed, loadedCount]);
-
-    useLayoutEffect(() => {
-        if (!initialScrollDone && scrollRef.current && displayedResults.length > 0) {
-            const container = scrollRef.current;
-            container.scrollTop = container.scrollHeight;
-            setInitialScrollDone(true);
-        }
-    }, [displayedResults, initialScrollDone]);
-
-    const placeholderIdRef = useRef<number>(-1);
-
+    // Prompt History results and filtering management
+    const {
+        scrollRef,
+        displayedResults,
+        setDisplayedResults,
+        loading, historyFilter,
+        setHistoryFilter
+    } = usePromptHistory();
     useScrollBottom(scrollRef, [scrollTrigger], 200);
 
-    useInfiniteTopScroll(
-        scrollRef,
-        displayedResults.length < reversed.length,
-        () => setLoadedCount(c => c + PAGE_SIZE)
-    );
+    const placeholderIdRef = useRef<number>(-1);
 
     const handleGenerate = async () => {
         if (!userPrompt.trim()) return;
