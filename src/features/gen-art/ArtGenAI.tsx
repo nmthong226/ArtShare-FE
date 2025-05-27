@@ -29,6 +29,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { generateImages } from './api/generate-imges.api';
 import { useSnackbar } from '@/contexts/SnackbarProvider';
 import { useSubscriptionInfo } from '@/hooks/useSubscription';
+import axios, { AxiosError } from 'axios';
+import { BackendErrorResponse } from '@/api/types/error-response.type';
 
 {/*
 A stunning realistic scene featuring a woman astronaut curiously peeking out of 
@@ -259,6 +261,17 @@ const ArtGenAI = () => {
             }, 100);
 
         } catch (e) {
+            let msg = 'Failed to generate image';
+
+            if (axios.isAxiosError(e)) {
+                const axiosErr = e as AxiosError<BackendErrorResponse>;
+                msg = axiosErr.response?.data?.message ?? 'Failed to generate image';
+            }
+            else if (e instanceof Error) {
+                msg = e.message;
+            }
+
+            showSnackbar(msg, "error");
             console.error('Image generation failed:', e);
         } finally {
             if (intervalRef.current) clearInterval(intervalRef.current);
