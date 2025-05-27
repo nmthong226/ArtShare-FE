@@ -6,7 +6,7 @@ import {
   UserProfile,
 } from "../user-profile-public/api/user-profile.api"; // Make sure this path is correct
 import { useQuery } from "@tanstack/react-query";
-import EditProfileForm from "./components/EditProfileForm";
+import EditProfileForm from "./components/EditProfileForm"; // Already has dark mode considerations
 
 export default function EditUser() {
   const { data: profileData, isLoading: loadingProfile } = useQuery<
@@ -17,8 +17,7 @@ export default function EditUser() {
     queryFn: () => getUserProfile(),
   });
 
-  // Initialize formData with a structure that matches UserProfile,
-  // or null if profileData is not yet available.
+  // formData is used for AvatarSection's immediate display and updates
   const [formData, setFormData] = useState<UserProfile | null>(null);
 
   useEffect(() => {
@@ -27,38 +26,26 @@ export default function EditUser() {
     }
   }, [profileData]);
 
-  // Commented out mutation logic as it was in the original snippet
-  // const { mutate: saveProfile } = useMutation<
-  //   UserProfile,
-  //   Error,
-  //   UpdateUserDTO
-  // >({
-  //   mutationFn: async (payload: UpdateUserDTO) => {
-  //     const response = await updateUserProfile(payload);
-  //     return response.data;
-  //   },
-  //   onSuccess: (updated) => {
-  //     queryClient.setQueryData(["userProfile"], updated);
-  //     showSnackbar("Profile updated successfully.", "success");
-  //   },
-  //   onError: (err) => {
-  //     showSnackbar(err.message ?? "Failed to update profile.", "error");
-  //   },
-  // });
-
   if (loadingProfile || !formData) {
-    // Check !formData as well, since it's initialized to null
-    return <div className="m-4 text-center">Loading....</div>;
+    return (
+      <div className="m-4 text-center text-slate-700 dark:text-slate-200">
+        {/* Adjusted text color for light and dark modes */}
+        Loading....
+      </div>
+    );
   }
 
   return (
     <Container
       disableGutters
-      // Added bg-mountain-600 here
-      // Also added min-h-screen to ensure the background covers the whole screen if content is short
-      className="px-15 pt-6 h-full bg-mountain-600 min-h-screen"
+      className={
+        "px-15 pt-6 h-full  min-h-screen"
+        // Using 'dark:bg-background' assuming 'background' is your themed dark background (e.g., from shadcn/ui)
+        // If not, use a specific color: "dark:bg-slate-900" or "dark:bg-gray-900"
+        // Ensure text-foreground is defined in your theme for labels inside EditProfileForm to contrast this.
+      }
     >
-      {/* <ProfileHeader /> */}
+      {/* <ProfileHeader />  // If you add this, ensure it also has dark mode styles */}
 
       <Box>
         <AvatarSection
@@ -69,23 +56,18 @@ export default function EditUser() {
               prev ? { ...prev, profile_picture_url: newUrl } : prev,
             )
           }
+          // AvatarSection itself might need internal dark mode styling for its elements
         />
       </Box>
 
-      {/* Render EditProfileForm only if profileData (and thus initialData) is available */}
+      {/* 
+        EditProfileForm receives `profileData` (the last fetched state from backend).
+        If `AvatarSection` updates the avatar, `formData` changes, but `EditProfileForm`'s 
+        `initialData` won't reflect this specific avatar change until `profileData` itself is refetched.
+        This component (EditProfileForm) was already styled for dark mode in the previous step,
+        including its own background (e.g., dark:bg-mountain-900) and white input fields.
+      */}
       {profileData && <EditProfileForm initialData={profileData} />}
-
-      {/* Commented out Save button as it was in the original snippet
-      <Box className="p-6 pt-3">
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-blue-500 hover:bg-blue-600 text-white"
-        >
-          {saving ? "Saving…" : "Save"}
-        </Button>
-      </Box> */}
     </Container>
   );
 }

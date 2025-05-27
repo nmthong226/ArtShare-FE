@@ -18,7 +18,7 @@ const UserProfile = () => {
   };
 
   return (
-    <Box className="sm:px-6 md:px-4 lg:px-6 py-4 bg-white dark:bg-mountain-1000 text-white">
+    <Box className="sm:px-2 md:px-3 lg:px-3 py-3 bg-white dark:bg-mountain-1000 text-white">
       {/* Container for Posts + Profile Sidebar */}
       <Box
         sx={{
