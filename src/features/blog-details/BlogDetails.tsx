@@ -282,9 +282,10 @@ const BlogDetails = () => {
             )}
           </div>
           {/* Blog Content */}
-          <div className="p-2 rounded-md max-w-none prose lg:prose-xl">
-            {blog.content}
-          </div>
+          <div
+            className="p-2 rounded-md max-w-none prose lg:prose-xl"
+            dangerouslySetInnerHTML={{ __html: blog.content }}
+          />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
           <BlogComments
             blogId={Number(blogId)}
