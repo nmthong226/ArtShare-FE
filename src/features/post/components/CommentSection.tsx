@@ -38,7 +38,7 @@ import { Link as RouterLink } from "react-router-dom";
 import MuiLink from "@mui/material/Link";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-
+import { createContext, useContext } from "react";
 /* ------------------------------------------------------------------ */
 /* Constants & helpers                                                */
 /* ------------------------------------------------------------------ */
@@ -51,6 +51,11 @@ const DATETIME_FORMAT_OPTIONS_FOR_TITLE: Intl.DateTimeFormatOptions = {
   hour: "numeric",
   minute: "2-digit",
 };
+
+export const FreshRepliesCtx = createContext<{
+  map: Record<number, Set<number>>;
+  clear: (parentId: number) => void;
+}>({ map: {}, clear: () => {} });
 
 const getTimeAgo = (date: string | Date): string => {
   const now = new Date().getTime();
@@ -174,6 +179,9 @@ const CommentRow = ({
   onAbortEdit,
   onCommitEdit,
 }: RowProps) => {
+  /* ── fresh-reply context ──────────────────────────────── */
+  const { map: freshMap, clear: clearFreshIds } = useContext(FreshRepliesCtx);
+  const freshIds: Set<number> = freshMap[comment.id] ?? new Set();
   const { user } = useUser();
   const { showSnackbar } = useSnackbar();
   const CURRENT_USER_ID = user?.id;
@@ -190,20 +198,44 @@ const CommentRow = ({
   const closeMenu = () => setAnchorEl(null);
   const requireAuth = useRequireAuth();
 
+  /**
++ * When we come back to the page, `freshIds` may contain ids but
++ * `comment.replies` is still empty.  Pull the replies once so the new
++ * comment can render even while the thread is collapsed.
++ */
+  useEffect(() => {
+    if (
+      freshIds.size > 0 &&
+      (!comment.replies || comment.replies.length === 0) &&
+      !loading
+    ) {
+      (async () => {
+        try {
+          setLoading(true);
+          const fetched = await fetchComments(targetId, targetType, comment.id);
+          onRepliesFetched(comment.id, fetched as CommentUI[]);
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [freshIds]);
+
   useEffect(() => {
     const prev = prevReplyCountRef.current;
     const curr = comment.replies?.length ?? 0;
-    if (prev === 0 && curr > 0 && !showReplies) {
+    // auto-expand only when the user hasn't just added the reply themselves
+    if (prev === 0 && curr > 0 && !showReplies && freshIds.size === 0) {
       setShowReplies(true);
     }
     prevReplyCountRef.current = curr;
-  }, [comment.replies, showReplies]);
+  }, [comment.replies, showReplies, freshIds.size]);
 
   const toggleReplies = async () => {
-    const needsToFetch =
-      !showReplies &&
-      (comment.replies === undefined ||
-        (comment.replies.length === 0 && (comment.reply_count ?? 0) > 0));
+    const loaded = comment.replies?.length ?? 0;
+    const total = comment.reply_count ?? 0;
+    const needsToFetch = !showReplies && loaded < total;
 
     if (needsToFetch) {
       try {
@@ -224,11 +256,16 @@ const CommentRow = ({
         setLoading(false);
       }
     }
-    setShowReplies((s) => !s);
+    setShowReplies((s) => {
+      const next = !s;
+      if (next) clearFreshIds(comment.id);
+      return next;
+    });
   };
 
   const getReplyButtonTextContent = () => {
-    const count = comment.reply_count ?? 0;
+    const base = (comment.reply_count ?? 0) - freshIds.size;
+    const count = Math.max(0, base);
     return `${count} ${count === 1 ? "reply" : "replies"}`;
   };
 
@@ -428,10 +465,9 @@ const CommentRow = ({
             {showReplies ? "Hide" : "View"} {getReplyButtonTextContent()}
           </button>
 
-          {showReplies &&
-            comment.replies &&
-            comment.replies.length > 0 &&
-            comment.replies.map((r: CommentUI) => (
+          {comment.replies
+            ?.filter((r) => showReplies || freshIds.has(r.id))
+            .map((r: CommentUI) => (
               <CommentRow
                 targetId={targetId}
                 key={r.id}
@@ -497,9 +533,75 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [editingId, setEditingId] = useState<number | null>(null);
     const requireAuth = useRequireAuth();
+    /** replies that were added while the parent thread is still collapsed */
+    const STORAGE_KEY = `freshReplies-${targetType}-${targetId}`;
+    const [newRepliesMap, setNewRepliesMap] = useState<
+      Record<number, Set<number>>
+    >(() => {
+      try {
+        const raw = sessionStorage.getItem(STORAGE_KEY);
+        if (!raw) return {};
+        const obj = JSON.parse(raw) as Record<string, number[]>;
+        const out: Record<number, Set<number>> = {};
+        Object.entries(obj).forEach(([k, v]) => (out[+k] = new Set(v)));
+        return out;
+      } catch {
+        return {};
+      }
+    });
 
     useEffect(() => {
-      setComments(initial);
+      const serialisable = Object.fromEntries(
+        Object.entries(newRepliesMap).map(([k, set]) => [k, [...set]]),
+      );
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(serialisable));
+    }, [newRepliesMap, STORAGE_KEY]);
+    const appendFresh = (parentId: number, replyId: number) =>
+      setNewRepliesMap((prev) => {
+        const set = new Set(prev[parentId] ?? []);
+        set.add(replyId);
+        return { ...prev, [parentId]: set };
+      });
+
+    function mergeTrees(prev: CommentUI[], incoming: CommentUI[]): CommentUI[] {
+      return incoming.map((inc) => {
+        const old = prev.find((p) => p.id === inc.id);
+
+        // If the server gave us no replies but we already have some, keep them.
+        const mergedReplies =
+          inc.replies && inc.replies.length > 0
+            ? inc.replies
+            : (old?.replies ?? []);
+
+        return {
+          ...inc,
+          replies: mergedReplies.map((r) => r), // shallow-copy for safety
+        };
+      });
+    }
+
+    const replaceTempFreshId = (
+      parentId: number,
+      tmpId: number,
+      realId: number,
+    ) =>
+      setNewRepliesMap((prev) => {
+        const set = new Set(prev[parentId]);
+        if (!set.size) return prev;
+        set.delete(tmpId);
+        set.add(realId);
+        return { ...prev, [parentId]: set };
+      });
+
+    const clearFresh = (parentId: number) =>
+      setNewRepliesMap((prev) => {
+        if (!prev[parentId]) return prev;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [parentId]: _, ...rest } = prev;
+        return rest;
+      });
+    useEffect(() => {
+      setComments((prev) => mergeTrees(prev, initial));
     }, [initial]);
 
     useImperativeHandle(postCommentsRef, () => ({
@@ -583,10 +685,11 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
           : [optimistic, ...prev],
       );
 
+      // mark this reply so it stays visible even if thread is collapsed
+      if (parentId) appendFresh(parentId, tmpId);
       listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
       // Clear input and set states
       setNewComment("");
-      onCommentAdded();
       setReplyParentId(null);
       setIsPosting(true);
 
@@ -634,6 +737,9 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
           setComments((prev) => prev.map((c) => (c.id === tmpId ? data : c)));
         }
 
+        // update fresh-reply map from tmpId ➜ real id
+        if (parentId) replaceTempFreshId(parentId, tmpId, data.id);
+
         setTimeout(() => {
           if (replyParentId) {
             const parentEl = document.getElementById(
@@ -647,6 +753,7 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
           }
         }, 100);
         setReplyParentId(null);
+        onCommentAdded();
       } catch (err) {
         console.error(err);
         setComments((prev) => removeRecursive(prev, tmpId));
@@ -789,7 +896,7 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
               "absolute inset-x-0 bottom-0 flex items-center gap-2 bg-white p-4 border-t border-mountain-200"
             : // top version, but if hideWrapper remove border & rounding
               hideWrapper
-              ? "flex items-center gap-2 bg-white p-4 mb-4"
+              ? "flex items-center gap-2 bg-white mb-4"
               : "flex items-center gap-2 bg-white p-4 border border-mountain-200 rounded-lg mb-4"
         }
       >
@@ -855,37 +962,41 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
       <div ref={_ref} className={wrapperClass}>
         <span className="font-bold text-md">Comments</span>
         {inputPosition === "top" && InputBar}
-        <div
-          ref={listRef}
-          className="flex flex-col divide-y divide-neutral-100 overflow-y-auto"
+        <FreshRepliesCtx.Provider
+          value={{ map: newRepliesMap, clear: clearFresh }}
         >
-          {comments.length === 0 ? (
-            <p className="text-sm text-center text-mountain-500 py-4">
-              No comments yet. Be the first to comment!
-            </p>
-          ) : (
-            comments.map((c) => (
-              <CommentRow
-                targetId={targetId}
-                targetType={targetType}
-                key={c.id}
-                comment={c}
-                onLike={handleLike}
-                onReply={(id, username) => {
-                  setReplyParentId(id);
-                  setNewComment(`@${username} `);
-                  textareaRef.current?.focus();
-                }}
-                onDelete={handleDelete}
-                onRepliesFetched={attachReplies}
-                editingId={editingId}
-                onStartEdit={startEdit}
-                onAbortEdit={abortEdit}
-                onCommitEdit={commitEdit}
-              />
-            ))
-          )}
-        </div>
+          <div
+            ref={listRef}
+            className="flex flex-col divide-y divide-neutral-100 overflow-y-auto"
+          >
+            {comments.length === 0 ? (
+              <p className="text-sm text-center text-mountain-500 py-4">
+                No comments yet. Be the first to comment!
+              </p>
+            ) : (
+              comments.map((c) => (
+                <CommentRow
+                  targetId={targetId}
+                  targetType={targetType}
+                  key={c.id}
+                  comment={c}
+                  onLike={handleLike}
+                  onReply={(id, username) => {
+                    setReplyParentId(id);
+                    setNewComment(`@${username} `);
+                    textareaRef.current?.focus();
+                  }}
+                  onDelete={handleDelete}
+                  onRepliesFetched={attachReplies}
+                  editingId={editingId}
+                  onStartEdit={startEdit}
+                  onAbortEdit={abortEdit}
+                  onCommitEdit={commitEdit}
+                />
+              ))
+            )}
+          </div>
+        </FreshRepliesCtx.Provider>
         {inputPosition === "bottom" && InputBar}
         {/* input */}
 

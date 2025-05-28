@@ -105,8 +105,12 @@ export const deleteBlog = async (
  * Toggle bookmark status for a blog.
  * POST /blogs/:id/bookmark
  */
-export const toggleBookmark = async (blogId: number): Promise<any> => {
-  const response = await api.post(`/blogs/${blogId}/bookmark`);
+export const toggleBookmark = async (
+  blogId: number,
+): Promise<{ message: string; isBookmarked: boolean }> => {
+  const response = await api.post<{ message: string; isBookmarked: boolean }>(
+    `/blogs/${blogId}/bookmark`,
+  );
   return response.data;
 };
 
@@ -114,8 +118,12 @@ export const toggleBookmark = async (blogId: number): Promise<any> => {
  * Protect a blog.
  * POST /blogs/:id/protect
  */
-export const protectBlog = async (blogId: number): Promise<any> => {
-  const response = await api.post(`/blogs/${blogId}/protect`);
+export const protectBlog = async (
+  blogId: number,
+): Promise<{ message: string; isProtected: boolean }> => {
+  const response = await api.post<{ message: string; isProtected: boolean }>(
+    `/blogs/${blogId}/protect`,
+  );
   return response.data;
 };
 
@@ -126,8 +134,11 @@ export const protectBlog = async (blogId: number): Promise<any> => {
 export const rateBlog = async (
   blogId: number,
   rating: number,
-): Promise<any> => {
-  const response = await api.post(`/blogs/${blogId}/rate`, { rating });
+): Promise<{ message: string; rating: number }> => {
+  const response = await api.post<{ message: string; rating: number }>(
+    `/blogs/${blogId}/rate`,
+    { rating },
+  );
   return response.data;
 };
 
@@ -164,10 +175,13 @@ export const fetchRelevantBlogs = async (
 export const fetchBlogLikes = async (
   blogId: number,
   params?: { skip?: number; take?: number },
-): Promise<{ items: any[]; total: number }> => {
-  const response = await api.get<{ items: any[]; total: number }>(
-    `/blogs/${blogId}/likes`,
-    { params },
-  );
+): Promise<{
+  items: { id: number; username: string; avatar?: string }[];
+  total: number;
+}> => {
+  const response = await api.get<{
+    items: { id: number; username: string; avatar?: string }[];
+    total: number;
+  }>(`/blogs/${blogId}/likes`, { params });
   return response.data;
 };
