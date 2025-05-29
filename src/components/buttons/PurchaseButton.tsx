@@ -1,5 +1,4 @@
 //Components
-import { Button } from '@mui/material';
 import {
     Dialog,
     DialogContent,
@@ -12,7 +11,6 @@ import { PricingSection } from '@/components/ui/pricing-section';
 import { PricingTier } from '@/components/ui/pricing-card';
 
 //Icons
-import { TbChessQueenFilled } from "react-icons/tb";
 
 export const PAYMENT_FREQUENCIES = ["monthly", "yearly"];
 
@@ -103,10 +101,9 @@ const PurchaseButton = () => {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button className='flex justify-center items-center bg-indigo-100 rounded-lg w-28 h-full font-normal shrink-0'>
-                    <TbChessQueenFilled className='mr-2 size-5' />
+                <div className="flex justify-center items-center bg-gradient-to-r from-indigo-400 to-purple-600 hover:brightness-105 rounded-full w-24 h-full font-medium text-white cursor-pointer">
                     <p>Upgrade</p>
-                </Button>
+                </div>
             </DialogTrigger>
             <DialogContent className="flex flex-col min-w-[96%] h-[96%]">
                 <DialogHeader className=''>

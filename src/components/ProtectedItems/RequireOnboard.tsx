@@ -12,7 +12,6 @@ export default function RequireOnboard({ children }: Props) {
 
   if (loading) return <Loading />;
 
-  // signed-in but not onboarded → force to onboarding
   if (isAuthenticated && !isOnboard) {
     return <Navigate to="/onboarding" replace />;
   }

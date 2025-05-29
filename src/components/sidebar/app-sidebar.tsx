@@ -23,7 +23,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import UserPlan from "./subscription";
+// import UserPlan from "./subscription";
 import { Popover, Tooltip } from "@mui/material";
 
 
@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
           </div>
         </div>
         {/* Sidebar Body */}
-        <div className={`flex flex-col ${expand ? 'sidebar' : ''} space-y-6  px-2 h-[calc(100vh-10rem)] overflow-x-hidden text-mountain-800 `}>
+        <div className={`flex flex-col space-y-6  px-2 h-[calc(100vh-8rem)] overflow-x-hidden text-mountain-800 `}>
           <div className="flex flex-col justify-between items-center space-y-1 w-full">
             {[
               { icon: Home, label: 'Dashboard', href: '/dashboard' },
@@ -108,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                   >
                     <item.icon className="flex-shrink-0 size-5" />
                     <div className={`overflow-hidden transition-all duration-500 origin-left ${expand ? 'ml-2 w-auto' : 'w-0'}`}>
-                      <p className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} font-thin`}>
+                      <p className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} font-regular`}>
                         {item.label}
                       </p>
                     </div>
@@ -138,7 +138,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                   >
                     <item.icon className="flex-shrink-0 size-5" />
                     <div className={`overflow-hidden transition-all duration-500 origin-left ${expand ? 'ml-2 w-auto' : 'w-0'}`}>
-                      <p className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} font-thin`}>
+                      <p className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} font-regular`}>
                         {item.label}
                       </p>
                     </div>
@@ -157,7 +157,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                 <button className={`group flex pl-4 pr-2 text-violet-800 justify-between items-center  hover: py-2 rounded-md w-full transition hover:text-mountain-950 hover:cursor-pointer`}>
                   <div className="flex items-center space-x-2">
                     <RiImageAiLine className="size-5" />
-                    <p className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} font-thin`}>
+                    <p className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} font-regular`}>
                       Art Studio
                     </p>
                   </div>
@@ -221,7 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                       className={`${isActive ? ' text-black' : 'text-violet-800'} group flex pr-1.5 items-center rounded-md justify-between w-full h-8 hover:text-mountain-950 hover:cursor-pointer`}>
                       <div className="relative flex justify-center items-center transition-all duration-500">
                         <hr className="left-0 absolute border-violet-800 border-t-1 w-3" />
-                        <p className={`flex text-nowrap ml-4 transition-opacity duration-500 opacity-100 font-thin`}>{item.label}</p>
+                        <p className={`flex text-nowrap ml-4 transition-opacity duration-500 opacity-100 font-regular`}>{item.label}</p>
                       </div>
                       <div className="hidden group-hover:flex w-[14px] h-[14px] text-mountain-400 hover:cursor-pointer">
                         <LuStarOff />
@@ -240,7 +240,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                 <button className={`group flex pl-4 pr-2 text-violet-800 justify-between items-center  hover: py-2 rounded-md w-full transition hover:text-mountain-950 hover:cursor-pointer`}>
                   <div className="flex items-center space-x-2">
                     <MdAutoMode className="size-5" />
-                    <p className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} font-thin`}>
+                    <p className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} font-regular`}>
                       Social Automation
                     </p>
                   </div>
@@ -269,9 +269,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                   },
                 }}
               >
-                {/* Arrow: placed just *inside* the left edge */}
                 <div className="top-16 -left-1.5 z-10 absolute bg-indigo-100 shadow-sm border-gray-200 border-t border-l w-3 h-3 rotate-45 -translate-y-1/2" />
-
                 <div className="flex flex-col space-y-1">
                   <div className="space-y-1 bg-indigo-100 p-2 border-mountain-200 border-b-1 rounded-t-lg">
                     <p className="font-semibold">AI Studio</p>
@@ -305,7 +303,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                       className={`${isActive ? ' text-black' : 'text-violet-800'} group flex pr-1.5 items-center rounded-md justify-between w-full h-8 hover:text-mountain-950 hover:cursor-pointer`}>
                       <div className="relative flex justify-center items-center transition-all duration-500">
                         <hr className="left-0 absolute border-violet-800 border-t-1 w-3" />
-                        <p className={`flex text-nowrap ml-4 transition-opacity duration-500 opacity-100 font-thin`}>{item.label}</p>
+                        <p className={`flex text-nowrap ml-4 transition-opacity duration-500 opacity-100 font-regular`}>{item.label}</p>
                       </div>
                       <div className="hidden group-hover:flex w-[14px] h-[14px] text-mountain-400 hover:cursor-pointer">
                         <LuStarOff />
@@ -318,10 +316,10 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
           </div>
         </div>
       </div>
-      {/* Sidebar Footer */}
-      <div className="bottom-4 absolute flex pl-2 w-full">
+      {/* Sidebar Footer
+      <div className="bottom-2 absolute flex pl-2 w-full">
         <UserPlan expand={expand} />
-      </div>
+      </div> */}
     </aside >
   )
 }

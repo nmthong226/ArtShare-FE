@@ -43,7 +43,7 @@ const UserInAppConfigs = () => {
   if (loading)
     return (
       <>
-        <Skeleton className="dark:bg-mountain-900 rounded-full w-8 h-8" />
+        <Skeleton className="dark:bg-mountain-900 rounded-full w-10 h-10" />
       </>
     );
 
@@ -54,17 +54,13 @@ const UserInAppConfigs = () => {
           <Button
             variant="ghost"
             title="User menu"
-            className={`flex items-center bg-gradient-to-b ${
-              user
-                ? "from-blue-800 to-pink-800"
-                : "from-mountain-800 to-mountain-300"
-            } rounded-full w-8 h-8 p-0`}
+            className={`flex items-center rounded-full w-10 h-10 p-0`}
             onMouseEnter={() => setOpen(true)}
           >
             {user ? (
               user.profile_picture_url ? (
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={user.profile_picture_url} />
+                <Avatar className="shadow-md w-10 h-10 cursor-pointer">
+                  <AvatarImage src={user.profile_picture_url} className="object-cover"/>
                   <AvatarFallback>
                     {user.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -96,7 +92,7 @@ const UserInAppConfigs = () => {
       >
         {user && (
           <>
-            <div className="flex p-3 items-center space-x-2">
+            <div className="flex items-center space-x-2 p-3">
               {user.profile_picture_url ? (
                 <Avatar className="w-10 h-10">
                   <AvatarImage src={user.profile_picture_url} />

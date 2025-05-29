@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useUser } from "@/contexts/UserProvider";
-import Loading from "@/pages/Loading";
+import Loading from "../loading/Loading";
 
 interface GuestRouteProps {
   children: React.ReactElement;

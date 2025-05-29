@@ -4,12 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 //Components
 import { Button, CircularProgress, TextareaAutosize } from '@mui/material';
 import PromptResult from './components/PromptResult';
-import TokenPopover from './components/TokenPopover';
 import SettingsPanel from './components/SettingsPanel/SettingsPanel';
 import AIBot from './components/AI/AIBot';
 import { DropdownMenu } from '@radix-ui/react-dropdown-menu';
 import { DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import PurchaseButton from './components/PurchaseButton';
 
 //Icons
 import { IoMdArrowDropdown } from "react-icons/io";
@@ -191,7 +189,7 @@ const ArtGenAI = () => {
                     setStyle={setStyle}
                 />
                 <div className='flex justify-end pr-4 w-full h-fit'>
-                    <div className='flex items-center space-x-2 bg-white shadow-md p-2 rounded-xl w-102 h-13'>
+                    <div className='flex items-center space-x-2 bg-white shadow-md p-2 rounded-xl w-48 h-13'>
                         <div className='flex w-full h-full'>
                             <div className='flex justify-start items-center bg-mountain-100 hover:bg-mountain-200/80 px-2 rounded-lg w-full h-full font-normal'>
                                 <DropdownMenu>
@@ -218,8 +216,6 @@ const ArtGenAI = () => {
                                 </DropdownMenu>
                             </div>
                         </div>
-                        <TokenPopover />
-                        <PurchaseButton />
                     </div>
                 </div>
                 <div className='relative flex justify-end w-full h-full'>
@@ -228,7 +224,6 @@ const ArtGenAI = () => {
                             <div className="flex justify-center items-start mt-4 w-full h-full">
                                 <div className='flex items-center space-x-4'>
                                     <CircularProgress size={32} thickness={4} />
-                                    <p className='text-sm'>Loading...</p>
                                 </div>
                             </div>
                         ) : (

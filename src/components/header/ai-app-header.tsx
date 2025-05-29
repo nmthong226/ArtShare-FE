@@ -19,8 +19,8 @@ const AIHeader = () => {
     const { user, loading } = useUser();
 
     return (
-        <nav className={`z-50 flex relative justify-between items-center bg-white dark:bg-mountain-950 pr-2 lg:pr-4 border-b-1 border-b-mountain-100 dark:border-b-mountain-700 w-full h-16`}>
-            <div className="flex items-center px-4 h-full">
+        <nav className={`z-50 flex relative justify-between items-center bg-white dark:bg-mountain-950 px-4 border-b-1 border-b-mountain-100 dark:border-b-mountain-700 w-full h-16`}>
+            <div className="flex items-center h-full">
                 <Link to="/explore" className='flex justify-center items-center hover:bg-mountain-100 mr-4 p-2 rounded-lg'>
                     <FaArrowLeftLong className='size-5 text-mountain-600' />
                 </Link>
@@ -49,7 +49,7 @@ const AIHeader = () => {
                 })}
             </div>
             <div
-                className={`flex items-center h-full`}
+                className={`flex items-center h-full space-x-2`}
             >
                 <UserButton user={user!} loading={loading!} />
                 <UserInAppConfigs />
