@@ -163,6 +163,7 @@ interface RowProps {
   onStartEdit: (id: number) => void;
   onAbortEdit: () => void;
   onCommitEdit: (id: number, value: string) => Promise<void>;
+  onSubmitReply: (parentId: number, content: string) => void;
 }
 
 const CommentRow = ({
@@ -178,6 +179,7 @@ const CommentRow = ({
   onStartEdit,
   onAbortEdit,
   onCommitEdit,
+  onSubmitReply,
 }: RowProps) => {
   /* ── fresh-reply context ──────────────────────────────── */
   const { map: freshMap, clear: clearFreshIds } = useContext(FreshRepliesCtx);
@@ -197,6 +199,14 @@ const CommentRow = ({
     setAnchorEl(e.currentTarget);
   const closeMenu = () => setAnchorEl(null);
   const requireAuth = useRequireAuth();
+  const [replying, setReplying] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const replyInputRef = useRef<HTMLTextAreaElement>(null);
+  const olderCount = Math.max(0, (comment.reply_count ?? 0) - freshIds.size);
+  // show the thread container if there's any older OR any fresh replies
+  const showThread = olderCount > 0 || freshIds.size > 0;
+  // only show the “View/Hide” button when there are truly older replies
+  const showToggle = olderCount > 0;
 
   /**
 + * When we come back to the page, `freshIds` may contain ids but
@@ -226,7 +236,7 @@ const CommentRow = ({
     const prev = prevReplyCountRef.current;
     const curr = comment.replies?.length ?? 0;
     // auto-expand only when the user hasn't just added the reply themselves
-    if (prev === 0 && curr > 0 && !showReplies && freshIds.size === 0) {
+    if (prev === 0 && curr > 0 && !showReplies) {
       setShowReplies(true);
     }
     prevReplyCountRef.current = curr;
@@ -261,12 +271,6 @@ const CommentRow = ({
       if (next) clearFreshIds(comment.id);
       return next;
     });
-  };
-
-  const getReplyButtonTextContent = () => {
-    const base = (comment.reply_count ?? 0) - freshIds.size;
-    const count = Math.max(0, base);
-    return `${count} ${count === 1 ? "reply" : "replies"}`;
   };
 
   const renderContent = (text: string) => {
@@ -384,12 +388,13 @@ const CommentRow = ({
                 size="small"
                 color="primary"
                 onClick={() =>
-                  requireAuth("reply to comments", () =>
-                    onReply(comment.id, comment.user.username),
-                  )
+                  requireAuth("reply to comments", () => {
+                    setReplying((v) => !v);
+                    setTimeout(() => replyInputRef.current?.focus(), 0);
+                  })
                 }
               >
-                Reply
+                {replying ? "Cancel" : "Reply"}
               </Button>
             </div>
           )}
@@ -441,36 +446,112 @@ const CommentRow = ({
           </>
         )}
       </div>
-
-      {/* Replies */}
-      {((comment.reply_count ?? 0) > 0 ||
-        (comment.replies?.length ?? 0) > 0) && (
+      {/* ▶️  INLINE REPLY INPUT  */}
+      {showThread && (
         <div className="flex flex-col gap-1" style={{ marginLeft: INDENT }}>
-          <button
-            onClick={toggleReplies}
-            disabled={loading && !showReplies}
-            className="flex items-center gap-1 text-xs text-blue-600 disabled:text-neutral-400"
-          >
-            {loading && !showReplies ? ( // Spinner when fetching to expand
-              <CircularProgress
-                size={14}
-                color="inherit"
-                sx={{ marginRight: "4px" }}
-              />
-            ) : showReplies ? (
-              <ChevronUp size={14} />
-            ) : (
-              <ChevronDown size={14} />
-            )}
-            {showReplies ? "Hide" : "View"} {getReplyButtonTextContent()}
-          </button>
+          {/* A.  View / Hide button (only for true older replies) */}
+          {showToggle && (
+            <button
+              onClick={toggleReplies}
+              disabled={loading && !showReplies}
+              className="flex items-center gap-1 text-xs text-blue-600 disabled:text-neutral-400"
+            >
+              {loading && !showReplies ? (
+                <CircularProgress size={14} />
+              ) : showReplies ? (
+                <ChevronUp size={14} />
+              ) : (
+                <ChevronDown size={14} />
+              )}
+              {showReplies ? "Hide" : "View"} {olderCount}{" "}
+              {olderCount === 1 ? "reply" : "replies"}
+            </button>
+          )}
 
+          {/* B.  Inline-reply input */}
+          {replying && (
+            <div
+              className="flex items-start gap-3 mt-2"
+              style={{ marginLeft: INDENT }}
+            >
+              {/* avatar */}
+              {user?.profile_picture_url ? (
+                <img
+                  src={user.profile_picture_url}
+                  alt={user.username}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <Avatar
+                  name={user?.username || "Guest"}
+                  size={32}
+                  variant="beam"
+                  colors={["#84bfc3", "#ff9b62", "#d96153"]}
+                />
+              )}
+
+              {/* input + buttons */}
+              <div className="flex flex-col flex-1 pr-4">
+                <TextareaAutosize
+                  ref={replyInputRef}
+                  placeholder="Reply…"
+                  minRows={1}
+                  maxRows={4}
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      const txt = replyText.trim();
+                      if (!txt) return;
+                      setShowReplies(true); // keep thread open
+                      onSubmitReply(comment.id, txt);
+                      setReplyText("");
+                      setReplying(false);
+                    }
+                  }}
+                  className="border border-neutral-300 rounded-lg px-2 py-1 w-full max-w-full
+                       resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+
+                <div className="flex justify-end gap-2 mt-1">
+                  <Button
+                    size="small"
+                    color="inherit"
+                    onClick={() => {
+                      setReplyText("");
+                      setReplying(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    disabled={!replyText.trim()}
+                    onClick={() => {
+                      const txt = replyText.trim();
+                      if (!txt) return;
+                      setShowReplies(true); // keep thread open
+                      onSubmitReply(comment.id, txt);
+                      setReplyText("");
+                      setReplying(false);
+                    }}
+                  >
+                    Reply
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* C.  Render replies (older + fresh) */}
           {comment.replies
             ?.filter((r) => showReplies || freshIds.has(r.id))
-            .map((r: CommentUI) => (
+            .map((r) => (
               <CommentRow
-                targetId={targetId}
                 key={r.id}
+                targetId={targetId}
                 targetType={targetType}
                 depth={depth + 1}
                 comment={r}
@@ -482,6 +563,7 @@ const CommentRow = ({
                 onStartEdit={onStartEdit}
                 onAbortEdit={onAbortEdit}
                 onCommitEdit={onCommitEdit}
+                onSubmitReply={onSubmitReply}
               />
             ))}
         </div>
@@ -550,12 +632,6 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
       }
     });
 
-    useEffect(() => {
-      const serialisable = Object.fromEntries(
-        Object.entries(newRepliesMap).map(([k, set]) => [k, [...set]]),
-      );
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(serialisable));
-    }, [newRepliesMap, STORAGE_KEY]);
     const appendFresh = (parentId: number, replyId: number) =>
       setNewRepliesMap((prev) => {
         const set = new Set(prev[parentId] ?? []);
@@ -650,13 +726,17 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
       );
 
     /* -------------------- CREATE ---------------------------------- */
-    const handleAdd = async () => {
-      const content = newComment.trim();
+    const handleAdd = async (
+      contentArg?: string,
+      parentIdArg?: number | null,
+    ) => {
+      const content = (contentArg ?? newComment).trim();
       if (!content) return;
+
+      const parentId = parentIdArg !== undefined ? parentIdArg : replyParentId;
 
       const tmpId = Date.now();
       const now = new Date();
-      const parentId = replyParentId;
 
       const optimistic: CommentUI = {
         id: tmpId,
@@ -723,7 +803,7 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
                   ...comment,
                   replies: updateReplyInNestedStructure(
                     comment.replies,
-                    replyParentId,
+                    replyParentId!,
                     tmpId,
                     data,
                   ),
@@ -981,6 +1061,11 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
                   key={c.id}
                   comment={c}
                   onLike={handleLike}
+                  onSubmitReply={(parentId, content) =>
+                    requireAuth("reply to comments", () =>
+                      handleAdd(content, parentId),
+                    )
+                  }
                   onReply={(id, username) => {
                     setReplyParentId(id);
                     setNewComment(`@${username} `);
