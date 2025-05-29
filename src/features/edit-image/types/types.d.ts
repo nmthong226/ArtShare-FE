@@ -1,4 +1,17 @@
-type ImageLayer = {
+type LayerType = 'image' | 'text';
+
+type BaseLayer = {
+    id: string;
+    type: LayerType;
+    x: number;
+    y: number;
+    rotation: number;
+    width?: number;
+    height?: number;
+};
+
+type ImageLayer = BaseLayer & {
+    type: 'image';
     id: string;
     src: string;
     zoom: number;
@@ -18,6 +31,21 @@ type ImageLayer = {
     sepia: number;
     backgroundColor?: string;
 };
+
+type TextLayer = BaseLayer & {
+    type: 'text';
+    text: string;
+    fontSize: number;
+    color: string;
+    fontFamily?: string;
+    fontWeight?: string;
+    flipH?: boolean;
+    flipV?: boolean;
+    opacity: number;
+};
+
+type Layer = ImageLayer | TextLayer;
+
 
 type TextItem = {
     id: string;

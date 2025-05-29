@@ -13,10 +13,10 @@ import { RiImageCircleAiLine } from "react-icons/ri";
 import { TbDeviceDesktop } from "react-icons/tb";
 import MediaPreview from "./media-preview";
 import UploadFromDevice from "./upload-from-device";
-import BrowseAiImages from "./browse-ai-image";
 import { IoSparkles } from "react-icons/io5";
 import InfoMediaRemaining from "./InfoMediaRemaining";
 import { PostMedia } from "../types/post-media";
+import PostAiImages from "./post-ai-images";
 import ConfirmDialog from "@/components/dialogs/Confirm";
 import { LuImageOff } from "react-icons/lu";
 
@@ -307,7 +307,7 @@ export default function MediaSelectorPanel({
                       onAddVideo={handleVideoAdded}
                     />
                   ) : (
-                    <BrowseAiImages
+                    <PostAiImages
                       handleImageFilesChange={handleImagesAdded}
                     />
                   )

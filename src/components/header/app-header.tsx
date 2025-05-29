@@ -84,9 +84,7 @@ const Header: React.FC = () => {
                     </div>
                 </div>
             </div>
-            <div
-                className={`flex items-center h-full`}
-            >
+            <div className={`flex items-center h-full space-x-2`}>
                 <UserButton user={user!} loading={loading!} />
                 <UserInAppConfigs />
             </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserProvider";
-import Loading from "../loading/Loading";
+import Loading from "@/pages/Loading";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   children,

@@ -122,10 +122,6 @@ const WriteDocument = () => {
             <div className='flex mx-auto py-4 print:py-0 pb-20 w-[794px] print:w-full min-w-max min-h-[1123px] overflow-y-hidden'>
               <Editor ref={editorRef} isLoading={loading} />
             </div>
-            {/* --> Add page */}
-            {/* <div className='flex mx-auto py-4 print:py-0 pb-20 w-[794px] print:w-full min-w-max min-h-[1123px] overflow-y-hidden'>
-              <Editor ref={editorRef} />
-            </div> */}
           </div>
         </div>
       </div>

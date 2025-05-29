@@ -269,9 +269,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                   },
                 }}
               >
-                {/* Arrow: placed just *inside* the left edge */}
                 <div className="top-16 -left-1.5 z-10 absolute bg-indigo-100 shadow-sm border-gray-200 border-t border-l w-3 h-3 rotate-45 -translate-y-1/2" />
-
                 <div className="flex flex-col space-y-1">
                   <div className="space-y-1 bg-indigo-100 p-2 border-mountain-200 border-b-1 rounded-t-lg">
                     <p className="font-semibold">AI Studio</p>

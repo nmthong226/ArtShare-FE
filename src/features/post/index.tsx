@@ -100,8 +100,8 @@ const Post: React.FC = () => {
           />
         </div>
       </div>
-      <div className="hidden md:flex flex-row rounded-t-3xl h-full overflow-hidden">
-        <div className="flex flex-grow justify-center items-center bg-mountain-50 h-full overflow-hidden sidebar">
+      <div className="hidden md:flex flex-row gap-4 h-full">
+        <div className="flex flex-grow justify-center items-center h-full">
           <PostAssets medias={postData!.medias} />
         </div>
         <div className="relative flex-shrink-0 bg-white shadow py-0 pl-4 sm:w-[256px] md:w-[384px] lg:w-[448px] overflow-hidden">

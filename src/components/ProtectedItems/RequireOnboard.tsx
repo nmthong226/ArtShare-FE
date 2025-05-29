@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserProvider";
-import Loading from "../loading/Loading";
+import Loading from "@/pages/Loading";
 
 interface Props {
   children: React.ReactNode;
@@ -10,7 +10,7 @@ interface Props {
 export default function RequireOnboard({ children }: Props) {
   const { loading, isAuthenticated, isOnboard } = useUser();
 
-  if (loading) return (<Loading />)
+  if (loading) return <Loading />;
 
   if (isAuthenticated && !isOnboard) {
     return <Navigate to="/onboarding" replace />;
