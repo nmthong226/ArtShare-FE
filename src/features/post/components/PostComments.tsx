@@ -808,13 +808,6 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
               variant="beam"
               colors={["#84bfc3", "#ff9b62", "#d96153"]}
             />
-          ) : user ? (
-            <Avatar
-              name={user.username || ""}
-              size={32}
-              variant="beam"
-              colors={["#84bfc3", "#ff9b62", "#d96153"]}
-            />
           ) : (
             <Avatar
               name="Guest"
