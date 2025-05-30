@@ -7,10 +7,10 @@ import { ChromePicker } from 'react-color';
 import { MdOutlineSaveAlt } from 'react-icons/md';
 
 interface LayerToolsBarProp {
-    layers: ImageLayer[];
+    layers: Layer[];
     zoomLevel: number;
     selectedLayerId: string | null;
-    setLayers: Dispatch<SetStateAction<ImageLayer[]>>;
+    setLayers: Dispatch<SetStateAction<Layer[]>>;
     handleZoomIn: () => void;
     handleZoomOut: () => void;
     setSelectedLayerId: Dispatch<SetStateAction<string | null>>;
@@ -112,25 +112,48 @@ const LayerToolsBar: React.FC<LayerToolsBarProp> = ({
                         .map((layer) => (
                             <div
                                 key={layer.id}
-                                className='flex justify-center items-center px-2 rounded-sm w-full h-20 hover:cursor-pointer'
-                                onClick={() => setSelectedLayerId(layer.id)}>
-                                <img
-                                    src={layer.src}
-                                    className={`rounded-sm w-full h-full object-cover border-1 ${selectedLayerId === layer.id ? 'border-indigo-400' : 'border-mountain-200'}`} />
+                                className="flex justify-center items-center px-2 rounded-sm w-full h-20 hover:cursor-pointer"
+                                onClick={() => setSelectedLayerId(layer.id)}
+                            >
+                                {layer.type === "image" ? (
+                                    <img
+                                        src={layer.src}
+                                        className={`rounded-sm w-full h-20 object-cover border-1 ${selectedLayerId === layer.id
+                                            ? "border-indigo-400"
+                                            : "border-mountain-200"
+                                            }`}
+                                        alt="Layer Preview"
+                                    />
+                                ) : (
+                                    <div className={`relative overflow-hidden border w-full h-20 rounded bg-white ${selectedLayerId === layer.id ? "border-indigo-400" : "border-mountain-200"}`}>
+                                        {layer.type === "text" && (
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    fontSize: layer.fontSize * 0.5,
+                                                    color: layer.color,
+                                                }}
+                                                className='top-1/2 left-1/2 flex-nowrap text-nowrap -translate-x-1/2 -translate-y-1/2'>
+                                                {layer.text || "Preview text"}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         ))}
-                    <Tooltip title="Background" arrow placement='right'>
+                    <Tooltip title="Set Color" arrow placement='right'>
                         <div
                             ref={containerRef}
                             onClick={() => {
                                 setSelectedLayerId(layers[0].id);
                                 setOpenColorSettings(!openColorSettings);
                             }}
-                            className='flex px-2'>
+                            className='relative flex px-2'>
                             <div
                                 className={`flex justify-center items-center border-2 w-full h-12 text-mountain-600 text-sm italic hover:cursor-pointer ${selectedLayerId === layers[0].id ? 'border-indigo-400' : 'border-mountain-200'}`}
-                                style={{ backgroundColor: layers[0].backgroundColor }}
+                                style={{ backgroundColor: layers[0].type === 'image' ? layers[0].backgroundColor : '#fffff' }}
                             />
+                            <span className='top-1/2 left-1/2 absolute text-mountain-400 text-xs italic -translate-x-1/2 -translate-y-1/2'>Background</span>
                         </div>
                     </Tooltip>
                     {openColorSettings && selectedLayerId === layers[0].id && (
@@ -139,14 +162,17 @@ const LayerToolsBar: React.FC<LayerToolsBarProp> = ({
                                 <div className="bg-indigo-100 px-3 py-1 rounded-t font-semibold text-indigo-700 text-sm cursor-move drag-handle">
                                     🎨 Background Color
                                 </div>
-                                <ChromePicker
-                                    color={layers[0].backgroundColor}
-                                    onChangeComplete={(color) => {
-                                        const updated = [...layers];
-                                        updated[0].backgroundColor = color.hex;
-                                        setLayers(updated);
-                                    }}
-                                />
+                                {layers[0].type === "image" && (
+                                    <ChromePicker
+                                        color={(layers[0] as ImageLayer).backgroundColor}
+                                        onChangeComplete={(color) => {
+                                            const updated = [...layers];
+                                            const imageLayer = updated[0] as ImageLayer;
+                                            imageLayer.backgroundColor = color.hex;
+                                            setLayers(updated);
+                                        }}
+                                    />
+                                )}
                             </div>
                         </Draggable>
                     )}

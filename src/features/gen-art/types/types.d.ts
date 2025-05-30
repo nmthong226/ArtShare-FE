@@ -82,6 +82,7 @@ interface PromptResult {
     style: string,
     user_id: string,
     user_prompt: string,
+    generating?: boolean,
 }
 
 interface HistoryFilter {

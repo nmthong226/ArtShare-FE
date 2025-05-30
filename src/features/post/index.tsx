@@ -95,7 +95,7 @@ const Post: React.FC = () => {
 
   if (isPostLoading || isCommentsLoading) {
     return (
-      <div className="flex items-center justify-center flex-grow h-full m-4 text-center">
+      <div className="flex justify-center items-center m-4 h-screen text-center">
         <CircularProgress size={36} />
         <p className="ml-2">Loading...</p>
       </div>
@@ -172,9 +172,9 @@ const Post: React.FC = () => {
             <MatureContentWarning onShow={handleShowMatureContent} />
           )}
         </div>
-        <div className="relative flex-shrink-0 bg-white shadow py-0 pl-4 rounded-2xl sm:w-[256px] md:w-[384px] lg:w-[448px]">
-          <div className="flex flex-col h-full gap-4 overflow-y-scroll rounded-2xl custom-scrollbar">
-            <PostArtist artist={postData.user} postData={postData} />
+        <div className="relative flex-shrink-0 bg-white shadow py-0 pl-4 sm:w-[256px] md:w-[384px] lg:w-[448px] overflow-hidden">
+          <div className="flex flex-col gap-4 h-full sidebar">
+            <PostArtist artist={postData!.user} postData={postData!} />
             <PostInfo
               postData={postData}
               commentCount={commentCount}

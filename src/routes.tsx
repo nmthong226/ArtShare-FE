@@ -164,17 +164,7 @@ const routeConfig: RouteObject[] = [
         ),
         children: [
           { path: "/docs/new", element: <MyWriting /> },
-        ]
-      },
-      // In-App Text Editor Private
-      {
-        element: (
-          <ProtectedInAppRoute>
-            <Outlet />
-          </ProtectedInAppRoute>
-        ),
-        children: [
-          { path: "/docs/new", element: <MyWriting /> },
+          { path: "/docs/:id/edit", element: <MyWriting /> },
         ]
       },
       // Catch-all -> redirect

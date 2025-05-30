@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
-import { Avatar, Box, Button, IconButton, Tooltip } from "@mui/material";
+import { Avatar, Box, IconButton, Tooltip } from "@mui/material";
 import {
   MdAdd,
   MdClose,
@@ -11,23 +11,14 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { RiImageCircleAiLine } from "react-icons/ri";
 import { TbDeviceDesktop } from "react-icons/tb";
-
-//Components
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { LuImageOff } from "react-icons/lu";
 import MediaPreview from "./media-preview";
 import UploadFromDevice from "./upload-from-device";
-import BrowseAiImages from "./browse-ai-image";
 import { IoSparkles } from "react-icons/io5";
 import InfoMediaRemaining from "./InfoMediaRemaining";
 import { PostMedia } from "../types/post-media";
+import PostAiImages from "./post-ai-images";
+import ConfirmDialog from "@/components/dialogs/Confirm";
+import { LuImageOff } from "react-icons/lu";
 
 const MAX_IMAGES = 4;
 const MAX_VIDEO = 1;
@@ -76,7 +67,7 @@ export default function MediaSelectorPanel({
   const [selectedPreviewMedia, setSelectedPreviewMedia] = useState<PostMedia | null>(null);
 
   const handleTabChange = (newTab: TabValue) => {
-    if (hasArtNovaImages && postMedias.length > 0 &&  newTab !== TabValue.BROWSE_GENAI) {
+    if (hasArtNovaImages && postMedias.length > 0 && newTab !== TabValue.BROWSE_GENAI) {
       setPendingTab(newTab);
       setConfirmDialogOpen(true);
     } else if (newTab !== TabValue.UPLOAD_MEDIA && postMedias.length > 0) {
@@ -279,7 +270,7 @@ export default function MediaSelectorPanel({
                 className="top-2 z-50 absolute flex justify-between items-center space-x-2 mb-2 p-1 px-2 rounded-lg w-full"
                 sx={{ flexShrink: 0 }}
               >
-                <InfoMediaRemaining 
+                <InfoMediaRemaining
                   currentImageCount={imageCount}
                   MaxImage={MAX_IMAGES}
                   hasVideo={hasVideo}
@@ -316,7 +307,7 @@ export default function MediaSelectorPanel({
                       onAddVideo={handleVideoAdded}
                     />
                   ) : (
-                    <BrowseAiImages
+                    <PostAiImages
                       handleImageFilesChange={handleImagesAdded}
                     />
                   )
@@ -387,37 +378,22 @@ export default function MediaSelectorPanel({
           );
         }}
       </AutoSizer>
-      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent className="flex flex-col w-108">
-          <DialogHeader>
-            <DialogTitle>Change Tab Confirmation</DialogTitle>
-            <DialogDescription>
-              Switch tabs, your changes will be removed. Are you sure?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center items-center bg-mountain-100 py-6">
-            <LuImageOff className="size-12 text-mountain-600" />
-          </div>
-          <DialogFooter>
-            <Button className="bg-mountain-100 hover:bg-mountain-100/80" onClick={() => setConfirmDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              className="bg-red-700 hover:bg-red-700/80 text-mountain-50"
-              onClick={() => {
-                setPostMedias([]);
-                setTabValue(pendingTab!);
-                setConfirmDialogOpen(false);
-                setSelectedPreviewMedia(null);
-                setThumbnailFile(undefined, true);
-                setHasArtNovaImages(false);
-              }}
-            >
-              Yes, discard and switch
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        title="Change Tab Confirmation"
+        description="Switch tabs, your changes will be removed. Are you sure?"
+        confirmMessage="Yes, discard and switch"
+        icon={<LuImageOff className="size-12 text-mountain-600" />}
+        open={confirmDialogOpen}
+        onCancel={() => setConfirmDialogOpen(false)}
+        onConfirm={() => {
+          setPostMedias([]);
+          setTabValue(pendingTab!);
+          setConfirmDialogOpen(false);
+          setSelectedPreviewMedia(null);
+          setThumbnailFile(undefined, true);
+          setHasArtNovaImages(false);
+        }}
+      />
     </Box>
   );
 }

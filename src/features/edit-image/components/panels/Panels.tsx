@@ -1,22 +1,21 @@
 //Components
 import AdjustmentSlider from '../../components/sliders/AdjustmentSlider';
-import { Button, Tooltip, tooltipClasses } from '@mui/material';
 
 //Icons
-import { IoText } from "react-icons/io5";
 import { X } from 'lucide-react';
 import { Dispatch, SetStateAction } from 'react';
-import { RiResetRightLine } from "react-icons/ri";
-import { MdOutlineFlip } from "react-icons/md";
-import ArrangePanel from './ArrangePanel';
-import FilterPanel from './FilterPanel';
 import CropPanel from './CropPanel';
+import FilterPanel from './FilterPanel';
+import ArrangePanel from './ArrangePanel';
+import TextPanel from './TextPanel';
 
 type PanelsProp = {
     selectedLayerId: string,
     activePanel: string,
-    layers: ImageLayer[],
+    layers: Layer[],
     setActivePanel: Dispatch<SetStateAction<"arrange" | "crop" | "adjust" | "filter" | "text" | null>>;
+    handleLayerXPosition: (newXPos: number) => void;
+    handleLayerYPosition: (newYPos: number) => void;
     handleOpacityChange: (newOpacity: number) => void;
     toggleFlipHorizontal: () => void;
     toggleFlipVertical: () => void;
@@ -28,6 +27,9 @@ type PanelsProp = {
     handleContrast: (newContrast: number) => void;
     handleSepia: (newSepia: number) => void;
     handleRotationChange: (newRotation: number) => void;
+    handleChangeFontSize: (newFontSize: number) => void;
+    handleChangeFontFamily: (newFontFamily: string) => void;
+    handleChangeTextColor: (newColor: string) => void;
     addText: () => void;
 }
 
@@ -35,6 +37,8 @@ const Panels: React.FC<PanelsProp> = ({
     selectedLayerId,
     activePanel,
     layers,
+    handleLayerXPosition,
+    handleLayerYPosition,
     handleRotationChange,
     handleOpacityChange,
     toggleFlipHorizontal,
@@ -46,8 +50,14 @@ const Panels: React.FC<PanelsProp> = ({
     handleBrightness,
     handleContrast,
     handleSepia,
-    addText
+    addText,
+    handleChangeFontSize,
+    handleChangeFontFamily,
+    handleChangeTextColor
 }) => {
+    const selectedLayer = layers.find(l => l.id === selectedLayerId);
+    const isNonTextLayer = selectedLayer?.type === "image" || !selectedLayer;
+    const isTextLayer = selectedLayer?.type === "text" || !selectedLayer;
     return (
         <div className='z-50'>
             {activePanel && (
@@ -58,9 +68,11 @@ const Panels: React.FC<PanelsProp> = ({
                     </div>
                     <div className='custom-scrollbar-left flex flex-col space-y-4 px-6 py-4 max-h-[82%] overflow-y-auto'>
                         {activePanel == "crop" && (
-                            <ArrangePanel
+                            <CropPanel
                                 layers={layers}
                                 selectedLayerId={selectedLayerId}
+                                handleLayerXPosition={handleLayerXPosition}
+                                handleLayerYPosition={handleLayerYPosition}
                                 handleOpacityChange={handleOpacityChange}
                                 toggleFlipHorizontal={toggleFlipHorizontal}
                                 toggleFlipVertical={toggleFlipVertical}
@@ -69,77 +81,88 @@ const Panels: React.FC<PanelsProp> = ({
                             />
                         )}
                         {activePanel == "arrange" && (
-                            <CropPanel
+                            <ArrangePanel
                                 layers={layers}
                                 selectedLayerId={selectedLayerId}
                             />
                         )}
                         {activePanel === "adjust" && (
-                            <>
-                                <AdjustmentSlider
-                                    label='Saturation'
-                                    value={layers.find(l => l.id === selectedLayerId)?.saturation ?? 100}
-                                    onChange={handleSaturation}
-                                    min={0}
-                                    max={200}
-                                    gradientColors={["#808080", "#ff0000"]}
-                                />
-                                <AdjustmentSlider
-                                    label='Hue'
-                                    value={layers.find(l => l.id === selectedLayerId)?.hue ?? 0}
-                                    onChange={handleHue}
-                                    min={-180}
-                                    max={180}
-                                    gradientColors={[
-                                        "#808080", // neutral gray (0% saturation)
-                                        "#ff0000", // red
-                                        "#ffff00", // yellow
-                                        "#00ff00", // green
-                                        "#00ffff", // cyan
-                                        "#0000ff", // blue
-                                        "#ff00ff", // magenta
-                                        "#ff0000"  // wrap back to red (for a smooth loop)
-                                    ]}
-                                />
-                                <AdjustmentSlider
-                                    label='Brightness'
-                                    value={layers.find(l => l.id === selectedLayerId)?.brightness ?? 100}
-                                    onChange={handleBrightness}
-                                    min={0}
-                                    max={200}
-                                />
-                                <AdjustmentSlider
-                                    label='Contrast'
-                                    value={layers.find(l => l.id === selectedLayerId)?.contrast ?? 100}
-                                    onChange={handleContrast}
-                                    min={0}
-                                    max={200}
-                                />
-                            </>
+                            isNonTextLayer ? (
+                                <>
+                                    <AdjustmentSlider
+                                        label='Saturation'
+                                        value={selectedLayer?.saturation ?? 100}
+                                        onChange={handleSaturation}
+                                        min={0}
+                                        max={200}
+                                        gradientColors={["#808080", "#ff0000"]}
+                                    />
+                                    <AdjustmentSlider
+                                        label='Hue'
+                                        value={selectedLayer?.hue ?? 0}
+                                        onChange={handleHue}
+                                        min={-180}
+                                        max={180}
+                                        gradientColors={[
+                                            "#808080", "#ff0000", "#ffff00", "#00ff00",
+                                            "#00ffff", "#0000ff", "#ff00ff", "#ff0000"
+                                        ]}
+                                    />
+                                    <AdjustmentSlider
+                                        label='Brightness'
+                                        value={selectedLayer?.brightness ?? 100}
+                                        onChange={handleBrightness}
+                                        min={0}
+                                        max={200}
+                                    />
+                                    <AdjustmentSlider
+                                        label='Contrast'
+                                        value={selectedLayer?.contrast ?? 100}
+                                        onChange={handleContrast}
+                                        min={0}
+                                        max={200}
+                                    />
+                                </>
+                            ) : (
+                                <div className="text-mountain-500 text-xs text-center italic">
+                                    This tab is not used for text layers. Please choose any non-text layers to continue.
+                                </div>
+                            )
                         )}
                         {activePanel === "filter" && (
-                            <FilterPanel
-                                layers={layers}
-                                selectedLayerId={selectedLayerId}
-                                handleSaturation={handleSaturation}
-                                handleBrightness={handleBrightness}
-                                handleHue={handleHue}
-                                handleContrast={handleContrast}
-                                handleSepia={handleSepia}
-                            />
+                            isNonTextLayer ? (
+                                <FilterPanel
+                                    layers={layers.filter(l => l.type === "image") as ImageLayer[]}
+                                    selectedLayerId={selectedLayerId}
+                                    handleSaturation={handleSaturation}
+                                    handleBrightness={handleBrightness}
+                                    handleHue={handleHue}
+                                    handleContrast={handleContrast}
+                                    handleSepia={handleSepia}
+                                />
+                            ) : (
+                                <div className="text-mountain-500 text-xs text-center italic">
+                                    This tab is not used for text layers. Please choose any non-text layers to continue.
+                                </div>
+                            )
                         )}
                         {activePanel === "text" && (
-                            <>
-                                <div onClick={addText} className='flex justify-center items-center w-full h-10'>
-                                    <Button className='flex justify-center items-center bg-white border border-mountain-200 rounded-lg w-full h-full font-normal text-sm'>
-                                        <IoText className='mr-2 size-5' />
-                                        <p>Add Text</p>
-                                    </Button>
+                            isTextLayer ? (
+                                <TextPanel
+                                    selectedLayer={selectedLayer}
+                                    handleChangeFontSize={handleChangeFontSize}
+                                    handleChangeFontFamily={handleChangeFontFamily}
+                                    handleChangeTextColor={handleChangeTextColor}
+                                    addText={addText}
+                                />
+                            ) : (
+                                <div className="text-mountain-500 text-xs text-center italic">
+                                    This tab is not used for image layer. Please continue with non-image layer.
                                 </div>
-                            </>
+                            )
                         )}
                     </div>
-                    {activePanel === "filter" ? (
+                    {/* {activePanel === "filter" ? (
                         <>
                             <hr className='flex mb-4 border-mountain-200 border-t-1 w-full' />
                             <div className='flex space-x-2 w-full h-10'>
@@ -198,7 +221,7 @@ const Panels: React.FC<PanelsProp> = ({
                                 </Button>
                             </div>
                         </>
-                    )}
+                    )} */}
                 </div>
             )}
         </div>

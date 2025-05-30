@@ -35,12 +35,18 @@ import '../styles/editor.css'
 
 import { useEditorStore } from '../stores/use-editor-store'
 import { forwardRef, useImperativeHandle } from 'react'
+import { CircularProgress } from '@mui/material'
+
+type EditorProps = {
+    isLoading?: boolean;
+};
 
 export type EditorHandle = {
-    getContent: () => string | undefined
-}
+    getContent: () => string | undefined;
+    setContent: (html: string) => void;
+};
 
-const Editor = forwardRef<EditorHandle>((_, ref) => {
+const Editor = forwardRef<EditorHandle, EditorProps>(({ isLoading }, ref) => {
     const { setEditor } = useEditorStore();
     const editor = useEditor({
         onCreate({ editor }) {
@@ -187,7 +193,19 @@ const Editor = forwardRef<EditorHandle>((_, ref) => {
 
     useImperativeHandle(ref, () => ({
         getContent: () => editor?.getHTML(),
-    }))
+        setContent: (html: string) => {
+            if (editor && html) {
+                editor.commands.setContent(html);
+            }
+        },
+    }));
+
+    if (isLoading)
+        return (
+            <div className='flex justify-center items-center py-10 w-full h-full'>
+                <CircularProgress size={36}/>
+            </div>
+        )
 
     return (
         <EditorContent editor={editor} className="max-w-full prose" />
