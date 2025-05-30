@@ -38,7 +38,9 @@ import { Link as RouterLink } from "react-router-dom";
 import MuiLink from "@mui/material/Link";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { createContext, useContext } from "react";
+import { useContext } from "react";
+import { FreshRepliesCtx } from "./FreshReplies";
+import { isTemporaryCommentId } from "@/lib/utils";
 /* ------------------------------------------------------------------ */
 /* Constants & helpers                                                */
 /* ------------------------------------------------------------------ */
@@ -51,11 +53,6 @@ const DATETIME_FORMAT_OPTIONS_FOR_TITLE: Intl.DateTimeFormatOptions = {
   hour: "numeric",
   minute: "2-digit",
 };
-
-export const FreshRepliesCtx = createContext<{
-  map: Record<number, Set<number>>;
-  clear: (parentId: number) => void;
-}>({ map: {}, clear: () => {} });
 
 const getTimeAgo = (date: string | Date): string => {
   const now = new Date().getTime();
@@ -207,6 +204,7 @@ const CommentRow = ({
   const showThread = olderCount > 0 || freshIds.size > 0;
   // only show the “View/Hide” button when there are truly older replies
   const showToggle = olderCount > 0;
+  const thisCommentIsTemporary = isTemporaryCommentId(comment.id);
 
   /**
 + * When we come back to the page, `freshIds` may contain ids but
@@ -235,12 +233,14 @@ const CommentRow = ({
   useEffect(() => {
     const prev = prevReplyCountRef.current;
     const curr = comment.replies?.length ?? 0;
-    // auto-expand only when the user hasn't just added the reply themselves
-    if (prev === 0 && curr > 0 && !showReplies) {
+
+    // Only auto-expand if there are NO fresh replies (meaning this is from fetching old replies)
+    // Auto-expand **only** when there are no hidden older replies.
+    if (prev === 0 && curr > 0 && !showReplies && olderCount === 0) {
       setShowReplies(true);
     }
     prevReplyCountRef.current = curr;
-  }, [comment.replies, showReplies, freshIds.size]);
+  }, [comment.replies, showReplies, freshIds.size, olderCount]);
 
   const toggleReplies = async () => {
     const loaded = comment.replies?.length ?? 0;
@@ -446,6 +446,7 @@ const CommentRow = ({
           </>
         )}
       </div>
+
       {/* ▶️  INLINE REPLY INPUT  */}
       {showThread && (
         <div className="flex flex-col gap-1" style={{ marginLeft: INDENT }}>
@@ -466,83 +467,6 @@ const CommentRow = ({
               {showReplies ? "Hide" : "View"} {olderCount}{" "}
               {olderCount === 1 ? "reply" : "replies"}
             </button>
-          )}
-
-          {/* B.  Inline-reply input */}
-          {replying && (
-            <div
-              className="flex items-start gap-3 mt-2"
-              style={{ marginLeft: INDENT }}
-            >
-              {/* avatar */}
-              {user?.profile_picture_url ? (
-                <img
-                  src={user.profile_picture_url}
-                  alt={user.username}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
-              ) : (
-                <Avatar
-                  name={user?.username || "Guest"}
-                  size={32}
-                  variant="beam"
-                  colors={["#84bfc3", "#ff9b62", "#d96153"]}
-                />
-              )}
-
-              {/* input + buttons */}
-              <div className="flex flex-col flex-1 pr-4">
-                <TextareaAutosize
-                  ref={replyInputRef}
-                  placeholder="Reply…"
-                  minRows={1}
-                  maxRows={4}
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      const txt = replyText.trim();
-                      if (!txt) return;
-                      setShowReplies(true); // keep thread open
-                      onSubmitReply(comment.id, txt);
-                      setReplyText("");
-                      setReplying(false);
-                    }
-                  }}
-                  className="border border-neutral-300 rounded-lg px-2 py-1 w-full max-w-full
-                       resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-
-                <div className="flex justify-end gap-2 mt-1">
-                  <Button
-                    size="small"
-                    color="inherit"
-                    onClick={() => {
-                      setReplyText("");
-                      setReplying(false);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    disabled={!replyText.trim()}
-                    onClick={() => {
-                      const txt = replyText.trim();
-                      if (!txt) return;
-                      setShowReplies(true); // keep thread open
-                      onSubmitReply(comment.id, txt);
-                      setReplyText("");
-                      setReplying(false);
-                    }}
-                  >
-                    Reply
-                  </Button>
-                </div>
-              </div>
-            </div>
           )}
 
           {/* C.  Render replies (older + fresh) */}
@@ -566,6 +490,94 @@ const CommentRow = ({
                 onSubmitReply={onSubmitReply}
               />
             ))}
+        </div>
+      )}
+      {/* B.  Inline-reply input - MOVED HERE and corrected indentation & styling */}
+      {replying && (
+        <div
+          className="flex items-start gap-3 mt-2"
+          style={{ marginLeft: INDENT }} // Apply indent directly to the reply box container
+        >
+          {/* avatar */}
+          {user?.profile_picture_url ? (
+            <img
+              src={user.profile_picture_url}
+              alt={user.username}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <Avatar
+              name={user?.username || "Guest"}
+              size={32}
+              variant="beam"
+              colors={["#84bfc3", "#ff9b62", "#d96153"]}
+            />
+          )}
+          {/* input + buttons */}
+          <div className="flex flex-col flex-1 pr-4">
+            <TextareaAutosize
+              ref={replyInputRef}
+              placeholder="Reply…"
+              minRows={1} // Consistent minRows
+              maxRows={4}
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  const txt = replyText.trim();
+                  if (!txt) return;
+                  // Critical check: ensure parent (this comment) is not temporary before submitting
+                  if (thisCommentIsTemporary) {
+                    showSnackbar(
+                      "Cannot submit reply, parent comment is still saving.",
+                      "error",
+                    );
+                    return;
+                  }
+                  // setShowReplies(true);
+                  onSubmitReply(comment.id, txt); // comment.id here MUST be the real persisted ID
+                  setReplyText("");
+                  setReplying(false);
+                }
+              }}
+              className="border border-neutral-300 rounded-lg p-3 w-full max-w-full ..."
+            />
+            <div className="flex justify-end gap-2 mt-1">
+              <Button
+                size="small"
+                color="inherit"
+                onClick={() => {
+                  setReplyText("");
+                  setReplying(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="small"
+                variant="contained"
+                disabled={!replyText.trim()}
+                onClick={() => {
+                  const txt = replyText.trim();
+                  if (!txt) return;
+                  if (thisCommentIsTemporary) {
+                    showSnackbar(
+                      "Cannot submit reply, parent comment is still saving.",
+                      "error",
+                    );
+                    return;
+                  }
+                  //  setShowReplies(true); // keep thread open
+                  onSubmitReply(comment.id, txt);
+                  setReplyText("");
+                  setReplying(false);
+                }}
+              >
+                Reply
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -746,7 +758,7 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
           username: user?.username || "",
           profile_picture_url: user?.profile_picture_url,
         } as User,
-        parent_comment_id: replyParentId,
+        parent_comment_id: parentId ?? null,
         target_id: targetId,
         target_type: targetType,
         content,
@@ -788,7 +800,7 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
           // For replies, update within the nested structure
           setComments((prev) =>
             prev.map((comment) => {
-              if (comment.id === replyParentId) {
+              if (comment.id === parentId) {
                 // Replace the temp reply with the real one in this parent
                 return {
                   ...comment,
@@ -803,7 +815,7 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
                   ...comment,
                   replies: updateReplyInNestedStructure(
                     comment.replies,
-                    replyParentId!,
+                    parentId,
                     tmpId,
                     data,
                   ),
@@ -821,10 +833,8 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
         if (parentId) replaceTempFreshId(parentId, tmpId, data.id);
 
         setTimeout(() => {
-          if (replyParentId) {
-            const parentEl = document.getElementById(
-              `comment-${replyParentId}`,
-            );
+          if (parentId) {
+            const parentEl = document.getElementById(`comment-${parentId}`);
             if (parentEl) {
               parentEl.scrollIntoView({ behavior: "smooth", block: "center" });
             }
