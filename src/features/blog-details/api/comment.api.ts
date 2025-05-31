@@ -1,14 +1,14 @@
 import api from "@/api/baseApi";
-// Assuming CommentUI and CreateCommentDto are correctly defined in @/types/comment
-// If not, you might need to adjust them or define them here.
+
 import type { Comment as CommentUI, CreateCommentDto } from "@/types/comment";
+import { TargetType } from "@/utils/constants";
 
 /**
  * Fetch comments for a target (post or blog), optionally for a specific parent comment (replies).
  */
 export const fetchComments = async (
   targetId: number,
-  targetType: "POST" | "BLOG", // Added targetType
+  targetType: TargetType, // Added targetType
   parentCommentId?: number,
 ): Promise<CommentUI[]> => {
   const { data } = await api.get<CommentUI[]>("/comments", {

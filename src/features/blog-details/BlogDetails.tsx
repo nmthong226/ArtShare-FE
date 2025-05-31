@@ -26,9 +26,8 @@ import {
 } from "../user-profile-public/api/follow.api";
 import { AxiosError } from "axios";
 import { createLike, removeLike } from "./api/like-blog";
-import { TargetType } from "@/types/likes";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { CommentTargetType } from "@/utils/constants";
+import { TargetType } from "@/utils/constants";
 
 const BlogDetails = () => {
   const { blogId } = useParams<{ blogId: string }>(); // get blogId from URL
@@ -290,7 +289,7 @@ const BlogDetails = () => {
             inputPosition="top"
             comments={comments}
             targetId={Number(blogId)}
-            targetType={CommentTargetType.BLOG}
+            targetType={TargetType.BLOG}
             onCommentAdded={handleCommentAdded}
             onCommentDeleted={handleCommentDeleted}
             hideWrapper
@@ -381,7 +380,7 @@ const BlogDetails = () => {
         contentId={Number(blogId)}
         open={likesDialogOpen}
         onClose={handleCloseLikesDialog}
-        variant="blog"
+        variant={TargetType.BLOG}
       />
     </div>
   );

@@ -53,7 +53,7 @@ export const featuresShowcase = [
   },
 ];
 
-export enum CommentTargetType {
+export enum TargetType {
   POST = "POST",
   BLOG = "BLOG",
 }

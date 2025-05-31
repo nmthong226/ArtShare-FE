@@ -2,8 +2,6 @@ import { User } from "./user";
 
 /**Supported resources a comment can belong to (extend as you add more). */
 
-export type TargetType = "POST" | "BLOG" | string;
-
 /**
  * A single comment.
  * `replies` is recursive so you can nest threaded conversations indefinitely.

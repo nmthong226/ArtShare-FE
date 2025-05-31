@@ -41,6 +41,7 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useContext } from "react";
 import { FreshRepliesCtx } from "./FreshReplies";
 import { isTemporaryCommentId } from "@/lib/utils";
+import { TargetType } from "@/utils/constants";
 /* ------------------------------------------------------------------ */
 /* Constants & helpers                                                */
 /* ------------------------------------------------------------------ */
@@ -155,7 +156,7 @@ const updateContentRecursive = (
 /* ------------------------------------------------------------------ */
 interface RowProps {
   targetId: number;
-  targetType: "POST" | "BLOG";
+  targetType: TargetType;
   depth?: number;
   comment: CommentUI;
   onLike: (id: number) => void;
@@ -605,7 +606,7 @@ interface Props {
   /** where to show the input bar - defaults to bottom (post layout) */
   inputPosition?: "top" | "bottom";
   /** distinguishes which table to update on the back-end */
-  targetType: "POST" | "BLOG";
+  targetType: TargetType;
   onCommentAdded(): void;
   onCommentDeleted(): void;
   /** if true, don’t draw the white rounded box around comments */
@@ -617,7 +618,7 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
     {
       comments: initial,
       targetId,
-      targetType = "POST",
+      targetType = TargetType.POST,
       inputPosition = "bottom",
       onCommentAdded,
       onCommentDeleted,

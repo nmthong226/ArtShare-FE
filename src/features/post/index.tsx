@@ -9,7 +9,7 @@ import { useParams } from "react-router-dom";
 import { mappedCategoryPost } from "@/lib/utils";
 import { CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
-import { CommentTargetType } from "@/utils/constants.ts";
+import { TargetType } from "@/utils/constants.ts";
 
 const Post: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -95,7 +95,7 @@ const Post: React.FC = () => {
           <CommentSection
             comments={comments!}
             targetId={postData!.id} // Changed from postId to targetId
-            targetType={CommentTargetType.POST}
+            targetType={TargetType.POST}
             onCommentAdded={handleCommentAdded}
             onCommentDeleted={handleCommentDeleted}
           />
@@ -116,7 +116,7 @@ const Post: React.FC = () => {
             <CommentSection
               comments={comments!}
               targetId={postData!.id}
-              targetType={CommentTargetType.POST}
+              targetType={TargetType.POST}
               onCommentAdded={handleCommentAdded}
               onCommentDeleted={handleCommentDeleted}
             />
