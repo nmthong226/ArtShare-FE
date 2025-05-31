@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Blog } from "@/types/blog";
 //Icons
 import { IoPersonAddOutline } from "react-icons/io5";
-import { LuLink } from "react-icons/lu";
+import { LuLink, LuPlus } from "react-icons/lu";
 import RelatedBlogs from "./components/RelatedBlogs";
 import { BiComment } from "react-icons/bi";
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
@@ -372,12 +372,6 @@ const BlogDetails = () => {
               </Tooltip>
             </div>
           </div>
-          <BlogComments
-            blogId={Number(blogId)}
-            comments={comments}
-            onCommentAdded={handleCommentAdded}
-            onCommentDeleted={handleCommentDeleted}
-          />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
           <RelatedBlogs />
         </div>

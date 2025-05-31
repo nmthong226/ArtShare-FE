@@ -80,9 +80,15 @@ const addReplyRecursive = (
 ): CommentUI[] =>
   list.map((c) => {
     if (c.id === parentId) {
+      const updatedReplies = c.replies ? [...c.replies, reply] : [reply];
+      // Sort replies by creation date to ensure latest is at bottom
+      const sortedReplies = updatedReplies.sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
       return {
         ...c,
-        replies: c.replies ? [...c.replies, reply] : [reply],
+        replies: sortedReplies,
         reply_count: (c.reply_count ?? 0) + 1,
       };
     }
@@ -472,6 +478,11 @@ const CommentRow = ({
           {/* C.  Render replies (older + fresh) */}
           {comment.replies
             ?.filter((r) => showReplies || freshIds.has(r.id))
+            .sort(
+              (a, b) =>
+                new Date(a.created_at).getTime() -
+                new Date(b.created_at).getTime(),
+            )
             .map((r) => (
               <CommentRow
                 key={r.id}
