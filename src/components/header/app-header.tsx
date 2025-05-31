@@ -35,7 +35,7 @@ const Header: React.FC = () => {
 
   return (
     <nav
-      className={`top-0 z-50 sticky px-4 flex justify-between items-center dark:bg-mountain-950 dark:border-b-mountain-700 w-full h-16`}
+      className={`top-0 z-50 sticky px-4 flex justify-between items-center  w-full h-16`}
     >
       <div className="flex items-center h-full">
         <div className="flex items-center h-full">

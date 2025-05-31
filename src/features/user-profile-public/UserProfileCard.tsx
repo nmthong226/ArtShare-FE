@@ -40,7 +40,6 @@ export const UserProfileCard = () => {
     enabled: !!username,
   });
 
-
   useEffect(() => {
     // Once the profile refetch shows isFollowing === false, drop the flag
     if (!profileData?.isFollowing) {
@@ -110,7 +109,8 @@ export const UserProfileCard = () => {
 
   // Report section
   const [dialogOpen, setDialogOpen] = useState(false);
-  const {mutate: reportUser, isPending: isLoadingReportUser } = useReportUser();
+  const { mutate: reportUser, isPending: isLoadingReportUser } =
+    useReportUser();
 
   const handleReport = (reason: string) => {
     reportUser(
@@ -118,12 +118,15 @@ export const UserProfileCard = () => {
       {
         onSuccess: () => {
           setDialogOpen(false);
-          showSnackbar('Your report will be reviewed soon! Thanks for your report', 'success');
+          showSnackbar(
+            "Your report will be reviewed soon! Thanks for your report",
+            "success",
+          );
         },
         onError: (err) => {
-          showSnackbar(err.message, 'error');
+          showSnackbar(err.message, "error");
         },
-      }
+      },
     );
   };
 
@@ -280,7 +283,9 @@ export const UserProfileCard = () => {
                 <MenuItem onClick={handleEdit}>Edit Profile</MenuItem>
               )}
               {!isOwnProfile && (
-                <MenuItem onClick={() => setDialogOpen(true)}>Report User</MenuItem>
+                <MenuItem onClick={() => setDialogOpen(true)}>
+                  Report User
+                </MenuItem>
               )}
             </Menu>
           </Box>

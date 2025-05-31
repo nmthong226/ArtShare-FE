@@ -15,19 +15,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 // Avatars
 import BoringAvatar from "boring-avatars";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { AvatarImage } from "@/components/ui/avatar";
 
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@mui/material";
 
 const UserInAppConfigs = () => {
   const { user, loading, logout } = useUser(); // Get user and logout function from UserProvider
   const [open, setOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const { toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [matureContent, setMatureContent] = useState(false);
   const [aiContent, setAiContent] = useState(false);
@@ -52,25 +52,26 @@ const UserInAppConfigs = () => {
       <PopoverTrigger asChild>
         <div>
           <Button
-            variant="ghost"
             title="User menu"
-            className={`flex items-center rounded-full w-10 h-10 p-0`}
+            className={`flex items-center rounded-full`}
             onMouseEnter={() => setOpen(true)}
+            disableRipple
+            sx={{
+              p: 0,
+              minWidth: 0,
+              width: 40,
+              height: 40,
+            }}
           >
             {user ? (
               user.profile_picture_url ? (
-                <Avatar className="shadow-md w-10 h-10 cursor-pointer">
-                  <AvatarImage
-                    src={user.profile_picture_url}
-                    className="object-cover"
-                  />
-                  <AvatarFallback>
-                    {user.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarImage
+                  src={user.profile_picture_url}
+                  className="object-cover"
+                />
               ) : (
                 <BoringAvatar
-                  size={32}
+                  size={40}
                   name={user.username}
                   variant="beam"
                   colors={[
@@ -97,12 +98,7 @@ const UserInAppConfigs = () => {
           <>
             <div className="flex items-center space-x-2 p-3">
               {user.profile_picture_url ? (
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={user.profile_picture_url} />
-                  <AvatarFallback>
-                    {user.username.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <AvatarImage src={user.profile_picture_url} />
               ) : (
                 <BoringAvatar
                   size={40}
@@ -148,26 +144,10 @@ const UserInAppConfigs = () => {
         <div className="flex justify-between items-center hover:bg-mountain-50 dark:hover:bg-mountain-800 p-3 py-2 w-full h-full">
           <span className="text-sm">Theme</span>
           <div className="flex space-x-2">
-            <Button
-              onClick={toggleTheme}
-              className={`${
-                theme === "light"
-                  ? "border-indigo-600"
-                  : "border-mountain-300 dark:border-mountain-800"
-              } rounded-full dark:border-2 hover:cursor-pointer  dark:bg-mountain-800 size-8`}
-              variant={"outline"}
-            >
+            <Button onClick={toggleTheme}>
               <MdLightMode className="size-5" />
             </Button>
-            <Button
-              onClick={toggleTheme}
-              className={`${
-                theme === "dark"
-                  ? "dark:border-indigo-600"
-                  : "border-mountain-300 dark:border-mountain-800"
-              } rounded-full dark:border-2 hover:cursor-pointer  dark:bg-mountain-800 size-8`}
-              variant={"outline"}
-            >
+            <Button onClick={toggleTheme}>
               <MdDarkMode className="size-5" />
             </Button>
           </div>

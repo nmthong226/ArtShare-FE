@@ -14,6 +14,19 @@ import MatureContentWarning from "./components/MatureContentWarning.tsx";
 
 const Post: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
+
+  // Effect to control body overflow
+  useEffect(() => {
+    // Store the original body overflow style
+    const originalBodyOverflow = document.body.style.overflow;
+    // Hide the main scrollbar
+    document.body.style.overflow = "hidden";
+
+    // Cleanup function to restore original body overflow when component unmounts
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+    };
+  }, []); // Empty dependency array ensures this effect runs only on mount and unmount
   const [showMatureContent, setShowMatureContent] = useState<boolean>(false);
 
   const numericPostId = postId ? parseInt(postId, 10) : NaN;
@@ -72,13 +85,22 @@ const Post: React.FC = () => {
   }, [postData]);
 
   const handleCommentAdded = () => {
-    setCommentCount((prev) => prev + 1);
-    refetchPostData();
+    console.log("Comment added. Previous count:", commentCount);
+    setCommentCount((prev) => prev + 1); // Increment comment count when a comment is added
+    console.log("Updated comment count:", commentCount + 1);
+    if (postData) {
+      // Directly update postData.comment_count
+      postData.comment_count += 1;
+      refetchPostData();
+    }
   };
-
   const handleCommentDeleted = () => {
-    setCommentCount((prev) => Math.max(prev - 1, 0));
-    refetchPostData();
+    setCommentCount((prev) => Math.max(prev - 1, 0)); // Decrement comment count when a comment is deleted
+    if (postData) {
+      // Directly update postData.comment_count
+      postData.comment_count -= 1; // This ensures that postData.comment_count is updated
+      refetchPostData; // Refetch the post data to trigger a re-render of PostInfo
+    }
   };
 
   const handleShowMatureContent = () => {
@@ -139,11 +161,10 @@ const Post: React.FC = () => {
   const displayAssets = !postData.is_mature || showMatureContent;
 
   return (
-    <div className="relative flex-grow bg-mountain-50 p-4 h-[calc(100vh-4rem)] overflow-y-scroll no-scrollbar">
-      {/* Mobile Layout */}
-      <div className="relative flex flex-col h-full p-4 bg-white shadow md:hidden rounded-2xl">
-        <div className="h-full overflow-y-auto rounded-2xl">
-          <PostArtist artist={postData.user} postData={postData} />
+    <div className="relative flex-grow bg-mountain-50 dark:bg-gradient-to-b dark:from-mountain-1000 dark:to-mountain-950 px-4 h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar dark:bg-mountain-950">
+      <div className="md:hidden relative flex flex-col bg-white shadow p-4 rounded-2xl h-full">
+        <div className="rounded-2xl h-full overflow-y-auto">
+          <PostArtist artist={postData!.user} postData={postData!} />
           {displayAssets ? (
             <PostAssets medias={postData.medias} />
           ) : (
@@ -173,7 +194,7 @@ const Post: React.FC = () => {
             <MatureContentWarning onShow={handleShowMatureContent} />
           )}
         </div>
-        <div className="relative flex-shrink-0 bg-white shadow py-0 pl-4 sm:w-[256px] md:w-[384px] lg:w-[448px] overflow-hidden">
+        <div className="relative flex-shrink-0 bg-white dark:bg-mountain-950 shadow py-0 pl-4 rounded-2xl sm:w-[256px] md:w-[384px] lg:w-[448px]">
           <div className="flex flex-col h-full gap-4 sidebar">
             <PostArtist artist={postData!.user} postData={postData!} />
             <PostInfo
