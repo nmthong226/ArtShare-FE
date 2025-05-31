@@ -302,7 +302,7 @@ const CommentRow = ({
           <img
             src={comment.user.profile_picture_url}
             alt={comment.user.username}
-            className="w-8 h-8 rounded-full object-cover"
+            className="rounded-full w-8 h-8 object-cover"
           />
         ) : (
           <Avatar
@@ -339,7 +339,7 @@ const CommentRow = ({
                 ref={editRef}
                 defaultValue={comment.content}
                 minRows={2}
-                className="w-full border border-neutral-300 rounded-md p-2"
+                className="p-2 border border-neutral-300 rounded-md w-full"
               />
               <div className="flex gap-2 text-xs">
                 <Button
@@ -1096,7 +1096,7 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
         {/* input */}
 
         {deletingId && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center text-sm">
+          <div className="absolute inset-0 flex justify-center items-center bg-white/70 text-sm">
             <CircularProgress size={20} />
             <span className="ml-2">Deleting…</span>
           </div>

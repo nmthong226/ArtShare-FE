@@ -8,6 +8,7 @@ export const fetchBlogDetails = async (blogId: number): Promise<Blog> => {
   const response = await api.get<Blog>(`/blogs/${blogId}`);
   return response.data;
 };
+
 /**
  * Fetch a paginated list of published blogs.
  * GET /blogs
@@ -18,6 +19,7 @@ export const fetchBlogs = async (params?: {
   search?: string;
 }): Promise<Blog[]> => {
   const response = await api.get<Blog[]>("/blogs", { params });
+  console.log("!", response);
   return response.data;
 };
 
@@ -57,47 +59,6 @@ export const searchBlogs = async (params: {
   search?: string;
 }): Promise<Blog[]> => {
   const response = await api.get<Blog[]>("/blogs/search", { params });
-  return response.data;
-};
-
-/**
- * Fetch blogs created by the current user.
- * GET /blogs/me
- */
-export const fetchMyBlogs = async (): Promise<Blog[]> => {
-  const response = await api.get<Blog[]>("/blogs/me");
-  return response.data;
-};
-
-/**
- * Create a new blog post.
- * POST /blogs
- */
-export const createBlog = async (data: Partial<Blog>): Promise<Blog> => {
-  const response = await api.post<Blog>("/blogs", data);
-  return response.data;
-};
-
-/**
- * Update an existing blog post.
- * PATCH /blogs/:id
- */
-export const updateBlog = async (
-  blogId: number,
-  data: Partial<Blog>,
-): Promise<Blog> => {
-  const response = await api.patch<Blog>(`/blogs/${blogId}`, data);
-  return response.data;
-};
-
-/**
- * Delete a blog post.
- * DELETE /blogs/:id
- */
-export const deleteBlog = async (
-  blogId: number,
-): Promise<{ message: string }> => {
-  const response = await api.delete<{ message: string }>(`/blogs/${blogId}`);
   return response.data;
 };
 
