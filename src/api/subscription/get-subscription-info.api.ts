@@ -1,10 +1,10 @@
 import api from "../baseApi";
 
 export enum SubscriptionPlan {
-  FREE = 'free',
-  ARTIST_PRO = 'artist_pro',
-  STUDIO = 'studio',
-  ENTERPRISE = 'enterprise',
+  FREE = "free",
+  ARTIST_PRO = "artist_pro",
+  STUDIO = "studio",
+  ENTERPRISE = "enterprise",
 }
 
 export interface SubscriptionInfoDto {
@@ -23,4 +23,4 @@ export const getSubscriptionInfo = async () => {
     console.error("Error fetching subscription info:", error);
     throw error;
   }
-}
+};

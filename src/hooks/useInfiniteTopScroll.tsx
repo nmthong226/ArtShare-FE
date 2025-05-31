@@ -1,11 +1,11 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 export function useInfiniteTopScroll(
   ref: React.RefObject<HTMLElement>,
   canLoadMore: boolean,
   onLoadMore: () => void,
   itemsLength: number,
-  threshold = 100
+  threshold = 100,
 ) {
   const prevScrollHeightRef = useRef<number>(0);
   const prevScrollTopRef = useRef<number>(0);
@@ -30,13 +30,17 @@ export function useInfiniteTopScroll(
       }
     };
 
-    element.addEventListener('scroll', handleScroll, { passive: true });
-    return () => element.removeEventListener('scroll', handleScroll);
+    element.addEventListener("scroll", handleScroll, { passive: true });
+    return () => element.removeEventListener("scroll", handleScroll);
   }, [ref, canLoadMore, onLoadMore, threshold]);
 
   useLayoutEffect(() => {
     const element = ref.current;
-    if (!element || !isLoadingRef.current || prevScrollHeightRef.current === 0) {
+    if (
+      !element ||
+      !isLoadingRef.current ||
+      prevScrollHeightRef.current === 0
+    ) {
       if (itemsLength > 0 && !prevScrollHeightRef.current) {
         isLoadingRef.current = false;
       }
@@ -53,6 +57,5 @@ export function useInfiniteTopScroll(
     prevScrollHeightRef.current = 0;
     prevScrollTopRef.current = 0;
     isLoadingRef.current = false;
-
   }, [itemsLength, ref]);
 }

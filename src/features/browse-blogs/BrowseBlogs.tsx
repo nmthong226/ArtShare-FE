@@ -92,8 +92,10 @@ const BrowseBlogs: React.FC = () => {
 
   const clearCategories = () => setSelectedCategories([]);
 
-  const handleTabChange = (_: any, val: string | null) =>
-    val && setTab(val as "trending" | "following");
+  const handleTabChange = (
+    _: React.MouseEvent<HTMLElement>,
+    val: string | null,
+  ) => val && setTab(val as "trending" | "following");
 
   // const handlePageChange = (_: any, p: number) => setPage(p);
 
@@ -117,7 +119,6 @@ const BrowseBlogs: React.FC = () => {
         `{isError} Fail to load message`
       </div>
     );
-  console.log(blogs);
   /* ───────── JSX ───────── */
   return (
     <div className="flex rounded-t-3xl h-screen overflow-hidden">
@@ -151,8 +152,9 @@ const BrowseBlogs: React.FC = () => {
                 className="shadow-inner pr-8 pl-8 rounded-2xl w-full"
               />
               <TiDeleteOutline
-                className={`absolute right-2 w-5 h-5 text-mountain-600 ${searchInput ? "block" : "hidden"
-                  }`}
+                className={`absolute right-2 w-5 h-5 text-mountain-600 ${
+                  searchInput ? "block" : "hidden"
+                }`}
                 onClick={() => {
                   setSearchInput("");
                   setQuery("");
@@ -234,8 +236,9 @@ const BrowseBlogs: React.FC = () => {
               <div
                 key={c.name}
                 onClick={() => toggleCategory(c.name)}
-                className={`px-6 py-2 rounded-2xl cursor-pointer bg-white shadow hover:scale-105 duration-300 ease-in-out border ${active ? "border-blue-500 shadow" : "border-gray-200"
-                  }`}
+                className={`px-6 py-2 rounded-2xl cursor-pointer bg-white shadow hover:scale-105 duration-300 ease-in-out border ${
+                  active ? "border-blue-500 shadow" : "border-gray-200"
+                }`}
               >
                 {c.name}
               </div>

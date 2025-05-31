@@ -55,13 +55,14 @@ const UserButton: React.FC<{
   // Show Messages and Updates for logged-in users
   return (
     <div className="flex items-center space-x-2">
-
       <Link
         to="/messages"
-        className={`hidden xs:flex group bg-white items-center border-[0.5px] border-mountain-200 mr-2 h-8 w-8 rounded-full justify-center ${location.pathname === "/messages"
-          ? "dark:text-mountain-50 text-mountain-950"
-          : "dark:text-mountain-500 text-mountain-700"
-          }`}>
+        className={`hidden xs:flex group bg-white items-center border-[0.5px] border-mountain-200 mr-2 h-8 w-8 rounded-full justify-center ${
+          location.pathname === "/messages"
+            ? "dark:text-mountain-50 text-mountain-950"
+            : "dark:text-mountain-500 text-mountain-700"
+        }`}
+      >
         <FaBell />
       </Link>
       <div className="flex justify-between items-center bg-white p-[2px] border-[0.5px] border-mountain-200 rounded-full w-42 h-10">

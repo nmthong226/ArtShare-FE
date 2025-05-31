@@ -1,43 +1,47 @@
-import { Input } from '@/components/ui/input';
-import { Button } from '@mui/material';
-import { useState } from 'react';
-import { ChromePicker } from 'react-color';
+import { Input } from "@/components/ui/input";
+import { Button } from "@mui/material";
+import { useState } from "react";
+import { ChromePicker } from "react-color";
 import { IoText } from "react-icons/io5";
-import Draggable from 'react-draggable';
+import Draggable from "react-draggable";
 
 type PanelsProp = {
-  selectedLayer: TextLayer | undefined,
+  selectedLayer: TextLayer | undefined;
   addText: () => void;
   handleChangeFontSize: (newFontSize: number) => void;
   handleChangeFontFamily: (newFontFamily: string) => void;
   handleChangeTextColor: (newColor: string) => void;
-}
+};
 
 const TextPanel: React.FC<PanelsProp> = ({
   selectedLayer,
   addText,
   handleChangeFontSize,
   handleChangeFontFamily,
-  handleChangeTextColor
+  handleChangeTextColor,
 }) => {
   const [settingColor, setSettingColor] = useState(false);
   return (
     <>
-      <div onClick={addText} className='flex justify-center items-center w-full h-10'>
-        <Button className='flex justify-center items-center bg-white border border-mountain-200 rounded-lg w-full h-full font-normal text-sm'>
-          <IoText className='mr-2 size-5' />
+      <div
+        onClick={addText}
+        className="flex justify-center items-center w-full h-10"
+      >
+        <Button className="flex justify-center items-center bg-white border border-mountain-200 rounded-lg w-full h-full font-normal text-sm">
+          <IoText className="mr-2 size-5" />
           <p>Add Text</p>
         </Button>
       </div>
-      <hr className='flex border-mountain-200 border-t-1 w-full' />
-      <div className='flex justify-between items-center w-full'>
-        <p className='w-1/4 font-medium'>Font</p>
+      <hr className="flex border-mountain-200 border-t-1 w-full" />
+      <div className="flex justify-between items-center w-full">
+        <p className="w-1/4 font-medium">Font</p>
         <div className="relative flex justify-end w-3/4">
           <select
             id="font-family"
             value={selectedLayer?.fontFamily || "Arial"}
             onChange={(e) => handleChangeFontFamily(e.target.value)}
-            className="p-2 border border-mountain-200 rounded-md outline-none text-sm">
+            className="p-2 border border-mountain-200 rounded-md outline-none text-sm"
+          >
             <option value="Arial">Arial</option>
             <option value="Helvetica">Helvetica</option>
             <option value="Times New Roman">Times New Roman</option>
@@ -48,8 +52,8 @@ const TextPanel: React.FC<PanelsProp> = ({
           </select>
         </div>
       </div>
-      <div className='flex justify-between items-center w-full'>
-        <p className='w-1/2 font-medium'>Text size</p>
+      <div className="flex justify-between items-center w-full">
+        <p className="w-1/2 font-medium">Text size</p>
         <div className="relative w-fit">
           <Input
             type="number"
@@ -59,17 +63,27 @@ const TextPanel: React.FC<PanelsProp> = ({
             onChange={(e) => handleChangeFontSize(Number(e.target.value))}
             className="pr-10"
           />
-          <span className="top-1/2 right-2 absolute text-gray-500 text-sm -translate-y-1/2">px</span>
+          <span className="top-1/2 right-2 absolute text-gray-500 text-sm -translate-y-1/2">
+            px
+          </span>
         </div>
       </div>
-      <div className='flex justify-between items-center w-full'>
-        <p className='w-1/2 font-medium'>Color</p>
-        <div className='flex justify-between items-center px-2 pl-4 border-1 border-mountain-200 rounded-lg w-full'>
-          <div className='shadow-md border-1 border-mountain-200 rounded-full w-4 h-4' style={{ backgroundColor: `${selectedLayer?.color || '#ffffff'}` }} />
-          <div className='bg-mountain-200 w-[1px] h-10' />
-          <Button onClick={() => setSettingColor(!settingColor)} className='py-1 font-normal'>Change color</Button>
+      <div className="flex justify-between items-center w-full">
+        <p className="w-1/2 font-medium">Color</p>
+        <div className="flex justify-between items-center px-2 pl-4 border-1 border-mountain-200 rounded-lg w-full">
+          <div
+            className="shadow-md border-1 border-mountain-200 rounded-full w-4 h-4"
+            style={{ backgroundColor: `${selectedLayer?.color || "#ffffff"}` }}
+          />
+          <div className="bg-mountain-200 w-[1px] h-10" />
+          <Button
+            onClick={() => setSettingColor(!settingColor)}
+            className="py-1 font-normal"
+          >
+            Change color
+          </Button>
         </div>
-        {settingColor &&
+        {settingColor && (
           <Draggable handle=".drag-handle">
             <div className="z-50 absolute bg-white shadow-md border rounded">
               <div className="bg-indigo-100 px-3 py-1 rounded-t font-semibold text-indigo-700 text-sm cursor-move drag-handle">
@@ -81,10 +95,10 @@ const TextPanel: React.FC<PanelsProp> = ({
               />
             </div>
           </Draggable>
-        }
+        )}
       </div>
     </>
-  )
-}
+  );
+};
 
-export default TextPanel
+export default TextPanel;

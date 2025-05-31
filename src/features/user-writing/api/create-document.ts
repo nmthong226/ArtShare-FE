@@ -6,6 +6,6 @@ import { Blog } from "@/types/blog";
  * POST /blogs
  */
 export const createDoc = async (data: Partial<Blog>): Promise<Blog> => {
-    const response = await api.post<Blog>("/blogs", data);
-    return response.data;
+  const response = await api.post<Blog>("/blogs", data);
+  return response.data;
 };
