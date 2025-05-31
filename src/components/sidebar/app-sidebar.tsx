@@ -27,7 +27,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import UserPlan from "./subscription";
+// import UserPlan from "./subscription";
 import { Popover, Tooltip } from "@mui/material";
 
 type SidebarProps = {
@@ -433,10 +433,10 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
           </div>
         </div>
       </div>
-      {/* Sidebar Footer */}
-      <div className="bottom-4 absolute flex pl-2 w-full">
+      {/* Sidebar Footer
+      <div className="bottom-2 absolute flex pl-2 w-full">
         <UserPlan expand={expand} />
-      </div>
+      </div> */}
     </aside>
   );
 };

@@ -84,7 +84,7 @@ const Post: React.FC = () => {
   };
   if (isPostLoading || isCommentsLoading) {
     return (
-      <div className="flex m-4 text-center">
+      <div className="flex justify-center items-center m-4 h-screen text-center">
         <CircularProgress size={36} />
         <p>Loading...</p>
       </div>

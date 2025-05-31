@@ -36,17 +36,7 @@ export default function EditUser() {
   }
 
   return (
-    <Container
-      disableGutters
-      className={
-        "px-15 pt-6 h-full  min-h-screen"
-        // Using 'dark:bg-background' assuming 'background' is your themed dark background (e.g., from shadcn/ui)
-        // If not, use a specific color: "dark:bg-slate-900" or "dark:bg-gray-900"
-        // Ensure text-foreground is defined in your theme for labels inside EditProfileForm to contrast this.
-      }
-    >
-      {/* <ProfileHeader />  // If you add this, ensure it also has dark mode styles */}
-
+    <Container disableGutters className={"px-15 pt-6 h-full  min-h-screen"}>
       <Box>
         <AvatarSection
           profilePictureUrl={formData.profile_picture_url}

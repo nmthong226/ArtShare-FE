@@ -250,7 +250,7 @@ const CommentRow = ({
           <img
             src={comment.user.profile_picture_url}
             alt={comment.user.username}
-            className="w-8 h-8 rounded-full object-cover"
+            className="rounded-full w-8 h-8 object-cover"
           />
         ) : (
           <Avatar
@@ -287,7 +287,7 @@ const CommentRow = ({
                 ref={editRef}
                 defaultValue={comment.content}
                 minRows={2}
-                className="w-full border border-neutral-300 rounded-md p-2"
+                className="p-2 border border-neutral-300 rounded-md w-full"
               />
               <div className="flex gap-2 text-xs">
                 <Button
@@ -753,7 +753,7 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
 
         <div ref={listRef} className="flex flex-col overflow-y-auto">
           {comments.length === 0 ? (
-            <p className="text-sm text-center text-mountain-500 py-4">
+            <p className="py-4 text-mountain-500 text-sm text-center">
               No comments yet. Be the first to comment!
             </p>
           ) : (
@@ -785,7 +785,7 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
             <img
               src={user.profile_picture_url}
               alt={user.username}
-              className="w-8 h-8 rounded-full object-cover"
+              className="rounded-full w-8 h-8 object-cover"
             />
           ) : user ? (
             <Avatar
@@ -812,7 +812,7 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
                     : "Add a comment"
                   : "Login to add a comment"
               }
-              className="border border-neutral-300 rounded-lg p-3 w-full resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="p-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 w-full resize-none"
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               disabled={isPosting || !user}
@@ -858,7 +858,7 @@ const PostComments = forwardRef<HTMLDivElement, Props>(
         </div>
 
         {deletingId && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center text-sm">
+          <div className="absolute inset-0 flex justify-center items-center bg-white/70 text-sm">
             <CircularProgress size={20} />
             <span className="ml-2">Deleting…</span>
           </div>

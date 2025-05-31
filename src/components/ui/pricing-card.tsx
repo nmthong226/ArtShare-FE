@@ -11,6 +11,9 @@ import {
   CreateCheckoutSessionPayload,
 } from "@/pages/Home/api/stripe.api";
 import { useUser } from "@/contexts/UserProvider";
+import { useSubscriptionInfo } from "@/hooks/useSubscription";
+import { FaCheckCircle } from "react-icons/fa";
+import { SubscriptionPlan } from "@/api/subscription/get-subscription-info.api";
 
 const DEFAULT_CONTACT_EMAIL = "your-default-email@example.com";
 
@@ -32,11 +35,29 @@ interface PricingCardProps {
   paymentFrequency: string;
 }
 
+const getSubscriptionPlanFromTier = (tierId: string): SubscriptionPlan => {
+  switch (tierId) {
+    case "individual":
+      return SubscriptionPlan.FREE;
+    case "artist":
+      return SubscriptionPlan.ARTIST_PRO;
+    case "studio":
+      return SubscriptionPlan.STUDIO;
+    case "enterprise":
+      return SubscriptionPlan.ENTERPRISE; // Default to free if unknown
+    default:
+      console.warn(`Unknown tier ID: ${tierId}. Defaulting to FREE plan.`);
+      return SubscriptionPlan.FREE;
+  }
+};
+
 export function PricingCard({ tier, paymentFrequency }: PricingCardProps) {
   const price = tier.price[paymentFrequency];
   const isHighlighted = tier.highlighted;
   const isPopular = tier.popular;
   const { user } = useUser();
+
+  const { data: subscriptionInfo } = useSubscriptionInfo();
 
   const handleProceedToCheckout = async () => {
     if (tier.actionType !== "checkout") return;
@@ -68,6 +89,18 @@ export function PricingCard({ tier, paymentFrequency }: PricingCardProps) {
   };
 
   const getCtaProps = () => {
+    if (
+      subscriptionInfo &&
+      subscriptionInfo.plan === getSubscriptionPlanFromTier(tier.id)
+    ) {
+      return {
+        text: "Current Plan",
+        action: undefined,
+        icon: FaCheckCircle,
+        asChild: false,
+        href: undefined,
+      };
+    }
     switch (tier.actionType) {
       case "checkout":
         return {
@@ -166,7 +199,7 @@ export function PricingCard({ tier, paymentFrequency }: PricingCardProps) {
       {ctaProps && (
         <Button
           variant={isHighlighted ? "secondary" : "default"}
-          className={`z-50  w-full text-mountain-50 cursor-pointer ${isHighlighted ? 'bg-mountain-950 hover:bg-mountain-900' : 'bg-mountain-50 hover:bg-mountain-100 text-mountain-950 border border-mountain-100'}`}
+          className={`z-50  w-full text-mountain-50 cursor-pointer ${isHighlighted ? "bg-mountain-950 hover:bg-mountain-900" : "bg-mountain-50 hover:bg-mountain-100 text-mountain-950 border border-mountain-100"}`}
           onClick={ctaProps.action}
           asChild={ctaProps.asChild}
         >

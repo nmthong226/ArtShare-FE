@@ -31,7 +31,7 @@ const UserProfile = () => {
       >
         {/* TOP SECTION: Profile card */}
         <Box
-          className="w-full bg-[#E4E6EB] dark:bg-mountain-950 rounded-lg p-8"
+          className="bg-[#E4E6EB] dark:bg-mountain-950 p-8 rounded-lg rounded-t-3xl w-full"
           sx={{
             overflowY: "auto",
           }}

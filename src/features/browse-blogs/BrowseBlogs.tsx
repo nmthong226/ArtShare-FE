@@ -6,8 +6,8 @@ import {
   Paper,
   ToggleButton,
   ToggleButtonGroup,
-  Pagination,
-  Stack,
+  // Pagination,
+  // Stack,
 } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -95,7 +95,7 @@ const BrowseBlogs: React.FC = () => {
   const handleTabChange = (_: any, val: string | null) =>
     val && setTab(val as "trending" | "following");
 
-  const handlePageChange = (_: any, p: number) => setPage(p);
+  // const handlePageChange = (_: any, p: number) => setPage(p);
 
   const submitSearch = () => {
     setQuery(searchInput);
@@ -105,28 +105,26 @@ const BrowseBlogs: React.FC = () => {
   /* ───────── loading / error ───────── */
   if (isLoading)
     return (
-      <div className="flex justify-center items-center h-full">
-        <CircularProgress />
+      <div className="flex justify-center items-center space-x-4 h-screen">
+        <CircularProgress size={36} />
+        <p>Loading...</p>
       </div>
     );
 
   if (isError)
     return (
-      <div className="flex justify-center items-center h-full text-red-600">
+      <div className="flex justify-center items-center h-screen text-red-600">
         `{isError} Fail to load message`
       </div>
     );
-
+  console.log(blogs);
   /* ───────── JSX ───────── */
   return (
-    <div className="flex h-screen rounded-t-3xl overflow-hidden">
-      {/* ═══ Main list ═══ */}
-      <div className="flex flex-col flex-1 w-[75%] pb-22">
-        {/* Top bar */}
-        <div className="sticky top-0 z-60 bg-white dark:bg-mountain-900 shadow-sm p-4 border-b dark:border-mountain-700">
+    <div className="flex rounded-t-3xl h-screen overflow-hidden">
+      <div className="flex flex-col w-[75%] min-h-screen">
+        <div className="top-0 z-60 sticky bg-white shadow-sm p-4 border-mountain-200 border-b-1">
           <div className="flex items-center space-x-4">
-            {/* tabs */}
-            <Paper className="shadow-none rounded-full bg-mountain-50 dark:bg-mountain-800">
+            <Paper className="bg-mountain-50 shadow-none rounded-full">
               <ToggleButtonGroup
                 size="small"
                 exclusive
@@ -134,7 +132,7 @@ const BrowseBlogs: React.FC = () => {
                 onChange={handleTabChange}
               >
                 <ToggleButton value="trending" className="rounded-full">
-                  <AiFillFire className="mr-1 size-4 text-mountain-400" />
+                  <AiFillFire className="mr-1 size-4 text-mountain-400 capitalize" />
                   Trending
                 </ToggleButton>
                 <ToggleButton value="following" className="rounded-full">
@@ -143,16 +141,14 @@ const BrowseBlogs: React.FC = () => {
                 </ToggleButton>
               </ToggleButtonGroup>
             </Paper>
-
-            {/* search */}
             <div className="relative flex flex-1 items-center">
-              <FiSearch className="absolute left-2 w-5 h-5" />
+              <FiSearch className="left-2 absolute w-5 h-5" />
               <Input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitSearch()}
                 placeholder="Search"
-                className="pl-8 pr-8 rounded-2xl shadow-inner w-full"
+                className="shadow-inner pr-8 pl-8 rounded-2xl w-full"
               />
               <TiDeleteOutline
                 className={`absolute right-2 w-5 h-5 text-mountain-600 ${
@@ -166,11 +162,9 @@ const BrowseBlogs: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* list */}
-        <div className="flex flex-col gap-4 p-4">
+        <div className="flex flex-col gap-4 space-y-8 p-4 pb-48 min-h-screen overflow-auto sidebar">
           {(blogs ?? []).length === 0 ? (
-            <p className="text-center text-mountain-500">No blogs found.</p>
+            <p className="text-mountain-500 text-center">No blogs found.</p>
           ) : (
             (blogs ?? []).map((b) => (
               <BlogItem
@@ -188,7 +182,7 @@ const BrowseBlogs: React.FC = () => {
                   avatar: b.user.profile_picture_url ?? "",
                 }}
                 category={b.categories?.[0]?.name ?? ""}
-                timeReading={`${Math.ceil((b.content ? b.content.split(/\s+/).length : 0) / 200)}m read`}
+                timeReading={`${Math.ceil((b.content ? b.content.split(/\s+/).length : 0) / 200)}m reading`}
                 dateCreated={new Date(b.created_at).toLocaleDateString()}
                 like_count={b.like_count}
                 comment_count={b.comment_count}
@@ -196,23 +190,18 @@ const BrowseBlogs: React.FC = () => {
               />
             ))
           )}
-        </div>
-
-        {/* pagination */}
-        <div className="flex justify-center py-6">
-          <Stack spacing={2}>
-            <Pagination count={10} page={page} onChange={handlePageChange} />
-          </Stack>
+          {/* <div className="flex justify-center">
+            <Stack spacing={2}>
+              <Pagination count={10} page={page} onChange={handlePageChange} />
+            </Stack>
+          </div> */}
         </div>
       </div>
-
-      {/* ═══ right sidebar ═══ */}
-      <div className="w-[25%] z-10 p-4 shadow-sm bg-gradient-to-t dark:bg-gradient-to-t from-white dark:from-mountain-1000 to-mountain-50 dark:to-mountain-950">
-        {/* actions */}
+      <div className="z-10 shadow-sm p-4 w-[25%]">
         <div className="flex space-x-4">
           <Button
             variant="contained"
-            className="w-12 h-12 min-w-0 dark:bg-mountain-900"
+            className="dark:bg-mountain-900 w-12 min-w-0 h-12"
             onClick={(e) => {
               setAnchorPop(e.currentTarget);
               setOpenPop((o) => !o);
@@ -232,15 +221,13 @@ const BrowseBlogs: React.FC = () => {
           />
           <Button
             variant={selectedCategories.length ? "outlined" : "contained"}
-            className="flex gap-2 items-center rounded-lg p-2"
+            className="flex items-center gap-2 p-2 rounded-lg"
             onClick={clearCategories}
           >
             <LoaderPinwheel size={16} />
             All Channels
           </Button>
         </div>
-
-        {/* category chips */}
         <div className="flex flex-wrap gap-2 mt-6">
           {categoriesData.map((c) => {
             const active = selectedCategories.includes(c.name);
@@ -248,7 +235,7 @@ const BrowseBlogs: React.FC = () => {
               <div
                 key={c.name}
                 onClick={() => toggleCategory(c.name)}
-                className={`px-6 py-2 rounded-2xl cursor-pointer border ${
+                className={`px-6 py-2 rounded-2xl cursor-pointer bg-white shadow hover:scale-105 duration-300 ease-in-out border ${
                   active ? "border-blue-500 shadow" : "border-gray-200"
                 }`}
               >

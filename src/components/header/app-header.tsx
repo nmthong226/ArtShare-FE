@@ -15,6 +15,7 @@ import UserButton from "./user-button";
 //Context
 import { useSearch } from "@/contexts/SearchProvider";
 import { useUser } from "@/contexts/UserProvider";
+import { routesForHeaders } from "@/utils/constants";
 
 const Header: React.FC = () => {
   const { user, loading } = useUser();
@@ -28,67 +29,7 @@ const Header: React.FC = () => {
     console.log("Query updated:", query);
   }, [query]);
 
-  const routes = [
-    {
-      path: "/dashboard",
-      label: "Home Page",
-      description: "Discovering what we supply for your artistic journey",
-    },
-    {
-      path: "/explore",
-      label: "Explore Arts",
-      description: "Discover stunning creations shared by artists worldwide",
-    },
-    {
-      path: "/search",
-      label: "Search Page",
-      description: "Finding beautiful creations that you want to view",
-    },
-    {
-      path: "/blogs",
-      label: "Browse Blogs",
-      description: "Get inspired by stories, tutorials, and creative journeys",
-    },
-    {
-      path: "/blogs/:id",
-      label: "Read Blogs",
-      description: "Dive into creative experiences shared by artists",
-    },
-    {
-      path: "/docs",
-      label: "My Documents",
-      description: "Your space to write and manage your knowledge, sharings",
-    },
-    {
-      path: "/docs/new",
-      label: "Write Blog",
-      description:
-        "Share your latest artwork or visual content with the community",
-    },
-    {
-      path: "/posts/new",
-      label: "Create Post",
-      description:
-        "Share your latest artwork or visual content with the community",
-    },
-    {
-      path: "/posts/:id",
-      label: "Post Details",
-      description: "View artwork in detail and engage with the artist's post",
-    },
-    {
-      path: "/collections",
-      label: "My Collections",
-      description: "",
-    },
-    {
-      path: "/edit-user",
-      label: "Profile",
-      description: "Update your user profile information if needed",
-    },
-  ];
-
-  const matchedRoute = routes.find((route) =>
+  const matchedRoute = routesForHeaders.find((route) =>
     matchPath({ path: route.path, end: true }, location.pathname),
   );
 
@@ -147,7 +88,7 @@ const Header: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className={`flex items-center h-full`}>
+      <div className={`flex items-center h-full space-x-2`}>
         <UserButton user={user!} loading={loading!} />
         <UserInAppConfigs />
       </div>
