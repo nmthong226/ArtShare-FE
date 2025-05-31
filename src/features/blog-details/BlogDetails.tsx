@@ -3,11 +3,11 @@ import { Link, useParams } from "react-router-dom";
 
 //Components
 import { Button, CircularProgress, IconButton, Tooltip } from "@mui/material";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Blog } from "@/types/blog";
+import Avatar from "boring-avatars";
 //Icons
 import { IoPersonAddOutline } from "react-icons/io5";
-import { LuLink, LuPlus } from "react-icons/lu";
+import { LuLink } from "react-icons/lu";
 import RelatedBlogs from "./components/RelatedBlogs";
 import { BiComment } from "react-icons/bi";
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
@@ -248,12 +248,20 @@ const BlogDetails = () => {
           {/* Author Section */}
           <div className="flex justify-between items-center bg-gradient-to-r from-indigo-100 to-purple-100 shadow-sm p-4 rounded-lg">
             <div className="flex items-center space-x-4">
-              <Avatar className="w-12 h-12">
-                <AvatarImage src={blog.user.profile_picture_url ?? undefined} />
-                <AvatarFallback>
-                  {blog.user.username.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              {blog.user.profile_picture_url ? (
+                <img
+                  src={blog.user.profile_picture_url}
+                  alt={blog.user.username}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+              ) : (
+                <Avatar
+                  name={blog.user.username}
+                  size={48}
+                  variant="beam"
+                  colors={["#84bfc3", "#ff9b62", "#d96153"]}
+                />
+              )}
               <div className="flex flex-col">
                 <p className="font-medium text-gray-900 text-lg">
                   {blog.user.full_name}
@@ -285,39 +293,26 @@ const BlogDetails = () => {
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
-          <CommentSection
-            inputPosition="top"
-            comments={comments}
-            targetId={Number(blogId)}
-            targetType={TargetType.BLOG}
-            onCommentAdded={handleCommentAdded}
-            onCommentDeleted={handleCommentDeleted}
-            hideWrapper
-          />
-          <hr className="flex border-mountain-200 border-t-1 w-full" />
-          <RelatedBlogs />
-        </div>
-        <div className="relative flex flex-col w-[20%]">
           <div
-            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} space-y-2 flex-col transition ease-in-out duration-300 top-64 z-10 sticky flex justify-center items-center mr-auto ml-4 rounded-full w-14 h-76`}
+            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto ml-4 rounded-full w-64 h-20`}
           >
-            <div className="relative flex justify-center items-center w-12 h-12">
-              <Avatar>
-                <AvatarImage
-                  src="https://i.pravatar.cc/150?img=68"
-                  className="object-cover"
-                />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <Tooltip title="Follow" placement="right" arrow>
-                <div className="-right-1 -bottom-1 absolute flex justify-center items-center bg-blue-400 border border-white rounded-full w-5 h-5">
-                  <LuPlus className="text-white" />
-                </div>
-              </Tooltip>
-            </div>
             <div
-              className={`space-y-2 flex-col transition ease-in-out duration-300 flex justify-between items-center py-1 bg-white shadow-md rounded-full h-full w-full`}
+              className={`transition ease-in-out duration-300 flex justify-between items-center py-1 bg-white space-x-4 rounded-full h-full w-full`}
             >
+              {/* <div className="relative flex justify-center items-center w-12 h-12">
+                <Avatar>
+                  <AvatarImage
+                    src={blog.user.profile_picture_url!}
+                    className="object-cover"
+                  />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+                <Tooltip title="Follow" placement="right" arrow>
+                  <div className="-right-1 -bottom-1 absolute flex justify-center items-center bg-blue-400 border border-white rounded-full w-5 h-5">
+                    <LuPlus className="text-white" />
+                  </div>
+                </Tooltip>
+              </div> */}
               <Tooltip
                 title={isLiked ? "Unlike" : "Like"}
                 placement="bottom"
@@ -371,6 +366,15 @@ const BlogDetails = () => {
               </Tooltip>
             </div>
           </div>
+          <CommentSection
+            inputPosition="top"
+            comments={comments}
+            targetId={Number(blogId)}
+            targetType={TargetType.BLOG}
+            onCommentAdded={handleCommentAdded}
+            onCommentDeleted={handleCommentDeleted}
+            hideWrapper
+          />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
           <RelatedBlogs />
         </div>
