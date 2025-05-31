@@ -92,8 +92,10 @@ const BrowseBlogs: React.FC = () => {
 
   const clearCategories = () => setSelectedCategories([]);
 
-  const handleTabChange = (_: any, val: string | null) =>
-    val && setTab(val as "trending" | "following");
+  const handleTabChange = (
+    _: React.MouseEvent<HTMLElement>,
+    val: string | null,
+  ) => val && setTab(val as "trending" | "following");
 
   // const handlePageChange = (_: any, p: number) => setPage(p);
 
