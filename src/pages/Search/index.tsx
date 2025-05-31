@@ -101,6 +101,8 @@ const Search = () => {
               height: mediaDimensions.height,
               postLength: post.medias?.length ?? 0,
               postId: post.id,
+              is_mature: post.is_mature || false,
+              ai_created: post.ai_created || false,
             };
           } catch (dimensionError) {
             console.error(
