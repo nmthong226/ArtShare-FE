@@ -51,7 +51,7 @@ const SettingsPanel: React.FC<PanelProps> = ({
             <div
                 aria-controls="panel2-content"
                 id="panel2-header"
-                className={`z-50 bg-gradient-to-r hover:cursor-pointer ${isExpanded ? '' : 'shadow-md'} flex justify-between p-4 items-center from-blue-200 via-indigo-200 to-purple-200 ${isExpanded ? 'rounded-t-xl' : 'rounded-xl'}`}
+                className={`z-50 border border-b-0 hover:cursor-pointer border-mountain-300 ${isExpanded ? '' : 'shadow-md'} flex justify-between p-4 items-center bg-white ${isExpanded ? 'rounded-t-xl' : 'rounded-xl'}`}
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <Typography component="span" className="flex items-center space-x-2 font-medium">
@@ -69,7 +69,7 @@ const SettingsPanel: React.FC<PanelProps> = ({
                         timeout: 200,
                     },
                 }}
-                className={`flex ${isExpanded ? '' : 'hidden'} flex-col m-0 z-10 bg-white shadow-md border border-mountain-300 rounded-xl rounded-t-none w-[300px] ${isExpanded ? 'max-h-[calc(100vh-9.5rem)]' : 'h-fit'
+                className={`flex ${isExpanded ? '' : 'hidden'} flex-col m-0 z-10 bg-white shadow-md border border-mountain-300 rounded-xl rounded-t-none w-[300px] custom-scrollbar ${isExpanded ? 'max-h-[calc(100vh-9.5rem)]' : 'h-fit'
                     } overflow-y-auto`}>
 
                 <AccordionDetails className="flex flex-col flex-1 p-0 min-h-0 overflow-y-auto">

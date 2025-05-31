@@ -12,7 +12,6 @@ import { RiImageAiLine } from "react-icons/ri";
 import { LuBookOpenText } from "react-icons/lu";
 import { IoReorderThreeOutline } from "react-icons/io5";
 import { ChevronRight, Home } from "lucide-react";
-import { LuStarOff } from "react-icons/lu";
 import { LuImageUpscale } from "react-icons/lu";
 import { GoSidebarExpand } from "react-icons/go";
 import { BiEdit } from "react-icons/bi";
@@ -223,9 +222,6 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                         <hr className="left-0 absolute border-violet-800 border-t-1 w-3" />
                         <p className={`flex text-nowrap ml-4 transition-opacity duration-500 opacity-100 font-regular`}>{item.label}</p>
                       </div>
-                      <div className="hidden group-hover:flex w-[14px] h-[14px] text-mountain-400 hover:cursor-pointer">
-                        <LuStarOff />
-                      </div>
                     </Link>
                   )
                 })}
@@ -291,22 +287,19 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               </Popover>
               <CollapsibleContent className="space-y-1 ml-6 px-1 border-purple-800 border-l-1 overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
                 {[
-                  { label: 'Connect Social', href: '/image/tool/text-to-image' },
-                  { label: 'Generate Content', href: '#' },
-                  { label: 'Schedule Sharing', href: '/image/tool/editor' },
+                  { label: 'Link Socials', href: '/auto/new-connect' },
+                  { label: 'Manage Workflows', href: '/auto/my-projects' },
+                  { label: 'Scheduling Center', href: '#' },
                 ].map((item, index) => {
                   const isActive = pathname === item.href;
                   return (
                     <Link
                       to={item.href}
                       key={index}
-                      className={`${isActive ? ' text-black' : 'text-violet-800'} group flex pr-1.5 items-center rounded-md justify-between w-full h-8 hover:text-mountain-950 hover:cursor-pointer`}>
+                      className={`${isActive ? 'from-indigo-200 to-purple-200 bg-gradient-to-r' : 'text-violet-900'} group flex pr-1.5 items-center rounded-md justify-between w-full h-8 hover:text-mountain-950 hover:cursor-pointer`}>
                       <div className="relative flex justify-center items-center transition-all duration-500">
                         <hr className="left-0 absolute border-violet-800 border-t-1 w-3" />
                         <p className={`flex text-nowrap ml-4 transition-opacity duration-500 opacity-100 font-regular`}>{item.label}</p>
-                      </div>
-                      <div className="hidden group-hover:flex w-[14px] h-[14px] text-mountain-400 hover:cursor-pointer">
-                        <LuStarOff />
                       </div>
                     </Link>
                   )

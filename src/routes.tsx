@@ -16,6 +16,8 @@ import OnboardingProfile from "./pages/Onboarding";
 import Dashboard from "./features/app-dashboard/Dashboard";
 import OnboardingRoute from "./components/ProtectedItems/OnboardingRoute";
 import RequireOnboard from "./components/ProtectedItems/RequireOnboard";
+import LinkSocial from "./features/media-automation/LinkSocial";
+import AutomationProject from "./features/media-automation/AutomationProject";
 
 // Lazy imports for pages/features
 const LandingPage = lazy(() => import("@/pages/Home"));
@@ -42,9 +44,6 @@ const MyWriting = lazy(() => import("@/features/user-writing/MyWriting"));
 const ArtGeneration = lazy(() => import("@/features/gen-art/ArtGenAI"));
 const ImageEditor = lazy(() => import("@/features/edit-image/EditImage"));
 
-/**
- * Flat route tree using useRoutes
- */
 const routeConfig: RouteObject[] = [
   {
     element: (
@@ -123,8 +122,6 @@ const routeConfig: RouteObject[] = [
       {
         element: (
           <RequireOnboard>
-            {" "}
-            {/* ⬅️ block until onboarding done */}
             <ProtectedInAppRoute>
               <InAppLayout>
                 <Outlet />
@@ -138,29 +135,34 @@ const routeConfig: RouteObject[] = [
           { path: "/post/:postId/edit", element: <EditPost /> },
           { path: "/posts/new", element: <UploadPost /> },
           { path: "/collections", element: <Collection /> },
-          { path: "/docs", element: <DocumentDashboard /> }
+          { path: "/docs", element: <DocumentDashboard /> },
+          { path: "/auto/new-connect", element: <LinkSocial /> },
+          { path: "/auto/my-projects", element: <AutomationProject /> }
         ]
       },
       // In-App AI Private
       {
         element: (
-          <ProtectedInAppRoute>
-            <AILayout>
-              <Outlet />
-            </AILayout>
-          </ProtectedInAppRoute>
+          <RequireOnboard>
+            <ProtectedInAppRoute>
+              <AILayout>
+                <Outlet />
+              </AILayout>
+            </ProtectedInAppRoute>
+          </RequireOnboard>
         ),
         children: [
           { path: "/image/tool/editor", element: <ImageEditor /> },
           { path: "/image/tool/text-to-image", element: <ArtGeneration /> },
         ],
       },
-      // In-App Text Editor Private
       {
         element: (
-          <ProtectedInAppRoute>
-            <Outlet />
-          </ProtectedInAppRoute>
+          <RequireOnboard>
+            <ProtectedInAppRoute>
+              <Outlet />
+            </ProtectedInAppRoute>
+          </RequireOnboard>
         ),
         children: [
           { path: "/docs/new", element: <MyWriting /> },
@@ -173,9 +175,6 @@ const routeConfig: RouteObject[] = [
   },
 ];
 
-/**
- * Hook to render the routes
- */
 export function AppRoutes() {
   return useRoutes(routeConfig);
 }

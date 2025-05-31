@@ -110,5 +110,15 @@ export const routesForHeaders = [
     path: "/:username",
     label: "My Profile",
     description: "This place is yours",
-  }
+  },
+  {
+    path: "/auto/new-connect",
+    label: "Link Socials",
+    description: "Connect social accounts to enable automated posting",
+  },
+  {
+    path: "/auto/my-projects",
+    label: "Automation Projects",
+    description: "Manage your automated content workflows",
+  },
 ];
