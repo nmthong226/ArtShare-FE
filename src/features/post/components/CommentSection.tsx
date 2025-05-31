@@ -43,6 +43,7 @@ import { useContext } from "react";
 import { FreshRepliesCtx } from "./FreshReplies";
 import { isTemporaryCommentId } from "@/lib/utils";
 import { TargetType } from "@/utils/constants";
+import ReactTimeAgo from "react-time-ago";
 /* ------------------------------------------------------------------ */
 /* Constants & helpers                                                */
 /* ------------------------------------------------------------------ */
@@ -58,25 +59,6 @@ const DATETIME_FORMAT_OPTIONS_FOR_TITLE: Intl.DateTimeFormatOptions = {
   year: "numeric",
   hour: "numeric",
   minute: "2-digit",
-};
-
-const getTimeAgo = (date: string | Date): string => {
-  const now = new Date().getTime();
-  const then = new Date(date).getTime();
-  const seconds = Math.floor((now - then) / 1000);
-  if (seconds < 60) {
-    return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
-  }
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
-  }
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
-  }
-  const days = Math.floor(hours / 24);
-  return `${days} day${days !== 1 ? "s" : ""} ago`;
 };
 
 const addReplyRecursive = (
@@ -217,12 +199,8 @@ const CommentRow = ({
   // only show the “View/Hide” button when there are truly older replies
   const showToggle = olderCount > 0;
   const thisCommentIsTemporary = isTemporaryCommentId(comment.id);
-  const [timeAgoDisplay, setTimeAgoDisplay] = useState<string>("");
   const canReplyToThisComment = depth < MAX_REPLY_DEPTH;
 
-  useEffect(() => {
-    setTimeAgoDisplay(getTimeAgo(comment.created_at));
-  }, [comment.created_at]);
   /**
 + * When we come back to the page, `freshIds` may contain ids but
 + * `comment.replies` is still empty.  Pull the replies once so the new
@@ -314,12 +292,12 @@ const CommentRow = ({
 
   return (
     <div id={`comment-${comment.id}`} className="w-full">
-      <div className="flex gap-3 py-3 w-full">
+      <div className="flex w-full gap-3 py-3">
         {comment.user.profile_picture_url ? (
           <img
             src={comment.user.profile_picture_url}
             alt={comment.user.username}
-            className="rounded-full w-8 h-8 object-cover"
+            className="object-cover w-8 h-8 rounded-full"
           />
         ) : (
           <Avatar
@@ -333,7 +311,7 @@ const CommentRow = ({
           <div className="flex items-center gap-2 text-sm">
             <span className="font-bold">@{comment.user.username}</span>
             <span
-              className="text-neutral-500 text-xs"
+              className="text-xs text-neutral-500"
               title={
                 new Date(comment.updated_at).getTime() !==
                 new Date(comment.created_at).getTime()
@@ -344,7 +322,10 @@ const CommentRow = ({
                   : undefined
               }
             >
-              {timeAgoDisplay}
+              <ReactTimeAgo
+                date={new Date(comment.updated_at)}
+                locale="en-US"
+              />
               {new Date(comment.updated_at).getTime() !==
                 new Date(comment.created_at).getTime() && " (edited)"}
             </span>
@@ -356,7 +337,7 @@ const CommentRow = ({
                 ref={editRef}
                 defaultValue={comment.content}
                 minRows={2}
-                className="p-2 border border-neutral-300 rounded-md w-full"
+                className="w-full p-2 border rounded-md border-neutral-300"
               />
               <div className="flex gap-2 text-xs">
                 <Button
@@ -526,7 +507,7 @@ const CommentRow = ({
             <img
               src={user.profile_picture_url}
               alt={user.username}
-              className="w-8 h-8 rounded-full object-cover"
+              className="object-cover w-8 h-8 rounded-full"
             />
           ) : (
             <Avatar
@@ -1034,7 +1015,7 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
           <img
             src={user.profile_picture_url}
             alt={user.username}
-            className="w-8 h-8 rounded-full object-cover"
+            className="object-cover w-8 h-8 rounded-full"
           />
         ) : (
           <Avatar
@@ -1056,7 +1037,7 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
                   : "Add a comment"
                 : "Login to add a comment"
             }
-            className="border border-neutral-300 rounded-lg p-3 w-full resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full p-3 border rounded-lg resize-none border-neutral-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             disabled={isPosting || !user}
@@ -1096,10 +1077,10 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
         >
           <div
             ref={listRef}
-            className="flex flex-col divide-y divide-neutral-100 overflow-y-auto overflow-x-hidden"
+            className="flex flex-col overflow-x-hidden overflow-y-auto divide-y divide-neutral-100"
           >
             {comments.length === 0 ? (
-              <p className="text-sm text-center text-mountain-500 py-4">
+              <p className="py-4 text-sm text-center text-mountain-500">
                 No comments yet. Be the first to comment!
               </p>
             ) : (
@@ -1135,7 +1116,7 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
         {/* input */}
 
         {deletingId && (
-          <div className="absolute inset-0 flex justify-center items-center bg-white/70 text-sm">
+          <div className="absolute inset-0 flex items-center justify-center text-sm bg-white/70">
             <CircularProgress size={20} />
             <span className="ml-2">Deleting…</span>
           </div>
