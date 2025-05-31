@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 //Libs
 // import { useInfiniteQuery } from "@tanstack/react-query";
 import { Button, Tooltip } from "@mui/material";
-import parse from 'html-react-parser';
 
 //Icons
 import { AiOutlineLike } from "react-icons/ai";
@@ -72,6 +71,34 @@ const BlogItem: React.FC<BlogItemProps> = ({
     };
   }, [open]);
 
+  // Helper function to strip HTML and get plain text preview
+  const getPlainTextPreview = (
+    htmlContent: string,
+    maxLength: number = 150,
+  ): string => {
+    // Remove HTML tags
+    const textOnly = htmlContent.replace(/<[^>]*>/g, "");
+    // Decode HTML entities
+    const decoded = textOnly
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+
+    // Trim whitespace and limit length
+    const trimmed = decoded.trim();
+    if (trimmed.length <= maxLength) return trimmed;
+
+    // Cut at word boundary
+    const truncated = trimmed.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(" ");
+    return lastSpace > 0
+      ? truncated.substring(0, lastSpace) + "..."
+      : truncated + "...";
+  };
+
   return (
     <div
       key={blogId}
@@ -114,16 +141,13 @@ const BlogItem: React.FC<BlogItemProps> = ({
           >
             {title}
           </p>
-          <p className="text-sm line-clamp-2">{parse(content)}</p>
+          <p className="text-sm line-clamp-2">{getPlainTextPreview(content)}</p>
           <div className="flex justify-between w-full">
             <div className="flex items-center space-x-2">
               <img src={author.avatar} className="rounded-full w-12 h-12" />
               <p className="font-medium text-sm">{author.username}</p>
               <span>•</span>
-              <ReactTimeAgo
-                date={new Date(dateCreated)}
-                locale="en-US"
-              />
+              <ReactTimeAgo date={new Date(dateCreated)} locale="en-US" />
             </div>
             <div className="flex items-center w-fit">
               <Tooltip title="Like">

@@ -1,15 +1,15 @@
 import PostInfo from "./components/PostInfo";
 import PostAssets from "./components/PostAssets";
 import PostArtist from "./components/PostArtist";
-import PostComments from "./components/PostComments";
+import CommentSection from "./components/CommentSection.tsx";
 import { fetchPost } from "./api/post.api";
 import { fetchComments } from "./api/comment.api.ts";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-
 import { mappedCategoryPost } from "@/lib/utils";
 import { CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
+import { TargetType } from "@/utils/constants.ts";
 import MatureContentWarning from "./components/MatureContentWarning.tsx";
 
 const Post: React.FC = () => {
@@ -95,7 +95,7 @@ const Post: React.FC = () => {
 
   if (isPostLoading || isCommentsLoading) {
     return (
-      <div className="flex justify-center items-center m-4 h-screen text-center">
+      <div className="flex items-center justify-center h-screen m-4 text-center">
         <CircularProgress size={36} />
         <p className="ml-2">Loading...</p>
       </div>
@@ -154,9 +154,10 @@ const Post: React.FC = () => {
             commentCount={commentCount}
             setCommentCount={setCommentCount}
           />
-          <PostComments
-            comments={comments}
-            postId={postData.id}
+          <CommentSection
+            comments={comments!}
+            targetId={postData!.id} // Changed from postId to targetId
+            targetType={TargetType.POST}
             onCommentAdded={handleCommentAdded}
             onCommentDeleted={handleCommentDeleted}
           />
@@ -173,16 +174,17 @@ const Post: React.FC = () => {
           )}
         </div>
         <div className="relative flex-shrink-0 bg-white shadow py-0 pl-4 sm:w-[256px] md:w-[384px] lg:w-[448px] overflow-hidden">
-          <div className="flex flex-col gap-4 h-full sidebar">
+          <div className="flex flex-col h-full gap-4 sidebar">
             <PostArtist artist={postData!.user} postData={postData!} />
             <PostInfo
               postData={postData}
               commentCount={commentCount}
               setCommentCount={setCommentCount}
             />
-            <PostComments
-              comments={comments}
-              postId={postData.id}
+            <CommentSection
+              comments={comments!}
+              targetId={postData!.id}
+              targetType={TargetType.POST}
               onCommentAdded={handleCommentAdded}
               onCommentDeleted={handleCommentDeleted}
             />

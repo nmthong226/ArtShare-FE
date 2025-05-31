@@ -18,7 +18,7 @@ const AsyncWrapper: React.FC<AsyncWrapperProps> = ({
   children,
 }) => {
   if (loading) return <>{loadingFallback ?? <CircularProgress size={16} />}</>;
-  if (error)   return <>{errorFallback   ?? <MdError color="orange" />}</>;
+  if (error) return <>{errorFallback ?? <MdError color="orange" />}</>;
   return <>{children}</>;
 };
 

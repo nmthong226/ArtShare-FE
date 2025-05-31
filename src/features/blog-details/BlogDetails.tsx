@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 //Components
 import { Button, CircularProgress, IconButton, Tooltip } from "@mui/material";
-import BlogComments from "./components/BlogComments";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Blog } from "@/types/blog";
+import Avatar from "boring-avatars";
 //Icons
 import { IoPersonAddOutline } from "react-icons/io5";
 import { LuLink } from "react-icons/lu";
@@ -15,6 +14,9 @@ import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import { MdBookmarkBorder } from "react-icons/md";
 import { LikesDialog } from "@/components/like/LikesDialog";
 import { fetchBlogDetails } from "./api/blog";
+import CommentSection, {
+  CommentSectionRef,
+} from "../post/components/CommentSection";
 import { fetchBlogComments } from "../post/api/comment.api";
 import { formatDistanceToNow } from "date-fns";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,9 +28,8 @@ import {
 } from "../user-profile-public/api/follow.api";
 import { AxiosError } from "axios";
 import { createLike, removeLike } from "./api/like-blog";
-import { TargetType } from "@/types/likes";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import HTMLReactParser from "html-react-parser/lib/index";
+import { TargetType } from "@/utils/constants";
 
 const BlogDetails = () => {
   const { blogId } = useParams<{ blogId: string }>(); // get blogId from URL
@@ -50,6 +51,8 @@ const BlogDetails = () => {
     queryFn: () => fetchBlogDetails(Number(blogId)),
     enabled: !!blogId,
   });
+  const commentSectionRef = useRef<CommentSectionRef>(null);
+
   /* ───────── comments query ───────── */
   const {
     data: comments = [],
@@ -61,9 +64,6 @@ const BlogDetails = () => {
     queryFn: () => fetchBlogComments(Number(blogId)),
     enabled: !!blogId,
   });
-  /* comment count derived from list */
-  const [commentCount, setCommentCount] = useState(0);
-  useEffect(() => setCommentCount(comments.length), [comments]);
 
   const followMutation = useMutation({
     mutationFn: () => followUser(blog!.user.id),
@@ -170,12 +170,12 @@ const BlogDetails = () => {
     setLikesDialogOpen(false);
   };
   const handleCommentAdded = () => {
-    setCommentCount((c) => c + 1);
     refetchComments();
+    queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
   };
   const handleCommentDeleted = () => {
-    setCommentCount((c) => Math.max(c - 1, 0));
     refetchComments();
+    queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
   };
 
   /* ───────── loading / error ───────── */
@@ -249,12 +249,20 @@ const BlogDetails = () => {
           {/* Author Section */}
           <div className="flex justify-between items-center bg-gradient-to-r from-indigo-100 to-purple-100 shadow-sm p-4 rounded-lg">
             <div className="flex items-center space-x-4">
-              <Avatar className="w-12 h-12">
-                <AvatarImage src={blog.user.profile_picture_url ?? undefined} />
-                <AvatarFallback>
-                  {blog.user.username.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              {blog.user.profile_picture_url ? (
+                <img
+                  src={blog.user.profile_picture_url}
+                  alt={blog.user.username}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+              ) : (
+                <Avatar
+                  name={blog.user.username}
+                  size={48}
+                  variant="beam"
+                  colors={["#84bfc3", "#ff9b62", "#d96153"]}
+                />
+              )}
               <div className="flex flex-col">
                 <p className="font-medium text-gray-900 text-lg">
                   {blog.user.full_name}
@@ -281,12 +289,17 @@ const BlogDetails = () => {
             )}
           </div>
           {/* Blog Content */}
-          <div className="p-2 rounded-md max-w-none prose lg:prose-xl">
-            {HTMLReactParser(blog.content)}
-          </div>
+          <div
+            className="p-2 rounded-md max-w-none prose lg:prose-xl"
+            dangerouslySetInnerHTML={{ __html: blog.content }}
+          />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
-          <div className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto ml-4 rounded-full w-64 h-20`}>
-            <div className={`transition ease-in-out duration-300 flex justify-between items-center py-1 bg-white space-x-4 rounded-full h-full w-full`}>
+          <div
+            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto ml-4 rounded-full w-64 h-20`}
+          >
+            <div
+              className={`transition ease-in-out duration-300 flex justify-between items-center py-1 bg-white space-x-4 rounded-full h-full w-full`}
+            >
               {/* <div className="relative flex justify-center items-center w-12 h-12">
                 <Avatar>
                   <AvatarImage
@@ -330,9 +343,14 @@ const BlogDetails = () => {
                 </div>
               </Tooltip>
               <Tooltip title="Comment" placement="bottom" arrow>
-                <div className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer">
+                <div
+                  className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+                  onClick={() => {
+                    commentSectionRef.current?.focusInput();
+                  }}
+                >
                   <BiComment className="mr-1 size-4" />
-                  <span>{commentCount}</span>
+                  <span>{blog.comment_count}</span>
                 </div>
               </Tooltip>
               <Tooltip title="Save" placement="bottom" arrow>
@@ -354,14 +372,18 @@ const BlogDetails = () => {
               </Tooltip>
             </div>
           </div>
-          <BlogComments
-            blogId={Number(blogId)}
+          <RelatedBlogs />
+          <hr className="flex border-mountain-200 border-t-1 w-full" />
+          <CommentSection
+            ref={commentSectionRef}
+            inputPosition="top"
             comments={comments}
+            targetId={Number(blogId)}
+            targetType={TargetType.BLOG}
             onCommentAdded={handleCommentAdded}
             onCommentDeleted={handleCommentDeleted}
+            hideWrapper
           />
-          <hr className="flex border-mountain-200 border-t-1 w-full" />
-          <RelatedBlogs />
         </div>
         <div className="relative flex flex-col w-[20%]" />
       </div>
@@ -369,7 +391,7 @@ const BlogDetails = () => {
         contentId={Number(blogId)}
         open={likesDialogOpen}
         onClose={handleCloseLikesDialog}
-        variant="blog"
+        variant={TargetType.BLOG}
       />
     </div>
   );

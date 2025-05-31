@@ -1,12 +1,16 @@
 import { MockModelOptionsData } from "../../mock/Data";
 
 interface StyleOptionProps {
-  style: typeof MockModelOptionsData[0];
+  style: (typeof MockModelOptionsData)[0];
   isSelected: boolean;
   onClick: () => void;
 }
 
-const StyleOption: React.FC<StyleOptionProps> = ({ style, isSelected, onClick }) => (
+const StyleOption: React.FC<StyleOptionProps> = ({
+  style,
+  isSelected,
+  onClick,
+}) => (
   <div
     className="group flex flex-col items-center space-y-2 cursor-pointer w-full"
     onClick={onClick}

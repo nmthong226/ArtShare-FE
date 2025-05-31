@@ -49,7 +49,7 @@ const getSubscriptionPlanFromTier = (tierId: string): SubscriptionPlan => {
       console.warn(`Unknown tier ID: ${tierId}. Defaulting to FREE plan.`);
       return SubscriptionPlan.FREE;
   }
-}
+};
 
 export function PricingCard({ tier, paymentFrequency }: PricingCardProps) {
   const price = tier.price[paymentFrequency];
@@ -89,7 +89,10 @@ export function PricingCard({ tier, paymentFrequency }: PricingCardProps) {
   };
 
   const getCtaProps = () => {
-    if (subscriptionInfo && subscriptionInfo.plan === getSubscriptionPlanFromTier(tier.id)) {
+    if (
+      subscriptionInfo &&
+      subscriptionInfo.plan === getSubscriptionPlanFromTier(tier.id)
+    ) {
       return {
         text: "Current Plan",
         action: undefined,
@@ -196,7 +199,7 @@ export function PricingCard({ tier, paymentFrequency }: PricingCardProps) {
       {ctaProps && (
         <Button
           variant={isHighlighted ? "secondary" : "default"}
-          className={`z-50  w-full text-mountain-50 cursor-pointer ${isHighlighted ? 'bg-mountain-950 hover:bg-mountain-900' : 'bg-mountain-50 hover:bg-mountain-100 text-mountain-950 border border-mountain-100'}`}
+          className={`z-50  w-full text-mountain-50 cursor-pointer ${isHighlighted ? "bg-mountain-950 hover:bg-mountain-900" : "bg-mountain-50 hover:bg-mountain-100 text-mountain-950 border border-mountain-100"}`}
           onClick={ctaProps.action}
           asChild={ctaProps.asChild}
         >

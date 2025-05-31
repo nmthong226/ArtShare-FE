@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
-import Editor, { EditorHandle } from './components/Editor'
-import TextEditorHeader from './components/TextEditorHeader'
-import Toolbar from './components/Toolbar'
-import { useParams } from 'react-router-dom'
-import { fetchBlogDetails } from './api/get-detail-document'
-import AIEnhancer from './components/AITools'
-import { updateDoc } from './api/edit-document'
-import { createDoc } from './api/create-document'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { updateBlogPublishStatus } from './api/set-document-published'
+import { useEffect, useRef, useState } from "react";
+import Editor, { EditorHandle } from "./components/Editor";
+import TextEditorHeader from "./components/TextEditorHeader";
+import Toolbar from "./components/Toolbar";
+import { useParams } from "react-router-dom";
+import { fetchBlogDetails } from "./api/get-detail-document";
+import AIEnhancer from "./components/AITools";
+import { updateDoc } from "./api/edit-document";
+import { createDoc } from "./api/create-document";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateBlogPublishStatus } from "./api/set-document-published";
 
 const WriteDocument = () => {
   const editorRef = useRef<EditorHandle>(null);
@@ -42,7 +42,8 @@ const WriteDocument = () => {
   const { mutate: saveBlog, isPending: isSaving } = useMutation({
     mutationFn: async () => {
       const content = editorRef.current?.getContent();
-      const titleToSave = documentTitle.length > 0 ? documentTitle : 'Untitled Document';
+      const titleToSave =
+        documentTitle.length > 0 ? documentTitle : "Untitled Document";
       if (id) {
         return await updateDoc(Number(id), { title: titleToSave, content });
       } else {
@@ -51,11 +52,11 @@ const WriteDocument = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["myBlogs"] });
-      console.log('Saved blog:', data);
+      console.log("Saved blog:", data);
     },
     onError: (error) => {
-      console.error('Error saving blog:', error);
-    }
+      console.error("Error saving blog:", error);
+    },
   });
 
   const { mutate: togglePublish, isPending: isToggling } = useMutation({
@@ -100,7 +101,9 @@ const WriteDocument = () => {
 
   return (
     <div className={`flex flex-row w-full h-full`}>
-      <div className={`flex flex-col flex-1 flex-shrink w-[calc(100vw-16rem)] h-full`}>
+      <div
+        className={`flex flex-col flex-1 flex-shrink w-[calc(100vw-16rem)] h-full`}
+      >
         <TextEditorHeader
           documentTitle={documentTitle}
           setDocumentTitle={setDocumentTitle}
@@ -115,18 +118,20 @@ const WriteDocument = () => {
           isContentValid={isContentValid}
           canPublish={canPublish}
         />
-        <div className={`border-l-1 bg-mountain-50 border-l-mountain-100 dark:border-l-mountain-700 h-full w-full`}>
+        <div
+          className={`border-l-1 bg-mountain-50 border-l-mountain-100 dark:border-l-mountain-700 h-full w-full`}
+        >
           <Toolbar />
-          <div className='z-0 relativeflex flex-col justify-center print:bg-white print:p-0 pb-20 w-full h-screen overflow-x-hidden sidebar'>
+          <div className="z-0 relativeflex flex-col justify-center print:bg-white print:p-0 pb-20 w-full h-screen overflow-x-hidden sidebar">
             <AIEnhancer />
-            <div className='flex mx-auto py-4 print:py-0 pb-20 w-[794px] print:w-full min-w-max min-h-[1123px] overflow-y-hidden'>
+            <div className="flex mx-auto py-4 print:py-0 pb-20 w-[794px] print:w-full min-w-max min-h-[1123px] overflow-y-hidden">
               <Editor ref={editorRef} isLoading={loading} />
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default WriteDocument
+export default WriteDocument;
