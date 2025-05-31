@@ -83,7 +83,7 @@ const UserInAppConfigs = () => {
                 />
               )
             ) : (
-              <MdMoreVert className="size-5 text-white" />
+              <MdMoreVert className="size-5" />
             )}
           </Button>
         </div>

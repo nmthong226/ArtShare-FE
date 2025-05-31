@@ -18,6 +18,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { AxiosError } from "axios";
 import { MouseEvent, useEffect, useState } from "react";
+import { useReportUser } from "./hooks/useReportUser";
+import ReportDialog from "./components/ReportDialog";
 
 export const UserProfileCard = () => {
   const { username } = useParams();
@@ -37,6 +39,7 @@ export const UserProfileCard = () => {
     queryFn: () => getUserProfileByUsername(username),
     enabled: !!username,
   });
+
 
   useEffect(() => {
     // Once the profile refetch shows isFollowing === false, drop the flag
@@ -105,8 +108,23 @@ export const UserProfileCard = () => {
     setAnchorEl(null);
   };
 
-  const handleReport = () => {
-    handleMenuClose();
+  // Report section
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const {mutate: reportUser, isPending: isLoadingReportUser } = useReportUser();
+
+  const handleReport = (reason: string) => {
+    reportUser(
+      { targetId: 1, userId: profileData?.id, reason },
+      {
+        onSuccess: () => {
+          setDialogOpen(false);
+          showSnackbar('Your report will be reviewed soon! Thanks for your report', 'success');
+        },
+        onError: (err) => {
+          showSnackbar(err.message, 'error');
+        },
+      }
+    );
   };
 
   const handleEdit = () => {
@@ -115,7 +133,7 @@ export const UserProfileCard = () => {
   };
 
   // Conditional rendering based on loading, error, or data state
-  if (isLoading) {
+  if (isLoading || isLoadingReportUser) {
     return (
       <Typography variant="body1" color="textPrimary">
         Loading profile...
@@ -262,10 +280,16 @@ export const UserProfileCard = () => {
                 <MenuItem onClick={handleEdit}>Edit Profile</MenuItem>
               )}
               {!isOwnProfile && (
-                <MenuItem onClick={handleReport}>Report User</MenuItem>
+                <MenuItem onClick={() => setDialogOpen(true)}>Report User</MenuItem>
               )}
             </Menu>
           </Box>
+          <ReportDialog
+            open={dialogOpen}
+            onClose={() => setDialogOpen(false)}
+            onSubmit={handleReport}
+            submitting={isLoadingReportUser}
+          />
         </Box>
       </div>
     </div>
