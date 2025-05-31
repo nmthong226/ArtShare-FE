@@ -1,15 +1,15 @@
 import PostInfo from "./components/PostInfo";
 import PostAssets from "./components/PostAssets";
 import PostArtist from "./components/PostArtist";
-import PostComments from "./components/PostComments";
+import CommentSection from "./components/CommentSection.tsx";
 import { fetchPost } from "./api/post.api";
 import { fetchComments } from "./api/comment.api.ts";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-// import PostShare from "@/components/posts/PostShare";
 import { mappedCategoryPost } from "@/lib/utils";
 import { CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
+import { TargetType } from "@/utils/constants.ts";
 
 const Post: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -105,9 +105,10 @@ const Post: React.FC = () => {
             commentCount={commentCount}
             setCommentCount={setCommentCount}
           />
-          <PostComments
+          <CommentSection
             comments={comments!}
-            postId={postData!.id}
+            targetId={postData!.id} // Changed from postId to targetId
+            targetType={TargetType.POST}
             onCommentAdded={handleCommentAdded}
             onCommentDeleted={handleCommentDeleted}
           />
@@ -125,9 +126,10 @@ const Post: React.FC = () => {
               commentCount={commentCount}
               setCommentCount={setCommentCount}
             />
-            <PostComments
+            <CommentSection
               comments={comments!}
-              postId={postData!.id}
+              targetId={postData!.id}
+              targetType={TargetType.POST}
               onCommentAdded={handleCommentAdded}
               onCommentDeleted={handleCommentDeleted}
             />

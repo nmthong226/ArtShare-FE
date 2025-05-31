@@ -92,8 +92,10 @@ const BrowseBlogs: React.FC = () => {
 
   const clearCategories = () => setSelectedCategories([]);
 
-  const handleTabChange = (_: any, val: string | null) =>
-    val && setTab(val as "trending" | "following");
+  const handleTabChange = (
+    _: React.MouseEvent<HTMLElement>,
+    val: string | null,
+  ) => val && setTab(val as "trending" | "following");
 
   // const handlePageChange = (_: any, p: number) => setPage(p);
 
@@ -117,7 +119,6 @@ const BrowseBlogs: React.FC = () => {
         `{isError} Fail to load message`
       </div>
     );
-  console.log(blogs);
   /* ───────── JSX ───────── */
   return (
     <div className="flex rounded-t-3xl h-screen overflow-hidden">

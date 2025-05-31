@@ -17,6 +17,7 @@ import { useUser } from "@/contexts/UserProvider";
 import { likePost, unlikePost } from "../api/post.api";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { TargetType } from "@/utils/constants";
 
 interface SimpleCollection {
   id: number;
@@ -53,6 +54,11 @@ const PostInfo = ({ postData }: PostInfoProps) => {
   const [isLiking, setIsLiking] = useState(false);
   const [isFetchingLike] = useState(false);
   const requireAuth = useRequireAuth();
+
+  useEffect(() => {
+    setUserLike(postData.isLikedByCurrentUser ?? false);
+    setLikeCount(postData.like_count);
+  }, [postData.isLikedByCurrentUser, postData.like_count]);
 
   useEffect(() => {
     const loadCollectionNames = async () => {
@@ -254,7 +260,7 @@ const PostInfo = ({ postData }: PostInfoProps) => {
         contentId={postData.id}
         open={isLikesDialogOpen}
         onClose={handleCloseLikesDialog}
-        variant="post"
+        variant={TargetType.POST}
       />
     </>
   );

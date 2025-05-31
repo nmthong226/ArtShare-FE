@@ -53,6 +53,11 @@ export const featuresShowcase = [
   },
 ];
 
+export enum TargetType {
+  POST = "POST",
+  BLOG = "BLOG",
+}
+
 export const routesForHeaders = [
   {
     path: "/dashboard",
