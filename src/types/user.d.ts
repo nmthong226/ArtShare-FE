@@ -3,14 +3,15 @@ export interface User {
   username: string;
   full_name: string;
   email: string;
+  is_onboard: boolean;
+  followers_count: number;
+  followings_count: number;
   full_name?: string | null;
   profile_picture_url?: string | null;
   bio?: string | null;
   created_at: Date;
   updated_at?: Date | null;
   refresh_token?: string | null;
-  followers_count: number;
-  followings_count: number;
   collections?: Collection[];
   blogs?: Blog[];
   bookmarks?: Bookmark[];
@@ -22,5 +23,4 @@ export interface User {
   ratings?: Rating[];
   shares?: Share[];
   roles?: UserRole[];
-  is_onboard: boolean;
 }

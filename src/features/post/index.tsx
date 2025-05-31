@@ -10,6 +10,7 @@ import { mappedCategoryPost } from "@/lib/utils";
 import { CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { TargetType } from "@/utils/constants.ts";
+import MatureContentWarning from "./components/MatureContentWarning.tsx";
 
 const Post: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -26,20 +27,32 @@ const Post: React.FC = () => {
       document.body.style.overflow = originalBodyOverflow;
     };
   }, []); // Empty dependency array ensures this effect runs only on mount and unmount
+  const [showMatureContent, setShowMatureContent] = useState<boolean>(false);
+
+  const numericPostId = postId ? parseInt(postId, 10) : NaN;
 
   const {
     data: postData,
     isLoading: isPostLoading,
     error: postError,
-    refetch: refetchPostData, // We will use this to refetch the post after comment is added
+    refetch: refetchPostData,
   } = useQuery({
-    queryKey: ["postData", postId],
+    queryKey: ["postData", numericPostId],
     queryFn: async () => {
-      const response = await fetchPost(parseInt(postId!));
-      console.log("fetchPost", response.data);
-      const formattedData = mappedCategoryPost(response.data); // Convert BE type to FE type
+      if (isNaN(numericPostId)) {
+        throw new Error("Invalid Post ID format");
+      }
+      const response = await fetchPost(numericPostId);
+      if (!response || !response.data) {
+        throw new Error("Failed to fetch post or post data is empty");
+      }
+      const formattedData = mappedCategoryPost(response.data);
+      if (!formattedData) {
+        throw new Error("Post data formatting failed");
+      }
       return formattedData;
     },
+    enabled: !!postId && !isNaN(numericPostId),
   });
 
   const {
@@ -47,22 +60,29 @@ const Post: React.FC = () => {
     isLoading: isCommentsLoading,
     error: commentsError,
   } = useQuery({
-    queryKey: ["comments", postId],
+    queryKey: ["comments", numericPostId],
     queryFn: async () => {
-      return await fetchComments(parseInt(postId!));
+      if (isNaN(numericPostId)) {
+        throw new Error("Invalid Post ID format for comments");
+      }
+
+      const commentsData = await fetchComments(numericPostId);
+      if (commentsData === undefined || commentsData === null) {
+        throw new Error("Failed to fetch comments or comments data is empty");
+      }
+      return commentsData;
     },
-    enabled: !!postId, // Ensure postId is available before fetching comments
+    enabled: !!postId && !isNaN(numericPostId),
   });
-  // Track comment count and update it when postData is loaded
+
   const [commentCount, setCommentCount] = useState<number>(0);
 
   useEffect(() => {
     if (postData) {
-      console.log("Post data loaded:", postData);
-      console.log("Initial comment count:", postData.comment_count);
-      setCommentCount(postData.comment_count); // Update comment count when postData is available
+      setCommentCount(postData.comment_count);
+      setShowMatureContent(!postData.is_mature);
     }
-  }, [postData]); // Runs when postData changes
+  }, [postData]);
 
   const handleCommentAdded = () => {
     console.log("Comment added. Previous count:", commentCount);
@@ -70,7 +90,7 @@ const Post: React.FC = () => {
     console.log("Updated comment count:", commentCount + 1);
     if (postData) {
       // Directly update postData.comment_count
-      postData.comment_count += 1; // This ensures that postData.comment_count is updated
+      postData.comment_count += 1;
       refetchPostData();
     }
   };
@@ -79,29 +99,79 @@ const Post: React.FC = () => {
     if (postData) {
       // Directly update postData.comment_count
       postData.comment_count -= 1; // This ensures that postData.comment_count is updated
-      refetchPostData();
+      refetchPostData; // Refetch the post data to trigger a re-render of PostInfo
     }
   };
-  if (isPostLoading || isCommentsLoading) {
+
+  const handleShowMatureContent = () => {
+    setShowMatureContent(true);
+  };
+
+  if (!postId || isNaN(numericPostId)) {
     return (
-      <div className="flex justify-center items-center m-4 h-screen text-center">
-        <CircularProgress size={36} />
-        <p>Loading...</p>
+      <div className="flex items-center justify-center m-4">
+        Invalid Post ID.
       </div>
     );
   }
-  if (postError || commentsError) {
-    return <div>Failed to fetch data.</div>;
+
+  if (isPostLoading || isCommentsLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen m-4 text-center">
+        <CircularProgress size={36} />
+        <p className="ml-2">Loading...</p>
+      </div>
+    );
   }
+
+  if (postError) {
+    return (
+      <div className="flex items-center justify-center m-4">
+        Error loading post:{" "}
+        {(postError as Error).message || "Failed to fetch post."}
+      </div>
+    );
+  }
+
+  if (commentsError && postData) {
+    return (
+      <div className="flex items-center justify-center m-4">
+        Error loading comments:{" "}
+        {(commentsError as Error).message || "Failed to fetch comments."}
+      </div>
+    );
+  }
+
+  if (!postData) {
+    return (
+      <div className="flex items-center justify-center m-4">
+        Post not found or data is unavailable.
+      </div>
+    );
+  }
+
+  if (!comments) {
+    return (
+      <div className="flex items-center justify-center m-4">
+        Comments not found or data is unavailable.
+      </div>
+    );
+  }
+
+  const displayAssets = !postData.is_mature || showMatureContent;
 
   return (
     <div className="relative flex-grow bg-mountain-50 dark:bg-gradient-to-b dark:from-mountain-1000 dark:to-mountain-950 px-4 h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar dark:bg-mountain-950">
       <div className="md:hidden relative flex flex-col bg-white shadow p-4 rounded-2xl h-full">
         <div className="rounded-2xl h-full overflow-y-auto">
           <PostArtist artist={postData!.user} postData={postData!} />
-          <PostAssets medias={postData!.medias} />
+          {displayAssets ? (
+            <PostAssets medias={postData.medias} />
+          ) : (
+            <MatureContentWarning onShow={handleShowMatureContent} />
+          )}
           <PostInfo
-            postData={postData!}
+            postData={postData}
             commentCount={commentCount}
             setCommentCount={setCommentCount}
           />
@@ -114,15 +184,21 @@ const Post: React.FC = () => {
           />
         </div>
       </div>
-      <div className="hidden md:flex flex-row gap-4 h-full">
-        <div className="flex flex-grow justify-center items-center h-full">
-          <PostAssets medias={postData!.medias} />
+
+      {/* Desktop Layout */}
+      <div className="flex-row hidden h-full gap-4 md:flex">
+        <div className="flex items-center justify-center flex-grow h-full">
+          {displayAssets ? (
+            <PostAssets medias={postData.medias} />
+          ) : (
+            <MatureContentWarning onShow={handleShowMatureContent} />
+          )}
         </div>
         <div className="relative flex-shrink-0 bg-white dark:bg-mountain-950 shadow py-0 pl-4 rounded-2xl sm:w-[256px] md:w-[384px] lg:w-[448px]">
-          <div className="flex flex-col gap-4 rounded-2xl h-full overflow-y-auto custom-scrollbar">
+          <div className="flex flex-col h-full gap-4 sidebar">
             <PostArtist artist={postData!.user} postData={postData!} />
             <PostInfo
-              postData={postData!}
+              postData={postData}
               commentCount={commentCount}
               setCommentCount={setCommentCount}
             />

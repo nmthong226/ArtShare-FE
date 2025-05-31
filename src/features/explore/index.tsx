@@ -119,6 +119,11 @@ const Explore: React.FC = () => {
               height: mediaDimensions.height,
               postLength: post.medias?.length ?? 0,
               postId: post.id,
+              is_mature: post.is_mature,
+              ai_created: post.ai_created,
+              like_count: post.like_count,
+              comment_count: post.comment_count,
+              view_count: post.view_count,
             };
           } catch (dimensionError) {
             console.error(
@@ -321,7 +326,7 @@ const Explore: React.FC = () => {
           error={postsError as Error | null}
         />
       </div>
-      <Paper className="bottom-4 left-1/2 z-50 fixed bg-white dark:bg-mountain-800 shadow-lg rounded-full -translate-x-1/2 transform">
+      <Paper className="fixed z-50 transform -translate-x-1/2 bg-white rounded-full shadow-lg bottom-4 left-1/2 dark:bg-mountain-800">
         <ToggleButtonGroup
           className="flex gap-2 m-1.5"
           size="small"
