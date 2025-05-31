@@ -6,6 +6,6 @@ import { Blog } from "@/types/blog";
  * GET /blogs/me
  */
 export const fetchMyBlogs = async (): Promise<Blog[]> => {
-    const response = await api.get<Blog[]>("/blogs/me");
-    return response.data;
+  const response = await api.get<Blog[]>("/blogs/me");
+  return response.data;
 };

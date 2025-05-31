@@ -1,4 +1,4 @@
-import { Backdrop, CircularProgress, Typography } from "@mui/material"
+import { Backdrop, CircularProgress, Typography } from "@mui/material";
 
 const Loading = () => (
   <Backdrop
@@ -19,4 +19,4 @@ const Loading = () => (
   </Backdrop>
 );
 
-export default Loading
+export default Loading;

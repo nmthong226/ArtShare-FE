@@ -1,11 +1,11 @@
-import React from 'react'
+import React from "react";
 
 //Components
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
-import { Collapse, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import Accordion from "@mui/material/Accordion";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import Typography from "@mui/material/Typography";
+import { Collapse, ToggleButton, ToggleButtonGroup } from "@mui/material";
 
 //Icons
 import { IoIosArrowDown } from "react-icons/io";
@@ -13,38 +13,40 @@ import { GoSidebarExpand } from "react-icons/go";
 import { IoImageOutline } from "react-icons/io5";
 
 //Assets
-import AspectRatioOptions from './AspectRatio';
-import LightingOptions from './LightingOptions';
-import CameraOptions from './CameraOptions';
-import StyleOptions from './StyleOptions';
+import AspectRatioOptions from "./AspectRatio";
+import LightingOptions from "./LightingOptions";
+import CameraOptions from "./CameraOptions";
+import StyleOptions from "./StyleOptions";
 
 const SettingsPanel: React.FC<PanelProps> = ({
-    isExpanded,
-    setIsExpanded,
-    numberOfImages,
-    setNumberOfImages,
-    aspectRatio,
-    setAspectRatio,
-    lighting,
-    setLighting,
-    camera,
-    setCamera,
-    style,
-    setStyle,
+  isExpanded,
+  setIsExpanded,
+  numberOfImages,
+  setNumberOfImages,
+  aspectRatio,
+  setAspectRatio,
+  lighting,
+  setLighting,
+  camera,
+  setCamera,
+  style,
+  setStyle,
 }) => {
+  const handleParentToggle = (
+    _event: React.SyntheticEvent,
+    isExpanded: boolean,
+  ) => {
+    setIsExpanded(isExpanded);
+  };
 
-    const handleParentToggle = (_event: React.SyntheticEvent, isExpanded: boolean) => {
-        setIsExpanded(isExpanded);
-    };
-
-    const handleSelectNumber = (
-        _: React.MouseEvent<HTMLElement>,
-        newNumber: number
-    ) => {
-        if (newNumber) {
-            setNumberOfImages(newNumber);
-        }
-    };
+  const handleSelectNumber = (
+    _: React.MouseEvent<HTMLElement>,
+    newNumber: number,
+  ) => {
+    if (newNumber) {
+      setNumberOfImages(newNumber);
+    }
+  };
 
     return (
         <div className='absolute flex flex-col w-[300px]'>

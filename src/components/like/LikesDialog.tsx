@@ -19,14 +19,13 @@ import type { LikingUser } from "./types/user";
 import BoringAvatar from "boring-avatars";
 import { useTheme, Theme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
-
-export type LikesDialogVariant = "post" | "blog";
+import { TargetType } from "@/utils/constants";
 
 interface LikesDialogProps {
   contentId?: number;
   open: boolean;
   onClose: () => void;
-  variant: LikesDialogVariant;
+  variant: TargetType;
 }
 
 /**
@@ -59,7 +58,7 @@ export const LikesDialog: React.FC<LikesDialogProps> = ({
 
     // choose fetcher based on variant
     const fetcher =
-      variant === "blog" ? fetchBlogLikingUsers : fetchPostLikingUsers;
+      variant === TargetType.BLOG ? fetchBlogLikingUsers : fetchPostLikingUsers;
 
     fetcher(contentId)
       .then(setLikingUsers)

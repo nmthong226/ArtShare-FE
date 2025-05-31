@@ -12,12 +12,17 @@ export interface ImageGenRequestDto {
   camera: string;
 }
 
-export const generateImages = async (payload: ImageGenRequestDto): Promise<PromptResult> => {
+export const generateImages = async (
+  payload: ImageGenRequestDto,
+): Promise<PromptResult> => {
   try {
-    const response = await api.post<PromptResult>('/art-generation/text-to-image', payload);
+    const response = await api.post<PromptResult>(
+      "/art-generation/text-to-image",
+      payload,
+    );
     return response.data;
   } catch (error) {
     console.error("Error generating images:", error);
     throw error; // Re-throw the error to be handled by the caller
   }
-}
+};

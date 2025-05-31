@@ -47,6 +47,8 @@ export function useGalleryPhotos(posts: Post[]): UseGalleryPhotosResult {
                 author: post.user?.username || "Unknown",
                 postId: post.id,
                 postLength: post.medias?.length ?? 0,
+                is_mature: post.is_mature || false,
+                ai_created: post.ai_created || false,
               };
             } catch (dimensionError) {
               console.warn(

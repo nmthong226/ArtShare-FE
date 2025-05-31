@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 //Icons
 import { InfoIcon } from "lucide-react";
@@ -15,7 +15,7 @@ import { useUser } from "@/contexts/UserProvider";
 import UserButton from "./user-button";
 
 const AIHeader = () => {
-    const { user, loading } = useUser();
+  const { user, loading } = useUser();
 
     return (
         <nav className={`z-50 flex relative justify-between items-center bg-gradient-to-r from-indigo-100 via-purple-50 to-pink-50 dark:bg-mountain-950 px-4 border-b-1 border-b-mountain-100 dark:border-b-mountain-700 w-full h-16`}>
