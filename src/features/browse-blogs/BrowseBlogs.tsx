@@ -117,7 +117,6 @@ const BrowseBlogs: React.FC = () => {
         `{isError} Fail to load message`
       </div>
     );
-  console.log(blogs);
   /* ───────── JSX ───────── */
   return (
     <div className="flex rounded-t-3xl h-screen overflow-hidden">
