@@ -60,7 +60,10 @@ const UserInAppConfigs = () => {
             {user ? (
               user.profile_picture_url ? (
                 <Avatar className="shadow-md w-10 h-10 cursor-pointer">
-                  <AvatarImage src={user.profile_picture_url} className="object-cover"/>
+                  <AvatarImage
+                    src={user.profile_picture_url}
+                    className="object-cover"
+                  />
                   <AvatarFallback>
                     {user.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -80,7 +83,7 @@ const UserInAppConfigs = () => {
                 />
               )
             ) : (
-              <MdMoreVert className="size-5 text-white" />
+              <MdMoreVert className="size-5" />
             )}
           </Button>
         </div>
