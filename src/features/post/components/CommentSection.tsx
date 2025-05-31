@@ -47,6 +47,7 @@ import { TargetType } from "@/utils/constants";
 /* Constants & helpers                                                */
 /* ------------------------------------------------------------------ */
 const INDENT = 44;
+const MAX_REPLY_DEPTH = 3;
 
 export interface CommentSectionRef {
   focusInput: () => void;
@@ -216,7 +217,12 @@ const CommentRow = ({
   // only show the “View/Hide” button when there are truly older replies
   const showToggle = olderCount > 0;
   const thisCommentIsTemporary = isTemporaryCommentId(comment.id);
+  const [timeAgoDisplay, setTimeAgoDisplay] = useState<string>("");
+  const canReplyToThisComment = depth < MAX_REPLY_DEPTH;
 
+  useEffect(() => {
+    setTimeAgoDisplay(getTimeAgo(comment.created_at));
+  }, [comment.created_at]);
   /**
 + * When we come back to the page, `freshIds` may contain ids but
 + * `comment.replies` is still empty.  Pull the replies once so the new
@@ -338,7 +344,7 @@ const CommentRow = ({
                   : undefined
               }
             >
-              {getTimeAgo(comment.created_at)}
+              {timeAgoDisplay}
               {new Date(comment.updated_at).getTime() !==
                 new Date(comment.created_at).getTime() && " (edited)"}
             </span>
@@ -394,19 +400,20 @@ const CommentRow = ({
               <Typography variant="caption" sx={{ mr: 2 }}>
                 {comment.like_count ?? 0}
               </Typography>
-
-              <Button
-                size="small"
-                color="primary"
-                onClick={() =>
-                  requireAuth("reply to comments", () => {
-                    setReplying((v) => !v);
-                    setTimeout(() => replyInputRef.current?.focus(), 0);
-                  })
-                }
-              >
-                {replying ? "Cancel" : "Reply"}
-              </Button>
+              {canReplyToThisComment && (
+                <Button
+                  size="small"
+                  color="primary"
+                  onClick={() =>
+                    requireAuth("reply to comments", () => {
+                      setReplying((v) => !v);
+                      setTimeout(() => replyInputRef.current?.focus(), 0);
+                    })
+                  }
+                >
+                  {replying ? "Cancel" : "Reply"}
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -459,7 +466,7 @@ const CommentRow = ({
       </div>
 
       {/* ▶️  INLINE REPLY INPUT  */}
-      {showThread && (
+      {showThread && depth < MAX_REPLY_DEPTH && (
         <div className="flex flex-col gap-1" style={{ marginLeft: INDENT }}>
           {/* A.  View / Hide button (only for true older replies) */}
           {showToggle && (
@@ -509,7 +516,7 @@ const CommentRow = ({
         </div>
       )}
       {/* B.  Inline-reply input - MOVED HERE and corrected indentation & styling */}
-      {replying && (
+      {replying && canReplyToThisComment && (
         <div
           className="flex items-start gap-3 mt-2"
           style={{ marginLeft: INDENT }} // Apply indent directly to the reply box container
@@ -1089,7 +1096,7 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
         >
           <div
             ref={listRef}
-            className="flex flex-col divide-y divide-neutral-100 overflow-y-auto"
+            className="flex flex-col divide-y divide-neutral-100 overflow-y-auto overflow-x-hidden"
           >
             {comments.length === 0 ? (
               <p className="text-sm text-center text-mountain-500 py-4">

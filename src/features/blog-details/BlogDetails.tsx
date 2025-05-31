@@ -372,6 +372,8 @@ const BlogDetails = () => {
               </Tooltip>
             </div>
           </div>
+          <RelatedBlogs />
+          <hr className="flex border-mountain-200 border-t-1 w-full" />
           <CommentSection
             ref={commentSectionRef}
             inputPosition="top"
@@ -382,8 +384,6 @@ const BlogDetails = () => {
             onCommentDeleted={handleCommentDeleted}
             hideWrapper
           />
-          <hr className="flex border-mountain-200 border-t-1 w-full" />
-          <RelatedBlogs />
         </div>
         <div className="relative flex flex-col w-[20%]" />
       </div>
