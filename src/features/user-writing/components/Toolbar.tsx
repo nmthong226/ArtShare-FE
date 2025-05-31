@@ -50,6 +50,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogFooter, DialogContent, DialogTitle, DialogHeader } from "@/components/ui/dialog";
 import { Tooltip } from "@mui/material";
+import { useWritingMediaUploader } from "../hooks/use-writing-medias-uploader";
 
 const LineHeightButton = () => {
     const { editor } = useEditorStore();
@@ -351,6 +352,8 @@ const ImageButton = () => {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [imageUrl, setImageUrl] = useState("");
 
+    const { handleUploadImageFile } = useWritingMediaUploader();
+
     const insertImage = (src: string) => {
         if (src) {
             editor?.chain().focus().setImage({ src }).run();
@@ -361,11 +364,14 @@ const ImageButton = () => {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = "image/*";
-        input.onchange = (e) => {
+        input.onchange = async (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
             if (file) {
-                const localUrl = URL.createObjectURL(file);
-                insertImage(localUrl);
+                const imageS3Url = await handleUploadImageFile(file, "blog");
+                if (imageS3Url) {
+                  // const localUrl = URL.createObjectURL(file);
+                  insertImage(imageS3Url);
+                }
             }
         };
         input.click();
