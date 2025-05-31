@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 //Components
@@ -14,7 +14,9 @@ import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import { MdBookmarkBorder } from "react-icons/md";
 import { LikesDialog } from "@/components/like/LikesDialog";
 import { fetchBlogDetails } from "./api/blog";
-import CommentSection from "../post/components/CommentSection";
+import CommentSection, {
+  CommentSectionRef,
+} from "../post/components/CommentSection";
 import { fetchBlogComments } from "../post/api/comment.api";
 import { formatDistanceToNow } from "date-fns";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -49,6 +51,8 @@ const BlogDetails = () => {
     queryFn: () => fetchBlogDetails(Number(blogId)),
     enabled: !!blogId,
   });
+  const commentSectionRef = useRef<CommentSectionRef>(null);
+
   /* ───────── comments query ───────── */
   const {
     data: comments = [],
@@ -60,9 +64,6 @@ const BlogDetails = () => {
     queryFn: () => fetchBlogComments(Number(blogId)),
     enabled: !!blogId,
   });
-  /* comment count derived from list */
-  const [commentCount, setCommentCount] = useState(0);
-  useEffect(() => setCommentCount(comments.length), [comments]);
 
   const followMutation = useMutation({
     mutationFn: () => followUser(blog!.user.id),
@@ -169,12 +170,12 @@ const BlogDetails = () => {
     setLikesDialogOpen(false);
   };
   const handleCommentAdded = () => {
-    setCommentCount((c) => c + 1);
     refetchComments();
+    queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
   };
   const handleCommentDeleted = () => {
-    setCommentCount((c) => Math.max(c - 1, 0));
     refetchComments();
+    queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
   };
 
   /* ───────── loading / error ───────── */
@@ -342,9 +343,14 @@ const BlogDetails = () => {
                 </div>
               </Tooltip>
               <Tooltip title="Comment" placement="bottom" arrow>
-                <div className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer">
+                <div
+                  className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+                  onClick={() => {
+                    commentSectionRef.current?.focusInput();
+                  }}
+                >
                   <BiComment className="mr-1 size-4" />
-                  <span>{commentCount}</span>
+                  <span>{blog.comment_count}</span>
                 </div>
               </Tooltip>
               <Tooltip title="Save" placement="bottom" arrow>
@@ -367,6 +373,7 @@ const BlogDetails = () => {
             </div>
           </div>
           <CommentSection
+            ref={commentSectionRef}
             inputPosition="top"
             comments={comments}
             targetId={Number(blogId)}

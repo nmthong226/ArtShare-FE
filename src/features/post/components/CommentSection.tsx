@@ -5,6 +5,7 @@ import {
   useState,
   useEffect,
   MouseEvent,
+  useCallback,
 } from "react";
 import {
   Button,
@@ -47,6 +48,9 @@ import { TargetType } from "@/utils/constants";
 /* ------------------------------------------------------------------ */
 const INDENT = 44;
 
+export interface CommentSectionRef {
+  focusInput: () => void;
+}
 const DATETIME_FORMAT_OPTIONS_FOR_TITLE: Intl.DateTimeFormatOptions = {
   month: "short",
   day: "numeric",
@@ -613,7 +617,7 @@ interface Props {
   hideWrapper?: boolean;
 }
 
-const CommentSection = forwardRef<HTMLDivElement, Props>(
+const CommentSection = forwardRef<CommentSectionRef, Props>(
   (
     {
       comments: initial,
@@ -629,8 +633,8 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
     const { user } = useUser();
     const { showSnackbar } = useSnackbar();
     const CURRENT_USER_ID = user?.id;
-    const { postCommentsRef } = useFocusContext();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const { postCommentsRef } = useFocusContext();
     const listRef = useRef<HTMLDivElement>(null);
     const [comments, setComments] = useState<CommentUI[]>(initial);
     const [newComment, setNewComment] = useState("");
@@ -704,25 +708,41 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
       setComments((prev) => mergeTrees(prev, initial));
     }, [initial]);
 
-    useImperativeHandle(postCommentsRef, () => ({
-      focusInput: () => {
-        if (!user) {
-          showSnackbar(
-            "Please login to comment",
-            "warning",
-            <Button
-              size="small"
-              color="inherit"
-              onClick={() => (window.location.href = "/login")}
-            >
-              Login
-            </Button>,
-          );
-          return;
-        }
-        textareaRef.current?.focus();
-      },
-    }));
+    const focusLogic = useCallback(() => {
+      if (!user) {
+        showSnackbar(
+          "Please login to comment",
+          "warning",
+          <Button
+            size="small"
+            color="inherit"
+            onClick={() => (window.location.href = "/login")}
+          >
+            Login
+          </Button>,
+        );
+        return;
+      }
+      textareaRef.current?.focus();
+    }, [user, showSnackbar, textareaRef]);
+
+    // Expose to direct parent ref (e.g., _ref from BlogDetails)
+    useImperativeHandle(
+      _ref,
+      () => ({
+        focusInput: focusLogic,
+      }),
+      [focusLogic],
+    );
+
+    // Expose to context ref (e.g., postCommentsRef for PostInfo)
+    useImperativeHandle(
+      postCommentsRef,
+      () => ({
+        focusInput: focusLogic,
+      }),
+      [focusLogic],
+    );
 
     const attachReplies = (id: number, replies: CommentUI[]) => {
       setComments((prev) =>
@@ -1061,7 +1081,7 @@ const CommentSection = forwardRef<HTMLDivElement, Props>(
       .join(" ");
 
     return (
-      <div ref={_ref} className={wrapperClass}>
+      <div className={wrapperClass}>
         <span className="font-bold text-md">Comments</span>
         {inputPosition === "top" && InputBar}
         <FreshRepliesCtx.Provider
