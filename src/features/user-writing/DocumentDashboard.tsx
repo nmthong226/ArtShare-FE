@@ -14,6 +14,7 @@ import { CreateBlogPayload, createNewBlog } from "./api/blog.api";
 import { fetchBlogsByUsername } from "../blog-details/api/blog";
 import { useUser } from "@/contexts/UserProvider";
 import { Blog } from "@/types/blog";
+import { TUTORIAL_TEMPLATE_HTML } from "@/constants/template";
 
 const DocumentDashboard = () => {
   const [order, setOrder] = React.useState<
@@ -93,6 +94,21 @@ const DocumentDashboard = () => {
     }
   };
 
+  const createTutorialDocument = async () => {
+    try {
+      const payload: CreateBlogPayload = {
+        title: "Untitled Tutorial",
+        is_published: false,
+        content: TUTORIAL_TEMPLATE_HTML,
+      };
+      const newBlog = await createNewBlog(payload);
+      navigate(`/docs/${newBlog.id}`); // jump into WriteBlog
+    } catch (err) {
+      showSnackbar("Failed to create tutorial", "error");
+      console.error(err);
+    }
+  };
+
   const handleDocumentClick = (blogId: number) => {
     navigate(`/docs/${blogId}`);
   };
@@ -126,23 +142,32 @@ const DocumentDashboard = () => {
                   <MdOutlineAdd className="size-10" />
                 </div>
               </div>
-              <p className="text-mountain-800 text-sm">Blank Document</p>
+              <p className="text-mountain-800 text-sm text-center">
+                Blank Document
+              </p>
+            </div>
+            <div
+              className="flex flex-col justify-center space-y-4 cursor-pointer"
+              onClick={() => createTutorialDocument()}
+            >
+              <div className="flex justify-center items-center bg-mountain-50 border-1 border-white hover:border-indigo-600 w-42 h-48">
+                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full w-16 h-16">
+                  <IoBookOutline className="size-10" />
+                </div>
+              </div>
+              <p className="text-mountain-800 text-sm text-center">
+                Tutorial Template
+              </p>
             </div>
             <div className="flex flex-col justify-center space-y-4">
               <div className="flex justify-center items-center bg-mountain-50 border-1 border-white hover:border-indigo-600 w-42 h-48">
                 <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full w-16 h-16">
-                  <IoBookOutline className="size-8" />
+                  <TbListNumbers className="size-10" />
                 </div>
               </div>
-              <p className="text-mountain-800 text-sm">Tutorial Template</p>
-            </div>
-            <div className="flex flex-col justify-center space-y-4">
-              <div className="flex justify-center items-center bg-mountain-50 border-1 border-white hover:border-indigo-600 w-42 h-48">
-                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full w-16 h-16">
-                  <TbListNumbers className="size-8" />
-                </div>
-              </div>
-              <p className="text-mountain-800 text-sm">Sale Template</p>
+              <p className="text-mountain-800 text-sm text-center">
+                Sale Template
+              </p>
             </div>
           </div>
         </div>
