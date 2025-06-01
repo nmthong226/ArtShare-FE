@@ -228,11 +228,11 @@ const WriteBlog = () => {
           className={`border-l-1 bg-mountain-50 border-l-mountain-100 dark:border-l-mountain-700 h-full w-full`}
         >
           <Toolbar />
-          <div className=" relative flex flex-col justify-center print:bg-white print:p-0 pb-20 w-full h-screen overflow-x-hidden sidebar">
+          <div className="print:bg-white print:p-0 pb-20 w-full h-screen overflow-x-hidden sidebar fixed">
             {/* <div className="right-60 bottom-4 z-50 fixed flex justify-center items-center bg-gradient-to-b from-blue-400 to-purple-400 shadow-md rounded-full w-14 h-14 hover:scale-105 transition duration-300 ease-in-out hover:cursor-pointer">
               <LuPencilLine className="size-6 text-white" />
             </div> */}
-            <div className="flex mx-auto py-4 print:py-0 pb-20 w-[794px] print:w-full min-w-max min-h-[1123px] overflow-y-hidden">
+            <div className="flex mx-auto py-4 print:py-0 pb-20 w-[794px] print:w-full min-w-max min-h-[1123px] overflow-y-hidden mt-6">
               <Editor ref={editorRef} />
             </div>
           </div>
