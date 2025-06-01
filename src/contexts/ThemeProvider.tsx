@@ -1,15 +1,5 @@
-// theme controller — it decides and manages the theme state
-import { createContext, useEffect, useState } from "react";
-
-type Theme = "light" | "dark";
-interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
-}
-
-export const ThemeContext = createContext<ThemeContextType | undefined>(
-  undefined,
-);
+import { useEffect, useState } from "react";
+import { ThemeContext, Theme } from "./ThemeContext";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -25,7 +15,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
 
-    // This is the critical part - make sure the HTML class is correctly applied
     if (newTheme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
