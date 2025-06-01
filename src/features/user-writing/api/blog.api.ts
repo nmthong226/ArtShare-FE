@@ -66,3 +66,14 @@ export const updateExistingBlog = async (
     throw error;
   }
 };
+
+export const deleteBlog = async (
+  blogId: string | number,
+): Promise<void> => {
+  try {
+    await api.delete(`/blogs/${blogId}`);
+  } catch (error) {
+    console.error(`Error deleting blog with ID ${blogId}:`, error);
+    throw error;
+  }
+}
