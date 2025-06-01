@@ -5,19 +5,18 @@ import Toolbar from "./components/Toolbar";
 import { LuPencilLine } from "react-icons/lu";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  getBlogById,
-  updateExistingBlog,
-  UpdateBlogPayload,
-} from "./api/blog.api";
+import { fetchBlogDetails } from "../blog-details/api/blog";
+import { updateExistingBlog, UpdateBlogPayload } from "./api/blog.api";
+import { Blog } from "@/types/blog";
+import { AxiosError } from "axios";
 
 const WriteBlog = () => {
   const editorRef = useRef<EditorHandle>(null);
   const { showSnackbar } = useSnackbar();
   const { blogId } = useParams<{ blogId: string }>();
 
-  const [blogTitle, setBlogTitle] = useState("Untitled Document"); // Renamed for clarity
-  const [isLoading, setIsLoading] = useState(true); // For loading state
+  const [blogTitle, setBlogTitle] = useState("Untitled Document");
+  const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -29,40 +28,70 @@ const WriteBlog = () => {
     }
 
     setIsLoading(true);
-    getBlogById(blogId)
-      .then((fetchedBlog) => {
+    const numericBlogId = parseInt(blogId, 10);
+    if (isNaN(numericBlogId)) {
+      showSnackbar("Invalid blog ID format.", "error");
+      navigate("/blogs", { replace: true });
+      setIsLoading(false);
+      return;
+    }
+
+    fetchBlogDetails(numericBlogId)
+      .then((fetchedBlog: Blog) => {
         if (editorRef.current) {
           editorRef.current.setContent(fetchedBlog.content || "");
         }
         setBlogTitle(fetchedBlog.title);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error("Error fetching blog content:", error);
-        showSnackbar("Failed to load blog content.", "error");
+        let errorMessage = "Failed to load blog content.";
+
+        if (error instanceof AxiosError) {
+          errorMessage = error.response?.data?.message || errorMessage;
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+
+        showSnackbar(errorMessage, "error");
         navigate("/blogs", { replace: true });
       })
       .finally(() => {
         setIsLoading(false);
       });
-  }, [blogId, navigate, showSnackbar]); // Added navigate and showSnackbar to dependencies
+  }, [blogId, navigate, showSnackbar]);
 
   const handleExportDocument = async () => {
     if (!editorRef.current || !blogId) return;
     const content = editorRef.current?.getContent();
 
+    const numericBlogId = parseInt(blogId, 10);
+
     const payload: UpdateBlogPayload = {
-      title: blogTitle, // Use the state for title
+      title: blogTitle,
       is_published: true,
       content,
     };
 
     try {
-      const updatedBlog = await updateExistingBlog(blogId, payload);
+      const updatedBlog: Blog = await updateExistingBlog(
+        numericBlogId,
+        payload,
+      );
       showSnackbar("Blog published successfully!", "success");
       console.log("Document published:", updatedBlog);
-      navigate(`/blogs/${updatedBlog.id}`); // Redirect to the published blog
-    } catch (error) {
-      showSnackbar("Failed to publish blog", "error");
+      // Fix: Use 'id' instead of 'blogId' since Blog interface has 'id' property
+      navigate(`/blogs/${updatedBlog.id}`);
+    } catch (error: unknown) {
+      let errorMessage = "Failed to publish blog.";
+
+      if (error instanceof AxiosError) {
+        errorMessage = error.response?.data?.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      showSnackbar(errorMessage, "error");
       console.error("Error publishing document:", error);
     }
   };
@@ -72,27 +101,43 @@ const WriteBlog = () => {
 
     const content = editorRef.current?.getContent();
     const images = editorRef.current?.getImages() || [];
+    const numericBlogId = parseInt(blogId, 10);
 
     const payload: UpdateBlogPayload = {
       title: currentTitle || "Untitled Document",
-      is_published: true,
+      is_published: false,
       pictures: images.map((img) => img.src),
       content,
     };
 
     try {
-      const updatedBlog = await updateExistingBlog(blogId, payload);
+      const updatedBlog: Blog = await updateExistingBlog(
+        numericBlogId,
+        payload,
+      );
       showSnackbar("Blog saved successfully!", "success");
       console.log("Document saved:", updatedBlog);
-      setBlogTitle(updatedBlog.title); // Update title in state if backend modifies it
-    } catch (error) {
-      showSnackbar("Failed to save blog", "error");
+      setBlogTitle(updatedBlog.title);
+    } catch (error: unknown) {
+      let errorMessage = "Failed to save blog.";
+
+      if (error instanceof AxiosError) {
+        errorMessage = error.response?.data?.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      showSnackbar(errorMessage, "error");
       console.error("Error saving document:", error);
     }
   };
 
   if (isLoading) {
-    return <div>Loading editor...</div>;
+    return (
+      <div className="flex justify-center items-center w-full h-screen">
+        Loading editor...
+      </div>
+    );
   }
 
   return (
@@ -115,6 +160,7 @@ const WriteBlog = () => {
               <LuPencilLine className="size-6 text-white" />
             </div>
             <div className="flex mx-auto py-4 print:py-0 pb-20 w-[794px] print:w-full min-w-max min-h-[1123px] overflow-y-hidden">
+              {/* Remove initialContent prop since it doesn't exist on Editor component */}
               <Editor ref={editorRef} />
             </div>
           </div>

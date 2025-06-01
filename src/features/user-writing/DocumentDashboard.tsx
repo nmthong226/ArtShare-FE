@@ -3,41 +3,86 @@ import { MdOutlineAdd } from "react-icons/md";
 import { TbListNumbers } from "react-icons/tb";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import MenuItem from "@mui/material/MenuItem";
 import { useNavigate } from "react-router-dom";
-import { ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { CircularProgress } from "@mui/material";
 import { IoMdMore } from "react-icons/io";
 import { Button } from "@/components/ui/button";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { CreateBlogPayload, createNewBlog } from "./api/blog.api";
+import { fetchBlogsByUsername } from "../blog-details/api/blog";
+import { useUser } from "@/contexts/UserProvider";
+import { Blog } from "@/types/blog";
 
 const DocumentDashboard = () => {
   const [order, setOrder] = React.useState<
     "today" | "last7days" | "last30days"
   >("today");
-  const handleChange = (event: SelectChangeEvent) => {
-    setOrder(event.target.value as "today" | "last7days" | "last30days");
-  };
-  const [alignment, setAlignment] = React.useState("web");
-
-  const handleTypeChange = (
-    _event: React.MouseEvent<HTMLElement>,
-    newAlignment: string,
-  ) => {
-    setAlignment(newAlignment);
-  };
+  const [userBlogs, setUserBlogs] = useState<Blog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { showSnackbar } = useSnackbar();
+  const { user } = useUser();
+
+  // Fetch user's documents
+  useEffect(() => {
+    const fetchUserDocuments = async () => {
+      if (!user?.username) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const blogs = await fetchBlogsByUsername(user.username);
+
+        // Filter blogs based on the selected order
+        const now = new Date();
+        const filteredBlogs = blogs.filter((blog) => {
+          const createdAt = new Date(blog.created_at);
+          const diffInDays = Math.floor(
+            (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24),
+          );
+
+          switch (order) {
+            case "today":
+              return diffInDays === 0;
+            case "last7days":
+              return diffInDays <= 7;
+            case "last30days":
+              return diffInDays <= 30;
+            default:
+              return true;
+          }
+        });
+
+        setUserBlogs(filteredBlogs);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching user documents:", err);
+        setError("Failed to load documents");
+        setUserBlogs([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserDocuments();
+  }, [user?.username, order]);
+
+  const handleChange = (event: SelectChangeEvent) => {
+    setOrder(event.target.value as "today" | "last7days" | "last30days");
+  };
 
   const createNewDocument = async () => {
     try {
       const newBlogPayload: CreateBlogPayload = {
-        // Use the defined payload type
         title: "Untitled Document",
         is_published: false,
-        content: "Untitled Document", // Or provide a minimal default content
+        content: "Untitled Document",
       };
 
       const createdBlog = await createNewBlog(newBlogPayload);
@@ -46,6 +91,25 @@ const DocumentDashboard = () => {
       showSnackbar("Failed to create blog", "error");
       console.error("Error creating document:", error);
     }
+  };
+
+  const handleDocumentClick = (blogId: number) => {
+    navigate(`/docs/${blogId}`);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const truncateTitle = (title: string, maxLength: number = 30) => {
+    return title.length > maxLength
+      ? `${title.substring(0, maxLength)}...`
+      : title;
   };
 
   return (
@@ -88,28 +152,6 @@ const DocumentDashboard = () => {
           <p className="font-medium text-lg">Recent projects</p>
           <div className="flex items-center">
             <div className="flex">
-              <ToggleButtonGroup
-                color="primary"
-                value={alignment}
-                exclusive
-                onChange={handleTypeChange}
-                aria-label="Platform"
-              >
-                <ToggleButton
-                  value="android"
-                  className="px-4 rounded-l-full h-10 font-normal text-base capitalize"
-                >
-                  Document
-                </ToggleButton>
-                <ToggleButton
-                  value="ios"
-                  className="px-4 rounded-r-full h-10 font-normal text-base capitalize"
-                >
-                  Blog
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </div>
-            <div className="flex">
               <FormControl sx={{ m: 1, minWidth: 120 }}>
                 <Select
                   value={order}
@@ -130,34 +172,59 @@ const DocumentDashboard = () => {
             </div>
           </div>
         </div>
+
         <div className="items-start gap-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 p-6 pb-96 min-h-[calc(100vh-4rem)]">
-          {[...Array(2)].map((_, index) => (
-            <div
-              key={index}
-              className="flex flex-col justify-center items-center space-y-4 bg-white pb-2 border border-mountain-200 hover:border-indigo-600 rounded-lg"
-            >
-              <div className="flex justify-center items-end bg-mountain-50 border border-mountain-50 rounded-t-lg w-full aspect-square">
-                <div className="flex flex-col justify-center items-center bg-white p-2 w-[70%] h-[80%] text-mountain-400">
-                  <span className="text-xs select-none">My document</span>
-                </div>
-              </div>
-              <div className="flex flex-col justify-start items-start space-y-2 w-full">
-                <p className="bg-white px-2 w-full text-mountain-800 text-sm text-left line-clamp-1 select-none">
-                  {index === 0
-                    ? "My darkest memory about some"
-                    : "Blank Document"}
-                </p>
-                <div className="flex justify-between items-center w-full">
-                  <p className="bg-white px-2 w-full text-mountain-800 text-xs text-left truncate select-none">
-                    24/05/2025
-                  </p>
-                  <Button className="bg-white hover:bg-mountain-50 mr-2 w-6 h-6 text-mountain-600 cursor-pointer">
-                    <IoMdMore className="size-5" />
-                  </Button>
-                </div>
-              </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center col-span-full py-8">
+              <CircularProgress size={32} />
+              <span className="ml-2">Loading documents...</span>
             </div>
-          ))}
+          ) : error ? (
+            <div className="flex justify-center items-center col-span-full py-8 text-red-500">
+              <span>{error}</span>
+            </div>
+          ) : userBlogs.length === 0 ? (
+            <div className="flex justify-center items-center col-span-full py-8 text-gray-500">
+              <span>No documents found for the selected time period.</span>
+            </div>
+          ) : (
+            userBlogs.map((blog) => (
+              <div
+                key={blog.id}
+                className="flex flex-col justify-center items-center space-y-4 bg-white pb-2 border border-mountain-200 hover:border-indigo-600 rounded-lg cursor-pointer transition-colors duration-200"
+                onClick={() => handleDocumentClick(blog.id)}
+              >
+                <div className="flex justify-center items-end bg-mountain-50 border border-mountain-50 rounded-t-lg w-full aspect-square">
+                  <div className="flex flex-col justify-center items-center bg-white p-2 w-[70%] h-[80%] text-mountain-400">
+                    <span className="text-xs select-none">My document</span>
+                  </div>
+                </div>
+                <div className="flex flex-col justify-start items-start space-y-2 w-full">
+                  <p
+                    className="bg-white px-2 w-full text-mountain-800 text-sm text-left line-clamp-1 select-none"
+                    title={blog.title} // Show full title on hover
+                  >
+                    {truncateTitle(blog.title)}
+                  </p>
+                  <div className="flex justify-between items-center w-full">
+                    <p className="bg-white px-2 w-full text-mountain-800 text-xs text-left truncate select-none">
+                      {formatDate(blog.created_at)}
+                    </p>
+                    <Button
+                      className="bg-white hover:bg-mountain-50 mr-2 w-6 h-6 text-mountain-600 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the document click
+                        // Add menu functionality here
+                        console.log("Menu clicked for blog:", blog.id);
+                      }}
+                    >
+                      <IoMdMore className="size-5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

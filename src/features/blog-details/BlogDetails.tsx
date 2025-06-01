@@ -300,20 +300,6 @@ const BlogDetails = () => {
             <div
               className={`transition ease-in-out duration-300 flex justify-between items-center py-1 bg-white space-x-4 rounded-full h-full w-full`}
             >
-              {/* <div className="relative flex justify-center items-center w-12 h-12">
-                <Avatar>
-                  <AvatarImage
-                    src={blog.user.profile_picture_url!}
-                    className="object-cover"
-                  />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-                <Tooltip title="Follow" placement="right" arrow>
-                  <div className="-right-1 -bottom-1 absolute flex justify-center items-center bg-blue-400 border border-white rounded-full w-5 h-5">
-                    <LuPlus className="text-white" />
-                  </div>
-                </Tooltip>
-              </div> */}
               <Tooltip
                 title={isLiked ? "Unlike" : "Like"}
                 placement="bottom"
@@ -372,7 +358,7 @@ const BlogDetails = () => {
               </Tooltip>
             </div>
           </div>
-          <RelatedBlogs />
+          <RelatedBlogs currentBlogId={Number(blogId)} />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
           <CommentSection
             ref={commentSectionRef}

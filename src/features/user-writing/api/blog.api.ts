@@ -1,56 +1,36 @@
+// This file could be src/services/blogServiceUtils.ts or similar,
+// or its contents (mapper, DTO, unique functions) could be moved elsewhere.
+// For now, this is the cleaned version of the file you provided.
+
 import api from "@/api/baseApi";
-import { Blog } from "@/types/blog";
+import { Blog } from "@/types/blog"; // Assuming BlogUser and BlogCategory are part of your main Blog type or defined in @/types/blog
+
+// --- Functions that were NOT duplicates and might still be needed ---
 
 export interface CreateBlogPayload {
   title: string;
   content: string;
   is_published?: boolean;
+  // Add other fields your backend expects for creation, e.g., category_ids, tags
 }
 
 /**
  * Creates a new blog post.
  * @param blogData The data for the new blog.
- * @returns The created blog post.
+ * @returns The created blog post (ensure this also maps to frontend Blog type if backend returns a different DTO).
  */
 export const createNewBlog = async (
   blogData: CreateBlogPayload,
 ): Promise<Blog> => {
+  // Assuming backend returns something mappable to Blog or directly Blog
   try {
-    const response = await api.post<Blog>("/blogs", blogData);
+    // If backend returns a specific DTO for creation, type it here, e.g., api.post<BackendBlogDetailsDto>
+    // and then map it. For simplicity, assuming it returns a Blog-compatible structure.
+    const response = await api.post<Blog>("/blogs", blogData); // Or BackendBlogDetailsDto then map
+    // If mapping is needed: return mapBackendDetailsToFrontendBlog(response.data);
     return response.data;
   } catch (error) {
     console.error("Error creating blog:", error);
-    // You might want to throw a more specific error or handle it based on your app's needs
-    throw error;
-  }
-};
-
-/**
- * Fetches all blog posts.
- * You might want to add parameters for pagination, filtering, sorting, etc.
- * @returns A list of blog posts.
- */
-export const getAllBlogs = async (): Promise<Blog[]> => {
-  try {
-    const response = await api.get<Blog[]>("/blogs");
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching blogs:", error);
-    throw error;
-  }
-};
-
-/**
- * Fetches a single blog post by its ID.
- * @param blogId The ID of the blog to fetch.
- * @returns The blog post.
- */
-export const getBlogById = async (blogId: string | number): Promise<Blog> => {
-  try {
-    const response = await api.get<Blog>(`/blogs/${blogId}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching blog with ID ${blogId}:`, error);
     throw error;
   }
 };
@@ -62,24 +42,27 @@ export interface UpdateBlogPayload {
   slug?: string;
   cover_image_url?: string;
   pictures?: string[];
+  // Add other updatable fields
 }
 
 /**
  * Updates an existing blog post.
  * @param blogId The ID of the blog to update.
  * @param blogData The data to update the blog with.
- * @returns The updated blog post.
+ * @returns The updated blog post (ensure mapping if necessary).
  */
 export const updateExistingBlog = async (
   blogId: string | number,
   blogData: UpdateBlogPayload,
 ): Promise<Blog> => {
+  // Assuming backend returns something mappable to Blog or directly Blog
   try {
-    const response = await api.patch<Blog>(`/blogs/${blogId}`, blogData);
+    // Similar to createNewBlog, if backend returns a specific DTO, map it.
+    const response = await api.patch<Blog>(`/blogs/${blogId}`, blogData); // Or BackendBlogDetailsDto then map
+    // If mapping is needed: return mapBackendDetailsToFrontendBlog(response.data);
     return response.data;
   } catch (error) {
     console.error(`Error updating blog with ID ${blogId}:`, error);
-    // You might want to throw a more specific error or handle it based on your app's needs
     throw error;
   }
 };
