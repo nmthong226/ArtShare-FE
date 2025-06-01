@@ -1,127 +1,160 @@
+import { RiRobot2Line } from "react-icons/ri";
+import { Button, TextareaAutosize } from "@mui/material";
+import { ArrowUp } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import getTrendingPrompts from "../../api/get-trending-prompts";
 
+const ChatInterface = () => {
+  const [userPrompt, setUserPrompt] = useState(""); // User input state
+  const [chatHistory, setChatHistory] = useState<
+    { sender: string; text: string }[]
+  >([]); // Chat history
+  const [isBotTyping, setIsBotTyping] = useState<boolean>(false); // Simulating bot typing
+  const scrollRef = useRef<HTMLDivElement>(null); // Reference for scroll
+  const textareaRef = useRef<HTMLTextAreaElement>(null); // Reference for input field
+  const [trendingPrompts, setTrendingPrompts] = useState<string[]>([]); // Trending prompts
 
-//Libs
-
-//Components
-
-//Icons
-import { RiRobot2Line } from 'react-icons/ri'
-import { Button, TextareaAutosize } from '@mui/material';
-import { ArrowUp } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-
-
-const SuggestPrompt = () => {
-    const [promptExpanded, setPromptExpanded] = useState<boolean>(false);
-    const [userPrompt, setUserPrompt] = useState('');
-    const [, setCommittedPrompt] = useState('');
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-    const handleGenerate = () => {
-        if (!userPrompt.trim()) return;
-        setCommittedPrompt(userPrompt); // store the current prompt
-        // Immediately scroll down
-        setTimeout(() => {
-            scrollRef.current?.scrollTo({
-                top: scrollRef.current.scrollHeight,
-                behavior: 'smooth',
-            });
-        }, 100);
-        // Simulate generation delay
-        setTimeout(() => {
-            scrollRef.current?.scrollTo({
-                top: scrollRef.current.scrollHeight,
-                behavior: 'smooth',
-            });
-        }, 100);
+  useEffect(() => {
+    const fetchTrendingPrompts = async () => {
+      try {
+        const prompts = await getTrendingPrompts();
+        setTrendingPrompts(prompts);
+      } catch (error) {
+        console.error("Failed to fetch trending prompts:", error);
+      }
     };
 
-    const handlePrompt = () => {
-        setPromptExpanded(true);
-        setTimeout(() => {
-            textareaRef.current?.focus();
-        }, 0); // ensures it's after expansion
-    };
+    fetchTrendingPrompts();
+  }, []);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                textareaRef.current &&
-                !textareaRef.current.contains(event.target as Node)
-            ) {
-                setPromptExpanded(false);
-            }
-        };
+  // Handle generating the bot's response
+  const handleGenerate = () => {
+    if (!userPrompt.trim()) return;
 
-        if (promptExpanded) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
+    // Add user message to the chat history
+    setChatHistory((prevHistory) => [
+      ...prevHistory,
+      { sender: "user", text: userPrompt },
+    ]);
 
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [promptExpanded]);
+    // Simulate bot response after a delay
+    setIsBotTyping(true);
+    setTimeout(() => {
+      const botReply = `Bot's response to: ${userPrompt}`; // Replace this with real bot logic
+      setChatHistory((prevHistory) => [
+        ...prevHistory,
+        { sender: "bot", text: botReply },
+      ]);
+      setIsBotTyping(false);
+    }, 1500);
 
-    return (
-        <div className='flex justify-center w-full h-full'>
-            <div className='relative flex flex-col items-center w-[70%] h-full'>
-                <div className='flex flex-col items-center space-y-6 mt-20'>
-                    <div className='flex flex-col justify-center items-center space-y-2'>
-                        <div className='flex justify-center items-center bg-gradient-to-r from-indigo-400 to-purple-400 shadow ml-4 border border-mountain-300 rounded-xl w-15 h-15 hover:cursor-pointer'>
-                            <RiRobot2Line className='size-6 text-white' />
-                        </div>
-                        <p className='font-medium'>Imagine Bot</p>
-                        <p className='flex w-[360px] text-mountain-600 text-sm text-center'>Spark your creativity with Imagine Bot! Generate unique prompts to inspire your next visual masterpiece.</p>
-                    </div>
-                    <div className='flex flex-col items-center space-y-2'>
-                        <div className='flex hover:bg-mountain-50 p-2 px-4 border rounded-full w-fit text-mountain-600 hover:text-mountain-950 hover:cursor-pointer'>
-                            <p>A lonely astronaut on Mars</p>
-                        </div>
-                        <div className='flex hover:bg-mountain-50 p-2 px-4 border rounded-full text-mountain-600 hover:text-mountain-950 hover:cursor-pointer'>
-                            <p>Cyberpunk samurai walking in the rain</p>
-                        </div>
-                        <div className='flex hover:bg-mountain-50 p-2 px-4 border rounded-full w-fit text-mountain-600 hover:text-mountain-950 hover:cursor-pointer'>
-                            <p>Sunset over a pixel-art mountain</p>
-                        </div>
-                    </div>
-                </div>
-                <div className={`flex bottom-4 left-1/2 z-50 absolute -translate-x-1/2`}>
-                    <div className={`flex flex-col bg-white border ${promptExpanded ? 'border-indigo-600 shadow-lg' : 'border-mountain-300 shadow-md'} rounded-xl w-[480px] relative`}>
-                        <div
-                            className={`flex bg-white rounded-xl w-full border-0 rounded-b-none overflow-hidden transition-all duration-400 ease-in-out transform
-                    ${promptExpanded ? 'h-24 scale-y-100 opacity-100 py-2' : 'h-0 opacity-0'} 
-                    overflow-y-auto`}
-                        >
-                            <TextareaAutosize
-                                value={userPrompt}
-                                ref={textareaRef}
-                                onChange={(e) => setUserPrompt(e.target.value)}
-                                placeholder="Type your idea..."
-                                className={`flex p-2 resize-none bg-white custom-scrollbar rounded-xl w-full text-sm rounded-b-none h-full overflow-y-auto placeholder:text-mountain-400 outline-none focus:outline-none focus:ring-0 focus:border-transparent`}
-                            />
-                        </div>
-                        <div
-                            onClick={() => handlePrompt()}
-                            className={`${promptExpanded && 'rounded-t-none pointer-events-none'
-                                } items-center text-sm flex bg-white px-2 py-4 rounded-xl w-full h-15 line-clamp-1 hover:cursor-pointer overflow-y-auto`}
-                        >
-                            {userPrompt ? (
-                                <p className={`pr-26 line-clamp-1 ${promptExpanded && 'hidden'}`}>{userPrompt}</p>
-                            ) : (
-                                <p className={`pr-26 text-mountain-400 ${promptExpanded && 'hidden'}`}>Type your idea...</p>
-                            )}
-                        </div>
-                        <Button
-                            onClick={handleGenerate}
-                            className='right-4 -bottom-2 absolute flex items-center bg-indigo-400 hover:bg-indigo-300 px-4 -translate-y-1/2 hover:cursor-pointer'>
-                            <ArrowUp />
-                        </Button>
-                    </div>
-                </div>
-            </div>
+    // Scroll to the bottom of the chat area
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }, 100);
+
+    setUserPrompt(""); // Clear the input field after generating a message
+  };
+
+  // Handle prompt selection from the trending prompts list
+  const handlePromptClick = (prompt: string) => {
+    setUserPrompt(prompt);
+    setChatHistory([
+      { sender: "bot", text: `You selected the prompt: ${prompt}` }, // Bot's first message
+    ]);
+  };
+
+  return (
+    <div className="flex justify-center w-full h-full">
+      <div className="relative flex flex-col items-center w-[90%] h-full">
+        {/* Prompt Section (Optional, can be minimized or replaced with a button) */}
+        <div className="flex flex-col items-center mt-6 space-y-4">
+          <div className="flex justify-center items-center bg-gradient-to-r from-indigo-400 to-purple-400 shadow ml-4 border border-mountain-300 rounded-xl w-15 h-15 hover:cursor-pointer">
+            <RiRobot2Line className="size-6 text-white" />
+          </div>
+          <p className="font-medium">Imagine Bot</p>
+          <p className="flex w-[360px] text-mountain-600 text-sm text-center">
+            Spark your creativity with Imagine Bot! Generate unique prompts to
+            inspire your next visual masterpiece.
+          </p>
+          <div className="flex space-x-2">
+            {trendingPrompts.length > 0 ? (
+              trendingPrompts.map((prompt, index) => (
+                <Button
+                  key={index}
+                  onClick={() => handlePromptClick(prompt)}
+                  variant="outlined"
+                  className="hover:bg-mountain-50 p-2 px-4 border rounded-full text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+                >
+                  {prompt}
+                </Button>
+              ))
+            ) : (
+              <p>Loading prompts...</p>
+            )}
+          </div>
         </div>
-    )
-}
 
-export default SuggestPrompt;
+        {/* Main Chat Area */}
+        <div className="flex flex-col w-full h-full bg-white border rounded-xl shadow-lg relative mt-6">
+          {/* Chat messages area */}
+          <div
+            ref={scrollRef}
+            className="flex flex-col p-4 space-y-4 overflow-y-auto flex-grow"
+            style={{ maxHeight: "calc(100vh - 200px)" }}
+          >
+            {chatHistory.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.sender === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`flex p-2 rounded-xl ${
+                    message.sender === "user"
+                      ? "bg-indigo-400 text-white"
+                      : "bg-gray-200 text-gray-800"
+                  }`}
+                >
+                  <p>{message.text}</p>
+                </div>
+              </div>
+            ))}
+
+            {/* Bot typing indicator */}
+            {isBotTyping && (
+              <div className="flex justify-start">
+                <div className="flex p-2 rounded-xl bg-gray-200 text-gray-800">
+                  <p>Bot is typing...</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Input Area */}
+          <div className="flex p-4 bg-white border-t">
+            <TextareaAutosize
+              ref={textareaRef}
+              value={userPrompt}
+              onChange={(e) => setUserPrompt(e.target.value)}
+              placeholder="Type your idea..."
+              className="w-full p-2 resize-none rounded-xl text-sm bg-gray-100 outline-none"
+            />
+            <Button
+              onClick={handleGenerate}
+              className="ml-2 bg-indigo-400 hover:bg-indigo-300 text-white rounded-full px-4"
+            >
+              <ArrowUp />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ChatInterface;
