@@ -26,7 +26,7 @@ const TextEditorHeader: React.FC<TextEditorHeader> = ({
   handleSaveBlog,
   text,
   setText,
-  isPublished
+  isPublished,
 }) => {
   const { user, loading } = useUser();
 
@@ -66,18 +66,18 @@ const TextEditorHeader: React.FC<TextEditorHeader> = ({
           placeholder="Name Your Document Here..."
         />
         <div className="flex space-x-2">
-          <Tooltip title={isPublished ? "Save and publish" : "Publish"} arrow placement="left">
-            <div
-              className="flex justify-center items-center bg-white border border-mountain-200 rounded-full w-12 h-12 cursor-pointer"
-              onClick={() => handleSaveBlog(text)}
-            >
-              <AiOutlineSave className="size-5" />
-            </div>
-          </Tooltip>
+          <Button
+            onClick={() => handleSaveBlog(text)}
+            className="bg-green-600 shadow hover:brightness-95 border border-emerald-700 rounded-full h-9 px-4 font-medium text-white" // Changed background: from-emerald-500 to-green-600
+            // Changed border: border-emerald-700 (to match the new gradient)
+          >
+            <AiOutlineSave className="mr-2 h-4 w-4 flex-shrink-0" />
+            <span>{isPublished ? "Save and publish" : "Publish"}</span>
+          </Button>
           <Button
             type="submit"
             onClick={handleExport}
-            className="bg-gradient-to-r from-indigo-400 to-purple-400 shadow hover:brightness-95 border border-mountain-400 rounded-full w-36 h-12 font-medium text-white hover:cursor-pointer"
+            className="bg-indigo-400 shadow hover:brightness-95 border border-mountain-400 rounded-full w-36 h-9 font-medium text-white hover:cursor-pointer" // This button remains the same (indigo/purple)
           >
             <MdLockOutline />
             <p>Share Blog</p>

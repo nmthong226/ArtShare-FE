@@ -8,7 +8,6 @@ import { fetchBlogDetails } from "../blog-details/api/blog";
 import { updateExistingBlog, UpdateBlogPayload } from "./api/blog.api";
 import { Blog } from "@/types/blog";
 import { AxiosError } from "axios";
-import { LuPencilLine } from "react-icons/lu";
 
 const isContentEmpty = (htmlContent: string | undefined): boolean => {
   if (!htmlContent) return true;
