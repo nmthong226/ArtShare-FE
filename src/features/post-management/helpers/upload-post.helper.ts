@@ -1,20 +1,43 @@
-export const createFormData = (
-  title: string,
-  thumbnailUrl: string,
-  thumbnailCropMeta: string,
-  description?: string,
-  imageFiles?: File[],
-  videoUrl?: string,
-  initialThumbnail?: string,
-  isMature?: boolean,
-  aiCreated?: boolean,
-  cate_ids?: number[],
-) => {
+import { PostMedia } from "../types/post-media";
+
+export const getImageFilesFromPostMedias = (postMedias: PostMedia[]): File[] => {
+  return postMedias
+    .filter((media) => media.type === "image")
+    .map((media) => media.file)
+}
+
+export const getVideoFileFromPostMedias = (postMedias: PostMedia[]): File | undefined => {
+  return postMedias.find((media) => media.type === "video")?.file;
+}
+
+interface CreateFormDataParams {
+  title: string;
+  thumbnailUrl: string;
+  thumbnailCropMeta: string;
+  description?: string;
+  imageFiles?: File[];
+  videoUrl?: string;
+  initialThumbnailUrl?: string;
+  isMature?: boolean;
+  aiCreated?: boolean;
+  cate_ids?: number[];
+}
+
+export const createFormData = ({
+  title,
+  thumbnailUrl,
+  thumbnailCropMeta,
+  description,
+  imageFiles,
+  videoUrl,
+  initialThumbnailUrl,
+  isMature,
+  aiCreated,
+  cate_ids,
+}: CreateFormDataParams) => {
   const formData = new FormData();
   formData.append("title", title);
   if (description) formData.append("description", description);
-  // TODO: delete this when we have backend for categories
-  // formData.append("ids", JSON.stringify([]));
   if (videoUrl) formData.append("video_url", videoUrl);
   formData.append("thumbnail_url", thumbnailUrl);
   if (imageFiles && imageFiles.length > 0) {
@@ -27,7 +50,7 @@ export const createFormData = (
     "thumbnail_crop_meta",
     JSON.stringify({
       ...JSON.parse(thumbnailCropMeta),
-      initialThumbnail: initialThumbnail,
+      initialThumbnail: initialThumbnailUrl,
     }),
   );
 

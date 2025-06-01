@@ -97,13 +97,13 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               return (
                 <Tooltip
                   title={item.label}
+                  key={item.label}
                   placement="right"
                   arrow
                   disableHoverListener={expand}
                 >
                   <Link
                     to={item.href}
-                    key={item.label}
                     className={`${isActive ? 'from-indigo-200 to-purple-200 bg-gradient-to-r' : 'text-violet-900'} group flex items-center px-4 rounded-md w-full h-10 hover:text-mountain-950 hover:cursor-pointer`}
                   >
                     <item.icon className="flex-shrink-0 size-5" />
@@ -127,13 +127,13 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               return (
                 <Tooltip
                   title={item.label}
+                  key={item.label}
                   placement="right"
                   arrow
                   disableHoverListener={expand}
                 >
                   <Link
                     to={item.href}
-                    key={item.label}
                     className={`${isActive ? 'from-indigo-200 to-purple-200 bg-gradient-to-r' : 'text-violet-900'} group flex items-center px-4 rounded-md w-full h-10 hover:text-mountain-950 hover:cursor-pointer`}
                   >
                     <item.icon className="flex-shrink-0 size-5" />

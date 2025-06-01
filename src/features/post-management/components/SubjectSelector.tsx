@@ -3,8 +3,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { MdAdd, MdClose } from "react-icons/md";
 import { Button } from "@mui/material"; // MUI components for internal use if any
-import { getCategories } from "@/api/category";
-import type { Category as ApiCategory } from "@/types";
 
 // This is a type for Subject, which is a simplified version of Category to display on the UI.
 export type Subject = {
@@ -19,16 +17,17 @@ interface SubjectSelectorProps {
   cate_ids: number[];
   setCateIds: (value: number[]) => void;
   currentSearchTerm: string; // Search term from SubjectPicker
+  allSubjects: Subject[];
 }
 
 const SubjectSelector: React.FC<SubjectSelectorProps> = ({
   cate_ids,
   setCateIds,
   currentSearchTerm,
+  allSubjects,
 }) => {
   // Using cate_ids directly for selected state logic, no separate 'selected' state needed here for IDs.
   // 'selectedSubjects' can be derived for display if needed, or just use allSubjects and filter by cate_ids.
-  const [allSubjects, setAllSubjects] = useState<Subject[]>([]);
   const [hovered, setHovered] = useState<Subject | undefined>();
 
   const handleHover = useCallback(
@@ -111,18 +110,6 @@ const SubjectSelector: React.FC<SubjectSelectorProps> = ({
     },
   );
   SubjectRow.displayName = "SubjectRowFromSelector";
-
-  useEffect(() => {
-    getCategories().then((apiCategories: ApiCategory[]) => {
-      const subjectsData: Subject[] = apiCategories.map((cat) => ({
-        id: cat.id,
-        name: cat.name,
-        description: cat.description,
-        examples: cat.example_images,
-      }));
-      setAllSubjects(subjectsData);
-    });
-  }, []);
 
   // Effect to update 'hovered' when 'cate_ids' or 'allSubjects' change
   useEffect(() => {
