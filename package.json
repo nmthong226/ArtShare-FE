@@ -92,6 +92,7 @@
     "keen-slider": "^6.8.6",
     "lightningcss": "^1.29.3",
     "lodash.debounce": "^4.0.8",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.477.0",
     "nanoid": "^5.1.5",
     "npm": "^11.2.0",

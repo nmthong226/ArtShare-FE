@@ -1,22 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 //Components
 import { Button, CircularProgress, IconButton, Tooltip } from "@mui/material";
-import BlogComments from "./components/BlogComments";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Blog } from "@/types/blog";
+import Avatar from "boring-avatars";
 //Icons
 import { IoPersonAddOutline } from "react-icons/io5";
-import { LuLink, LuTableOfContents } from "react-icons/lu";
-import { IoIosArrowUp } from "react-icons/io";
+import { LuLink } from "react-icons/lu";
 import RelatedBlogs from "./components/RelatedBlogs";
 import { BiComment } from "react-icons/bi";
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import { MdBookmarkBorder } from "react-icons/md";
-import { LuPlus } from "react-icons/lu";
 import { LikesDialog } from "@/components/like/LikesDialog";
 import { fetchBlogDetails } from "./api/blog";
+import CommentSection, {
+  CommentSectionRef,
+} from "../post/components/CommentSection";
 import { fetchBlogComments } from "../post/api/comment.api";
 import { formatDistanceToNow } from "date-fns";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,8 +28,8 @@ import {
 } from "../user-profile-public/api/follow.api";
 import { AxiosError } from "axios";
 import { createLike, removeLike } from "./api/like-blog";
-import { TargetType } from "@/types/likes";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { TargetType } from "@/utils/constants";
 
 const BlogDetails = () => {
   const { blogId } = useParams<{ blogId: string }>(); // get blogId from URL
@@ -51,6 +51,8 @@ const BlogDetails = () => {
     queryFn: () => fetchBlogDetails(Number(blogId)),
     enabled: !!blogId,
   });
+  const commentSectionRef = useRef<CommentSectionRef>(null);
+
   /* ───────── comments query ───────── */
   const {
     data: comments = [],
@@ -62,9 +64,6 @@ const BlogDetails = () => {
     queryFn: () => fetchBlogComments(Number(blogId)),
     enabled: !!blogId,
   });
-  /* comment count derived from list */
-  const [commentCount, setCommentCount] = useState(0);
-  useEffect(() => setCommentCount(comments.length), [comments]);
 
   const followMutation = useMutation({
     mutationFn: () => followUser(blog!.user.id),
@@ -171,19 +170,20 @@ const BlogDetails = () => {
     setLikesDialogOpen(false);
   };
   const handleCommentAdded = () => {
-    setCommentCount((c) => c + 1);
     refetchComments();
+    queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
   };
   const handleCommentDeleted = () => {
-    setCommentCount((c) => Math.max(c - 1, 0));
     refetchComments();
+    queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
   };
 
   /* ───────── loading / error ───────── */
   if (isLoading || commentsLoading)
     return (
-      <div className="flex justify-center items-center h-full">
-        <CircularProgress />
+      <div className="flex justify-center items-center space-x-4 h-screen">
+        <CircularProgress size={36} />
+        <p>Loading…</p>
       </div>
     );
   if (error || commentsError)
@@ -220,12 +220,12 @@ const BlogDetails = () => {
     <div className="flex flex-col items-center py-12 w-full h-screen sidebar">
       <div className="flex w-full h-full">
         <div className="relative flex flex-col w-[20%]">
-          <div className="top-100 z-10 sticky flex justify-center items-center bg-white shadow-md mr-4 ml-auto rounded-full w-12 h-12">
+          {/* <div className="top-100 z-10 sticky flex justify-center items-center bg-white shadow-md mr-4 ml-auto rounded-full w-12 h-12">
             <LuTableOfContents className="size-5" />
-          </div>
-          <div className="right-4 bottom-4 z-50 fixed flex justify-center items-center bg-blue-400 shadow-md rounded-full w-12 h-12">
+          </div> */}
+          {/* <div className="right-4 bottom-4 z-50 fixed flex justify-center items-center bg-blue-400 shadow-md rounded-full w-12 h-12">
             <IoIosArrowUp className="mb-1 size-5 text-white" />
-          </div>
+          </div> */}
         </div>
         <div className="group flex flex-col space-y-4 p-4 w-[60%]">
           <div className="flex space-x-2 w-full">
@@ -249,13 +249,20 @@ const BlogDetails = () => {
           {/* Author Section */}
           <div className="flex justify-between items-center bg-gradient-to-r from-indigo-100 to-purple-100 shadow-sm p-4 rounded-lg">
             <div className="flex items-center space-x-4">
-              <Avatar className="w-12 h-12">
-                <AvatarImage src={blog.user.profile_picture_url ?? undefined} />
-                <AvatarFallback>
-                  {blog.user.username.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-
+              {blog.user.profile_picture_url ? (
+                <img
+                  src={blog.user.profile_picture_url}
+                  alt={blog.user.username}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+              ) : (
+                <Avatar
+                  name={blog.user.username}
+                  size={48}
+                  variant="beam"
+                  colors={["#84bfc3", "#ff9b62", "#d96153"]}
+                />
+              )}
               <div className="flex flex-col">
                 <p className="font-medium text-gray-900 text-lg">
                   {blog.user.full_name}
@@ -282,43 +289,34 @@ const BlogDetails = () => {
             )}
           </div>
           {/* Blog Content */}
-          <div className="p-2 rounded-md max-w-none prose lg:prose-xl">
-            {blog.content}
-          </div>
-          <hr className="flex border-mountain-200 border-t-1 w-full" />
-          <BlogComments
-            blogId={Number(blogId)}
-            comments={comments}
-            onCommentAdded={handleCommentAdded}
-            onCommentDeleted={handleCommentDeleted}
+          <div
+            className="p-2 rounded-md max-w-none prose lg:prose-xl"
+            dangerouslySetInnerHTML={{ __html: blog.content }}
           />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
-          <RelatedBlogs />
-        </div>
-        <div className="relative flex flex-col w-[20%]">
           <div
-            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} space-y-2 flex-col transition ease-in-out duration-300 top-64 z-10 sticky flex justify-center items-center mr-auto ml-4 rounded-full w-14 h-76`}
+            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto ml-4 rounded-full w-64 h-20`}
           >
-            <div className="relative flex justify-center items-center w-12 h-12">
-              <Avatar>
-                <AvatarImage
-                  src="https://i.pravatar.cc/150?img=68"
-                  className="object-cover"
-                />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <Tooltip title="Follow" placement="right" arrow>
-                <div className="-right-1 -bottom-1 absolute flex justify-center items-center bg-blue-400 border border-white rounded-full w-5 h-5">
-                  <LuPlus className="text-white" />
-                </div>
-              </Tooltip>
-            </div>
             <div
-              className={`space-y-2 flex-col transition ease-in-out duration-300 flex justify-between items-center py-1 bg-white shadow-md rounded-full h-full w-full`}
+              className={`transition ease-in-out duration-300 flex justify-between items-center py-1 bg-white space-x-4 rounded-full h-full w-full`}
             >
+              {/* <div className="relative flex justify-center items-center w-12 h-12">
+                <Avatar>
+                  <AvatarImage
+                    src={blog.user.profile_picture_url!}
+                    className="object-cover"
+                  />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+                <Tooltip title="Follow" placement="right" arrow>
+                  <div className="-right-1 -bottom-1 absolute flex justify-center items-center bg-blue-400 border border-white rounded-full w-5 h-5">
+                    <LuPlus className="text-white" />
+                  </div>
+                </Tooltip>
+              </div> */}
               <Tooltip
                 title={isLiked ? "Unlike" : "Like"}
-                placement="right"
+                placement="bottom"
                 arrow
               >
                 <div
@@ -344,13 +342,18 @@ const BlogDetails = () => {
                   </p>
                 </div>
               </Tooltip>
-              <Tooltip title="Comment" placement="right" arrow>
-                <div className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer">
+              <Tooltip title="Comment" placement="bottom" arrow>
+                <div
+                  className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+                  onClick={() => {
+                    commentSectionRef.current?.focusInput();
+                  }}
+                >
                   <BiComment className="mr-1 size-4" />
-                  <span>{commentCount}</span>
+                  <span>{blog.comment_count}</span>
                 </div>
               </Tooltip>
-              <Tooltip title="Save" placement="right" arrow>
+              <Tooltip title="Save" placement="bottom" arrow>
                 <div className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer">
                   <MdBookmarkBorder className="size-4" />
                 </div>
@@ -369,13 +372,26 @@ const BlogDetails = () => {
               </Tooltip>
             </div>
           </div>
+          <RelatedBlogs />
+          <hr className="flex border-mountain-200 border-t-1 w-full" />
+          <CommentSection
+            ref={commentSectionRef}
+            inputPosition="top"
+            comments={comments}
+            targetId={Number(blogId)}
+            targetType={TargetType.BLOG}
+            onCommentAdded={handleCommentAdded}
+            onCommentDeleted={handleCommentDeleted}
+            hideWrapper
+          />
         </div>
+        <div className="relative flex flex-col w-[20%]" />
       </div>
       <LikesDialog
         contentId={Number(blogId)}
         open={likesDialogOpen}
         onClose={handleCloseLikesDialog}
-        variant="blog"
+        variant={TargetType.BLOG}
       />
     </div>
   );

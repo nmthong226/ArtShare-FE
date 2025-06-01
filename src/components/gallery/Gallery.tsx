@@ -12,6 +12,11 @@ export interface GalleryPhoto extends Photo {
   author: string;
   postLength: number;
   postId: number;
+  is_mature: boolean;
+  ai_created: boolean;
+  like_count?: number;
+  comment_count?: number;
+  view_count?: number;
 }
 
 interface IGalleryProps {
@@ -21,11 +26,6 @@ interface IGalleryProps {
   isError: boolean;
   error: Error | null;
 
-  /**
-   * Optional custom rendering function for each photo.
-   * If not provided, defaults to the basic ImageRenderer.
-   * The function receives RenderPhotoProps<GalleryPhoto> from react-photo-album.
-   */
   renderPhoto?: (
     _: unknown,
     context: RenderPhotoContext<GalleryPhoto>,
@@ -42,7 +42,7 @@ const IGallery: React.FC<IGalleryProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center space-x-4 h-64">
+      <div className="flex items-center justify-center h-64 space-x-4">
         <CircularProgress size={36} />
         <p>Loading...</p>
       </div>
@@ -53,7 +53,7 @@ const IGallery: React.FC<IGalleryProps> = ({
     console.error("Error loading initial posts:", error);
 
     return (
-      <div className="p-4 text-mountain-500 text-center">
+      <div className="p-4 text-center text-mountain-500">
         Oops! Something went wrong while loading the gallery. Please try again
         later.
       </div>
@@ -62,7 +62,7 @@ const IGallery: React.FC<IGalleryProps> = ({
 
   if (!isLoading && photos.length === 0 && !isFetchingNextPage) {
     return (
-      <div className="p-4 text-gray-500 text-center">
+      <div className="p-4 text-center text-gray-500">
         No posts found matching your criteria.
       </div>
     );
@@ -79,17 +79,16 @@ const IGallery: React.FC<IGalleryProps> = ({
         photos={photos}
         render={{ image: effectiveRenderPhoto }}
       />
-      {/* --- Loading More Spinner --- */}
       {isFetchingNextPage && (
-        <div className="flex my-4 text-center">
-          <CircularProgress size={36} />
-          <p>Loading...</p>
+        <div className="flex items-center justify-center my-4 space-x-2">
+          <CircularProgress size={24} />
+          <p>Loading more...</p>
         </div>
       )}
       {isError && !isLoading && photos.length > 0 && (
         <>
           {console.error("Error fetching more posts:", error)}
-          <div className="py-4 text-mountain-500 text-center">
+          <div className="py-4 text-center text-mountain-500">
             Could not load more posts at this time. Please try again later.
           </div>
         </>

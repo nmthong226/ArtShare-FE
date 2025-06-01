@@ -68,7 +68,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setUser(null);
         }
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 1000);
       },
       (err) => {
         setError(err.message);

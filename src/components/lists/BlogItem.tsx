@@ -12,6 +12,7 @@ import { MdBookmarkBorder } from "react-icons/md";
 
 //Components
 import Share from "../dialogs/Share";
+import ReactTimeAgo from "react-time-ago";
 
 //Style
 type Author = {
@@ -70,6 +71,34 @@ const BlogItem: React.FC<BlogItemProps> = ({
     };
   }, [open]);
 
+  // Helper function to strip HTML and get plain text preview
+  const getPlainTextPreview = (
+    htmlContent: string,
+    maxLength: number = 150,
+  ): string => {
+    // Remove HTML tags
+    const textOnly = htmlContent.replace(/<[^>]*>/g, "");
+    // Decode HTML entities
+    const decoded = textOnly
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'");
+
+    // Trim whitespace and limit length
+    const trimmed = decoded.trim();
+    if (trimmed.length <= maxLength) return trimmed;
+
+    // Cut at word boundary
+    const truncated = trimmed.substring(0, maxLength);
+    const lastSpace = truncated.lastIndexOf(" ");
+    return lastSpace > 0
+      ? truncated.substring(0, lastSpace) + "..."
+      : truncated + "...";
+  };
+
   return (
     <div
       key={blogId}
@@ -84,11 +113,11 @@ const BlogItem: React.FC<BlogItemProps> = ({
           className="w-full h-full object-cover hover:scale-120 transition-transform duration-300 ease-in-out transform"
         />
       </div>
-      <div className="flex">
-        <div className="flex flex-col justify-between space-y-2">
+      <div className="flex w-full">
+        <div className="flex flex-col justify-between space-y-2 w-full">
           <div className="flex justify-between w-full">
             <div className="flex items-center space-x-2 font-thin capitalize">
-              <p>{category}</p>
+              <p>{category.trim() ? category : "Uncategorized"}</p>
               <span>•</span>
               <p>{timeReading}</p>
             </div>
@@ -112,13 +141,13 @@ const BlogItem: React.FC<BlogItemProps> = ({
           >
             {title}
           </p>
-          <p className="line-clamp-2">{content}</p>
+          <p className="text-sm line-clamp-2">{getPlainTextPreview(content)}</p>
           <div className="flex justify-between w-full">
             <div className="flex items-center space-x-2">
               <img src={author.avatar} className="rounded-full w-12 h-12" />
               <p className="font-medium text-sm">{author.username}</p>
               <span>•</span>
-              <p className="text-sm">{dateCreated}</p>
+              <ReactTimeAgo date={new Date(dateCreated)} locale="en-US" />
             </div>
             <div className="flex items-center w-fit">
               <Tooltip title="Like">

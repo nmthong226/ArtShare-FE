@@ -4,8 +4,8 @@ import { Comment, CreateCommentDto } from "@/types/comment";
 /** Get comments for a given post id (returns the response data only). */
 export const fetchComments = async (
   targetId: number, // post / blog id
-  parentCommentId?: number, // optional: fetch replies of this id
   targetType: "POST" | "BLOG" = "POST",
+  parentCommentId?: number, // optional: fetch replies of this id
 ): Promise<Comment[]> => {
   const { data } = await api.get<Comment[]>("/comments", {
     params: {

@@ -1,22 +1,38 @@
-// PhotoRenderer.tsx
 import { RenderPhotoContext } from "react-photo-album";
 import { Link } from "react-router-dom";
 import { GalleryPhoto } from "./Gallery";
 import { Images } from "lucide-react";
 
-// Icons
 import { AiOutlineLike } from "react-icons/ai";
 import { BiCommentDetail } from "react-icons/bi";
 import { HiOutlineEye } from "react-icons/hi";
+
+const formatCount = (count: number | undefined): string => {
+  if (count === undefined || count === null) return "0";
+  if (count < 1000) return count.toString();
+  if (count < 1000000) {
+    const thousands = count / 1000;
+    return (
+      (Math.floor(thousands * 10) / 10).toString().replace(/\.0$/, "") + "k"
+    );
+  }
+  const millions = count / 1000000;
+  return (Math.floor(millions * 10) / 10).toString().replace(/\.0$/, "") + "M";
+};
 
 export const ImageRenderer = (
   _: unknown,
   context: RenderPhotoContext<GalleryPhoto>,
 ) => {
   const { photo, height, width, index } = context;
+
+  const imageClassName = `w-full h-full object-cover rounded-lg ${
+    photo.is_mature ? "filter blur-md" : ""
+  }`;
+
   return (
     <div
-      className="group relative overflow-hidden cursor-pointer"
+      className="relative overflow-hidden rounded-lg cursor-pointer group"
       style={{
         height: height,
         width: width,
@@ -29,33 +45,61 @@ export const ImageRenderer = (
             Array.isArray(photo.srcSet) ? photo.srcSet.join(", ") : photo.srcSet
           }
           alt={photo.alt || `Image ${index}`}
-          className="rounded-lg w-full h-full object-cover"
+          className={imageClassName}
         />
-        <div className="absolute inset-0 flex flex-col justify-end items-start bg-gradient-to-b from-transparent via-transparent to-black/70 opacity-0 group-hover:opacity-100 p-4 rounded-lg text-white transition-opacity duration-300">
+
+        {/* Mature Content Warning Overlay */}
+        {photo.is_mature && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-white rounded-lg pointer-events-none bg-black/60">
+            <p className="text-sm font-light text-center uppercase">
+              Mature Content
+            </p>
+          </div>
+        )}
+
+        {/* Info Overlay (visible on hover) */}
+        <div className="absolute inset-0 z-10 flex flex-col items-start justify-end p-4 text-white transition-opacity duration-300 rounded-lg opacity-0 bg-gradient-to-b from-transparent via-transparent to-black/70 group-hover:opacity-100">
           {photo.postLength > 1 && (
-            <div className="top-2 left-2 absolute flex justify-center items-center bg-black/40 p-2 rounded-full">
-              <Images size={16} />
+            <div className="absolute flex items-center justify-center gap-2 top-2 left-2">
+              <div className="bg-black/40 p-1.5 rounded-full">
+                <Images size={14} />
+              </div>
+
+              {photo.ai_created && (
+                <img
+                  src="/logo_app_v_101.png"
+                  alt="AI Generated"
+                  className="w-6 h-6 border rounded-full border-mountain-700"
+                />
+              )}
             </div>
           )}
-          <div className="flex justify-between items-end w-full">
-            <div>
-              <span className="font-semibold text-md line-clamp-1">
+
+          <div className="flex items-end justify-between w-full gap-2">
+            <div title={`${photo.title}\n${photo.author}`}>
+              <span className="text-sm font-semibold line-clamp-1">
                 {photo.title}
               </span>
               <span className="text-xs line-clamp-1">{photo.author}</span>
             </div>
-            <div className="flex flex-col items-end space-y-1">
+            <div className="flex flex-col items-end space-y-0.5">
               <div className="flex items-center space-x-1">
-                <p className="font-semibold">{9}</p>
-                <AiOutlineLike className="size-4" />
+                <p className="text-xs font-medium">
+                  {formatCount(photo.like_count)}
+                </p>
+                <AiOutlineLike className="size-3.5" />
               </div>
               <div className="flex items-center space-x-1">
-                <p className="font-semibold">23</p>
-                <BiCommentDetail className="size-4 text-white" />
+                <p className="text-xs font-medium">
+                  {formatCount(photo.comment_count)}
+                </p>
+                <BiCommentDetail className="size-3.5 text-white" />
               </div>
               <div className="flex items-center space-x-1">
-                <p className="font-semibold">1k</p>
-                <HiOutlineEye className="size-4" />
+                <p className="text-xs font-medium">
+                  {formatCount(photo.view_count)}
+                </p>
+                <HiOutlineEye className="size-3.5" />
               </div>
             </div>
           </div>

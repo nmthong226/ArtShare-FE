@@ -1,12 +1,14 @@
-import { useState, useEffect, useMemo, useRef, useLayoutEffect } from 'react';
-import api from '@/api/baseApi';
-import { HistoryFilter } from '@/features/gen-art/enum';
-import { useInfiniteTopScroll } from './useInfiniteTopScroll';
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
+import api from "@/api/baseApi";
+import { HistoryFilter } from "@/features/gen-art/enum";
+import { useInfiniteTopScroll } from "./useInfiniteTopScroll";
 
 const PAGE_SIZE = 5;
 
 export const usePromptHistory = () => {
-  const [historyFilter, setHistoryFilter] = useState<HistoryFilter>(HistoryFilter.TODAY);
+  const [historyFilter, setHistoryFilter] = useState<HistoryFilter>(
+    HistoryFilter.TODAY,
+  );
   const [promptResultList, setPromptResultList] = useState<PromptResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadedCount, setLoadedCount] = useState(PAGE_SIZE);
@@ -42,8 +44,9 @@ export const usePromptHistory = () => {
 
   // Fetch history on mount
   useEffect(() => {
-    api.get('/art-generation/prompt-history')
-      .then(res => setPromptResultList(res.data))
+    api
+      .get("/art-generation/prompt-history")
+      .then((res) => setPromptResultList(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -56,8 +59,8 @@ export const usePromptHistory = () => {
 
   // Filter and reverse
   const filtered = useMemo(
-    () => promptResultList.filter(r => isInFilterRange(r.created_at)),
-    [promptResultList, historyFilter]
+    () => promptResultList.filter((r) => isInFilterRange(r.created_at)),
+    [promptResultList, historyFilter],
   );
   const reversed = useMemo(() => filtered.slice().reverse(), [filtered]);
 
@@ -79,9 +82,16 @@ export const usePromptHistory = () => {
   useInfiniteTopScroll(
     scrollRef,
     displayedResults.length < reversed.length,
-    () => setLoadedCount(c => c + PAGE_SIZE),
-    displayedResults.length
+    () => setLoadedCount((c) => c + PAGE_SIZE),
+    displayedResults.length,
   );
 
-  return { scrollRef, displayedResults, setDisplayedResults, loading, historyFilter, setHistoryFilter };
-}
+  return {
+    scrollRef,
+    displayedResults,
+    setDisplayedResults,
+    loading,
+    historyFilter,
+    setHistoryFilter,
+  };
+};

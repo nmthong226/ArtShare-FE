@@ -120,6 +120,11 @@ const Explore: React.FC = () => {
               height: mediaDimensions.height,
               postLength: post.medias?.length ?? 0,
               postId: post.id,
+              is_mature: post.is_mature,
+              ai_created: post.ai_created,
+              like_count: post.like_count,
+              comment_count: post.comment_count,
+              view_count: post.view_count,
             };
           } catch (dimensionError) {
             console.error(
@@ -223,7 +228,7 @@ const Explore: React.FC = () => {
 
   return (
     <div className="relative flex flex-col h-screen overflow-hidden">
-      <div className="z-10 sticky flex flex-col gap-4 bg-gradient-to-t dark:bg-gradient-to-t from-white dark:from-mountain-1000 to-mountain-50 dark:to-mountain-950 p-4 rounded-t-3xl">
+      <div className="pt-3 z-10 sticky flex flex-col gap-4 bg-gradient-to-t dark:bg-gradient-to-t from-white dark:from-mountain-1000 to-mountain-50 dark:to-mountain-950 px-4 py-1 rounded-t-3xl">
         <div className="flex items-center gap-6 w-full overflow-x-hidden categories-bar">
           <Button
             className="flex flex-shrink-0 gap-2 dark:bg-mountain-900 shadow-none p-2 rounded-lg min-w-auto aspect-[1/1] font-normal dark:text-mountain-50 normal-case all-channels-btn"
@@ -322,7 +327,7 @@ const Explore: React.FC = () => {
           error={postsError as Error | null}
         />
       </div>
-      <Paper className="bottom-4 left-1/2 z-50 fixed bg-white dark:bg-mountain-800 shadow-lg rounded-full -translate-x-1/2 transform">
+      <Paper className="fixed z-50 transform -translate-x-1/2 bg-white rounded-full shadow-lg bottom-4 left-1/2 dark:bg-mountain-800">
         <ToggleButtonGroup
           className="flex gap-2 m-1.5"
           size="small"

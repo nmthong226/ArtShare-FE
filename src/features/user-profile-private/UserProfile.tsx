@@ -18,7 +18,7 @@ const UserProfile = () => {
   };
 
   return (
-    <Box className="sm:px-6 md:px-4 lg:px-6 py-4 bg-white dark:bg-mountain-1000 text-white">
+    <Box className="sm:px-2 md:px-3 lg:px-3 py-3 bg-white dark:bg-mountain-1000 text-white">
       {/* Container for Posts + Profile Sidebar */}
       <Box
         sx={{
@@ -31,7 +31,7 @@ const UserProfile = () => {
       >
         {/* TOP SECTION: Profile card */}
         <Box
-          className="w-full bg-[#E4E6EB] dark:bg-mountain-950 rounded-lg p-8"
+          className="bg-[#E4E6EB] dark:bg-mountain-950 p-8 rounded-lg rounded-t-3xl w-full"
           sx={{
             overflowY: "auto",
           }}

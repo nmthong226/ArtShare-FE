@@ -4,4 +4,5 @@ export interface BackendErrorResponse {
   statusCode: number;
 }
 
-export const DEFAULT_ERROR_MSG = "An unexpected error occurred. Please try again later.";
+export const DEFAULT_ERROR_MSG =
+  "An unexpected error occurred. Please try again later.";

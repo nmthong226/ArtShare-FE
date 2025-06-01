@@ -17,6 +17,7 @@ import { useUser } from "@/contexts/UserProvider";
 import { likePost, unlikePost } from "../api/post.api";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { TargetType } from "@/utils/constants";
 
 interface SimpleCollection {
   id: number;
@@ -53,6 +54,11 @@ const PostInfo = ({ postData }: PostInfoProps) => {
   const [isLiking, setIsLiking] = useState(false);
   const [isFetchingLike] = useState(false);
   const requireAuth = useRequireAuth();
+
+  useEffect(() => {
+    setUserLike(postData.isLikedByCurrentUser ?? false);
+    setLikeCount(postData.like_count);
+  }, [postData.isLikedByCurrentUser, postData.like_count]);
 
   useEffect(() => {
     const loadCollectionNames = async () => {
@@ -143,7 +149,7 @@ const PostInfo = ({ postData }: PostInfoProps) => {
 
   return (
     <>
-      <div className="bg-white rounded-2xl overflow-none">
+      <div className="bg-white dark:bg-mountain-950 rounded-2xl overflow-none">
         <CardContent className="flex flex-col gap-2 p-0">
           {/* Title, description, date */}
           <div className="flex flex-col gap-2">
@@ -169,7 +175,7 @@ const PostInfo = ({ postData }: PostInfoProps) => {
             {postData.categories?.map((cat) => (
               <div
                 key={cat.id}
-                className="bg-mountain-50 px-2 py-1 rounded text-xs"
+                className="bg-mountain-50 dark:bg-mountain-800 px-2 py-1 rounded text-xs"
               >
                 {cat.name}
               </div>
@@ -179,18 +185,18 @@ const PostInfo = ({ postData }: PostInfoProps) => {
           {/* Stats */}
           <div className="flex gap-6 text-mountain-950">
             <div
-              className={`flex items-center gap-1 text-sm ${likeCount > 0 ? "cursor-pointer hover:underline" : "cursor-default"}`}
+              className={`text-mountain-950 dark:text-mountain-100 flex items-center gap-1 text-sm ${likeCount > 0 ? "cursor-pointer hover:underline" : "cursor-default"}`}
               onClick={handleOpenLikesDialog}
               title={likeCount > 0 ? "View who liked this" : "No likes yet"}
             >
               <p className="font-semibold">{likeCount}</p>
-              <span className="text-mountain-600">
+              <span className="text-mountain-600 dark:text-mountain-200">
                 {likeCount > 1 ? " Likes" : " Like"}
               </span>
             </div>
-            <div className="flex items-center gap-1 text-sm">
+            <div className="flex items-center gap-1 text-sm text-mountain-950 dark:text-mountain-100">
               <p className="font-semibold">{postData.comment_count}</p>
-              <span className="text-mountain-600">
+              <span className="text-mountain-600 dark:text-mountain-200">
                 {postData.comment_count > 1 ? " Comments" : " Comment"}
               </span>
             </div>
@@ -199,33 +205,33 @@ const PostInfo = ({ postData }: PostInfoProps) => {
           {/* Actions */}
           <div className="flex justify-between w-full">
             <Button
-              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900"
+              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900 dark:text-blue-200 hover:dark:bg-blue-900"
               title={userLike ? "Unlike" : "Like"}
               onClick={handleLikeClick}
               disabled={isLiking || isFetchingLike}
             >
               {userLike ? (
-                <AiFillLike className="size-6 text-blue-900" />
+                <AiFillLike className="size-6 text-blue-900 dark:text-blue-200" />
               ) : (
                 <AiOutlineLike className="size-6" />
               )}
             </Button>
             <Button
-              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900"
+              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900 dark:text-blue-200 hover:dark:bg-blue-900"
               title="Comment"
               onClick={handleFocusCommentInput}
             >
               <MessageSquareText className="size-5" />
             </Button>
             <Button
-              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900"
+              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900 dark:text-blue-200 hover:dark:bg-blue-900"
               title="Save"
               onClick={handleOpenSaveDialog}
             >
               <Bookmark className="size-5" />
             </Button>
             <Button
-              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900"
+              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900 dark:text-blue-200 hover:dark:bg-blue-900"
               title="Copy Link"
             >
               <Share2 className="size-5" />
@@ -254,7 +260,7 @@ const PostInfo = ({ postData }: PostInfoProps) => {
         contentId={postData.id}
         open={isLikesDialogOpen}
         onClose={handleCloseLikesDialog}
-        variant="post"
+        variant={TargetType.POST}
       />
     </>
   );
