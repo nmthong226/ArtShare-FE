@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 
 //Libs
-import {
-  useInfiniteQuery,
-  useQuery,
-  UseQueryResult,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, UseQueryResult } from "@tanstack/react-query";
 import { Button, Paper, ToggleButton, ToggleButtonGroup } from "@mui/material";
 
 //Icons
@@ -24,7 +20,6 @@ import { fetchPosts } from "./api/get-post";
 
 //Contexts
 import { useSearch } from "@/contexts/SearchProvider";
-import { categoryService } from "@/components/carousels/categories/api/categories.api";
 import { CategoryTypeValues } from "@/constants";
 import { useCategories } from "@/hooks/useCategories";
 
