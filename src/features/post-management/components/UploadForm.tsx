@@ -37,6 +37,7 @@ const UploadForm: React.FC<{
   errors: FormikErrors<PostFormValues>;
   touched: FormikTouched<PostFormValues>;
   handleBlur: FormikHandlers["handleBlur"];
+  isMatureAutoDetected: boolean;
 }> = ({
   values,
   setFieldValue,
@@ -46,6 +47,7 @@ const UploadForm: React.FC<{
   onThumbnailAddedOrRemoved,
   errors,
   touched,
+  isMatureAutoDetected,
 }) => {
   const [thumbnailCropOpen, setThumbnailCropOpen] = useState(false);
 
@@ -136,23 +138,39 @@ const UploadForm: React.FC<{
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={values.isMature}
+                  checked={values.isMature || isMatureAutoDetected}
+                  disabled={isMatureAutoDetected}
                   onChange={(e) => setFieldValue("isMature", e.target.checked)}
-                  sx={{
-                    color: "#6b7280",
-                    "&.Mui-checked": { color: "#a5b4fc" },
-                  }}
                 />
               }
               label={
                 <>
-                  <span className="ml-2 dark:text-white">
+                  <span
+                    className={`ml-1 ${
+                      isMatureAutoDetected
+                        ? "text-gray-400 dark:text-gray-500" // Grayed out text when mature
+                        : "dark:text-white"
+                    }`}
+                  >
                     Has mature content
                   </span>
-                  <span className="dark:text-mountain-200">
+                  <span
+                    className={`${
+                      isMatureAutoDetected
+                        ? "text-gray-400 dark:text-gray-500" // Grayed out text when mature
+                        : "dark:text-mountain-200"
+                    }`}
+                  >
                     {" "}
                     (see our{" "}
-                    <a href="/mature-content" className="hover:underline">
+                    <a
+                      href="/mature-content"
+                      className={`hover:underline ${
+                        isMatureAutoDetected
+                          ? "text-gray-400 dark:text-gray-500 pointer-events-none" // Gray out link and disable clicks
+                          : ""
+                      }`}
+                    >
                       guidelines
                     </a>
                     )

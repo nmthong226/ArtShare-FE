@@ -20,16 +20,19 @@ import {
 } from "@/components/ui/dialog";
 import { LuImageOff } from "react-icons/lu";
 import MediaPreview from "./media-preview";
-import UploadFromDevice from "./upload-from-device";
+import UploadFromDevice from "./UploadFromDevice";
 import { IoSparkles } from "react-icons/io5";
 import InfoMediaRemaining from "./InfoMediaRemaining";
 import { PostMedia } from "../types/post-media";
 import PostAiImages from "./post-ai-images";
-
-const MAX_IMAGES = 4;
-const MAX_VIDEO = 1;
-const VIDEO_THUMBNAIL_DEFAULT_URL =
-  "https://cdn.prod.website-files.com/67862f03f11f4116194d307a/67eff145fcba92bac1eb6bb3_Video-Placeholder.jpg";
+import useIsMature from "../hooks/useIsMature";
+import {
+  MAX_IMAGES,
+  MAX_VIDEO,
+  validateVideoDuration,
+  VIDEO_THUMBNAIL_DEFAULT_URL,
+} from "../helpers/media-upload.helper";
+import Loading from "@/pages/Loading";
 
 interface MediaSelectorPanelProps {
   postMedias: PostMedia[];
@@ -37,23 +40,9 @@ interface MediaSelectorPanelProps {
   onThumbnailAddedOrRemoved: (file: File | null) => void;
   hasArtNovaImages: boolean;
   setHasArtNovaImages: React.Dispatch<React.SetStateAction<boolean>>;
+  isMatureAutoDetected: boolean;
+  handleIsMatureAutoDetected: React.Dispatch<React.SetStateAction<boolean>>;
 }
-
-const validateVideoDuration = (
-  file: File,
-  maxDurationSec = 60,
-): Promise<boolean> => {
-  return new Promise((resolve) => {
-    const videoElement = document.createElement("video");
-    videoElement.preload = "metadata";
-    videoElement.onloadedmetadata = () => {
-      URL.revokeObjectURL(videoElement.src);
-      resolve(videoElement.duration <= maxDurationSec);
-    };
-    videoElement.onerror = () => resolve(false);
-    videoElement.src = URL.createObjectURL(file);
-  });
-};
 
 export default function MediaSelectorPanel({
   postMedias,
@@ -61,6 +50,8 @@ export default function MediaSelectorPanel({
   onThumbnailAddedOrRemoved,
   hasArtNovaImages,
   setHasArtNovaImages,
+  isMatureAutoDetected,
+  handleIsMatureAutoDetected,
 }: MediaSelectorPanelProps) {
   const { showSnackbar } = useSnackbar();
 
@@ -69,6 +60,7 @@ export default function MediaSelectorPanel({
   );
   const [pendingTab, setPendingTab] = useState<TabValue | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [matureDialogOpen, setMatureDialogOpen] = useState(false);
   const [selectedPreviewMedia, setSelectedPreviewMedia] =
     useState<PostMedia | null>(null);
 
@@ -93,6 +85,29 @@ export default function MediaSelectorPanel({
       ? setTabValue(TabValue.BROWSE_GENAI)
       : setTabValue(TabValue.UPLOAD_MEDIA);
   }, [hasArtNovaImages]);
+
+  useEffect(() => {
+    const isMatureDetected = postMedias.some((media) => media.isMature);
+    if (isMatureDetected && !isMatureAutoDetected) {
+      console.log(
+        "Mature content detected in post medias",
+        isMatureDetected,
+        isMatureAutoDetected,
+      );
+      setMatureDialogOpen(true);
+      handleIsMatureAutoDetected(true);
+    }
+
+    if (!isMatureDetected && isMatureAutoDetected) {
+      handleIsMatureAutoDetected(false);
+    }
+  }, [postMedias, isMatureAutoDetected, handleIsMatureAutoDetected]);
+
+  const {
+    checkMaturityForNewItems,
+    isLoading: isCheckingMature,
+    // isError: matureError,
+  } = useIsMature();
 
   const captureThumbnailFromVideo = (videoElement: HTMLVideoElement) => {
     const canvas = document.createElement("canvas");
@@ -121,7 +136,7 @@ export default function MediaSelectorPanel({
     }, "image/png");
   };
 
-  const handleImagesAdded = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleImagesAdded = async (event: ChangeEvent<HTMLInputElement>) => {
     const newFiles = event.target.files;
     if (!newFiles || newFiles.length === 0) return;
 
@@ -131,8 +146,14 @@ export default function MediaSelectorPanel({
       type: MEDIA_TYPE.IMAGE,
       url: URL.createObjectURL(file),
     }));
+
+    const matureProcessedImageMedias =
+      await checkMaturityForNewItems(newImageMedias);
+
     // combine with existing files
-    const combinedMedias = [...postMedias, ...newImageMedias];
+    const combinedMedias = [...postMedias, ...matureProcessedImageMedias];
+
+    console.log("Combined Medias:", combinedMedias);
 
     // image count
     const imageCount = combinedMedias.filter(
@@ -234,6 +255,7 @@ export default function MediaSelectorPanel({
 
   return (
     <Box className="flex flex-col items-start dark:bg-mountain-900 rounded-md w-[60%] h-full text-gray-900 dark:text-white">
+      {isCheckingMature && <Loading />}
       {/* Tabs */}
       <div className="z-20 flex gap-x-1 bg-white mb-3 p-1.25 border border-mountain-200 rounded-full w-full">
         <MediaUploadTab
@@ -405,6 +427,28 @@ export default function MediaSelectorPanel({
               }}
             >
               Yes, discard and switch
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={matureDialogOpen} onOpenChange={setMatureDialogOpen}>
+        <DialogContent className="flex flex-col w-108">
+          <DialogHeader>
+            <DialogTitle>Mature content detected</DialogTitle>
+            <DialogDescription>
+              Your images contain mature content. We will automatically mark
+              this post as mature.
+            </DialogDescription>
+          </DialogHeader>
+          {/* <div className="flex justify-center items-center bg-mountain-100 py-6">
+            <LuImageOff className="size-12 text-mountain-600" />
+          </div> */}
+          <DialogFooter>
+            <Button
+              className="bg-mountain-100 hover:bg-mountain-100/80"
+              onClick={() => setMatureDialogOpen(false)}
+            >
+              Yes, I acknowledge
             </Button>
           </DialogFooter>
         </DialogContent>

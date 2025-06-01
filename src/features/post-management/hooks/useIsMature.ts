@@ -6,12 +6,12 @@ import { detectAdultImages, DetectAdultImagesResponse } from '@/api/detect-adult
 interface UseIsMatureReturn {
   checkMaturityForNewItems: (newMediaItems: PostMedia[]) => Promise<PostMedia[]>;
   isLoading: boolean;
-  error: string | null;
+  isError: boolean;
 }
 
 export default function useIsMature(): UseIsMatureReturn {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isError, setIsError] = useState<boolean>(false);
 
   const checkMaturityForNewItems = async (newMediaItems: PostMedia[]) => {
     if (!newMediaItems || newMediaItems.length === 0) {
@@ -19,7 +19,6 @@ export default function useIsMature(): UseIsMatureReturn {
     }
 
     setIsLoading(true);
-    setError(null);
 
     const imageMediasToProcess: PostMedia[] = [...newMediaItems];
 
@@ -40,7 +39,8 @@ export default function useIsMature(): UseIsMatureReturn {
       }));
     } catch (err) {
       console.error("Error in detectAdultImages:", err);
-      setError(err instanceof Error ? err.message : "Failed to detect image maturity.");
+      setIsError(true);
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -50,6 +50,6 @@ export default function useIsMature(): UseIsMatureReturn {
   return {
     checkMaturityForNewItems,
     isLoading,
-    error,
+    isError,
   };
 }

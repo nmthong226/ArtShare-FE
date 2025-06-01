@@ -4,7 +4,7 @@ import { Box, Button, Tooltip } from "@mui/material";
 import UploadForm from "./components/UploadForm"; // Adjust import path as needed
 import { useSnackbar } from "@/contexts/SnackbarProvider";
 
-import MediaSelection from "./components/media-selection";
+import MediaSelection from "./components/MediaSelectionPanel";
 import { FaMagic } from "react-icons/fa";
 import { generatePostContent } from "./api/generate-post-content.api";
 import { PostMedia } from "./types/post-media";
@@ -55,6 +55,7 @@ const PostForm: React.FC<PostFormProps> = ({
   const queryClient = useQueryClient();
   const { data: subscriptionInfo } = useSubscriptionInfo();
   const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isMatureAutoDetected, setIsMatureAutoDetected] = useState(false);
 
   const isUploadMediaValid = postMedias.length > 0;
 
@@ -168,6 +169,13 @@ const PostForm: React.FC<PostFormProps> = ({
                 }
                 hasArtNovaImages={hasArtNovaImages}
                 setHasArtNovaImages={setHasArtNovaImages}
+                isMatureAutoDetected={isMatureAutoDetected}
+                handleIsMatureAutoDetected={(val) => {
+                  setIsMatureAutoDetected(val); // Update local state for potential UI cues
+                  if (values.isMature !== val) {
+                    setFieldValue("isMature", val);
+                  }
+                }}
               />
               {/* RIGHT COLUMN: FORM FIELDS & ACTIONS */}
               <Box className="flex flex-col space-y-3 w-[40%]">
@@ -197,6 +205,7 @@ const PostForm: React.FC<PostFormProps> = ({
                     errors={errors}
                     touched={touched}
                     handleBlur={handleBlur}
+                    isMatureAutoDetected={isMatureAutoDetected}
                   />
                 </Box>
                 <hr className="border-mountain-300 dark:border-mountain-700 border-t-1 w-full" />
