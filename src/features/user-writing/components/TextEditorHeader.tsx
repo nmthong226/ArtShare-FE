@@ -18,6 +18,7 @@ interface TextEditorHeader {
   handleSaveBlog: (blogName: string) => void;
   text: string;
   setText: (text: string) => void;
+  isPublished: boolean;
 }
 
 const TextEditorHeader: React.FC<TextEditorHeader> = ({
@@ -25,6 +26,7 @@ const TextEditorHeader: React.FC<TextEditorHeader> = ({
   handleSaveBlog,
   text,
   setText,
+  isPublished
 }) => {
   const { user, loading } = useUser();
 
@@ -64,7 +66,7 @@ const TextEditorHeader: React.FC<TextEditorHeader> = ({
           placeholder="Name Your Document Here..."
         />
         <div className="flex space-x-2">
-          <Tooltip title="Publish" arrow placement="left">
+          <Tooltip title={isPublished ? "Save and publish" : "Publish"} arrow placement="left">
             <div
               className="flex justify-center items-center bg-white border border-mountain-200 rounded-full w-12 h-12 cursor-pointer"
               onClick={() => handleSaveBlog(text)}

@@ -76,6 +76,7 @@ const BlogItem: React.FC<BlogItemProps> = ({
     htmlContent: string,
     maxLength: number = 150,
   ): string => {
+    if (!htmlContent) return "";
     // Remove HTML tags
     const textOnly = htmlContent.replace(/<[^>]*>/g, "");
     // Decode HTML entities
