@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 //Components
 import { Button, CircularProgress, IconButton, Tooltip } from "@mui/material";
@@ -7,7 +7,7 @@ import type { Blog } from "@/types/blog";
 import Avatar from "boring-avatars";
 //Icons
 import { IoPersonAddOutline } from "react-icons/io5";
-import { LuLink } from "react-icons/lu";
+import { LuLink, LuPencil } from "react-icons/lu";
 import RelatedBlogs from "./components/RelatedBlogs";
 import { BiComment } from "react-icons/bi";
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
@@ -51,6 +51,9 @@ const BlogDetails = () => {
     queryFn: () => fetchBlogDetails(Number(blogId)),
     enabled: !!blogId,
   });
+
+  const navigate = useNavigate();
+
   const commentSectionRef = useRef<CommentSectionRef>(null);
 
   /* ───────── comments query ───────── */
@@ -247,6 +250,82 @@ const BlogDetails = () => {
             <p>{readingTime}m reading</p>
           </div>
           {/* Author Section */}
+          <div
+            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
+          >
+            <div
+              className={`transition ease-in-out duration-300 flex items-center py-1 bg-white space-x-4 rounded-full h-full w-full`}
+            >
+              <Tooltip
+                title={isLiked ? "Unlike" : "Like"}
+                placement="bottom"
+                arrow
+              >
+                <div
+                  className="flex justify-center items-center bg-blue-50 hover:bg-blue-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+                  onClick={handleToggleLike}
+                  aria-disabled={
+                    likeMutation.isPending || unlikeMutation.isPending
+                  }
+                >
+                  {isLiked ? (
+                    <AiFillLike className="size-5 text-blue-500" />
+                  ) : (
+                    <AiOutlineLike className="size-5" />
+                  )}
+                  <p
+                    className="ml-1 hover:underline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenLikesDialog();
+                    }}
+                  >
+                    {likeCount}
+                  </p>
+                </div>
+              </Tooltip>
+              <Tooltip title="Comment" placement="bottom" arrow>
+                <div
+                  className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+                  onClick={() => {
+                    commentSectionRef.current?.focusInput();
+                  }}
+                >
+                  <BiComment className="mr-1 size-4" />
+                  <span>{blog.comment_count}</span>
+                </div>
+              </Tooltip>
+              <div className="ml-auto flex items-center space-x-4">
+                <Tooltip title="Save" placement="bottom" arrow>
+                  <div className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer">
+                    <MdBookmarkBorder className="size-4" />
+                  </div>
+                </Tooltip>
+                <Tooltip title={copied ? "Link copied!" : "Copy link"} arrow>
+                  <IconButton
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+                  >
+                    <LuLink className="size-4" />
+                  </IconButton>
+                </Tooltip>
+                {blog.user.id === user?.id && (
+                  <Tooltip title="Edit" arrow>
+                    <IconButton
+                      onClick={() => navigate(`/docs/${blog.id}`)}
+                      className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+                    >
+                      <LuPencil className="size-4" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </div>
+            </div>
+          </div>
           <div className="flex justify-between items-center bg-gradient-to-r from-indigo-100 to-purple-100 shadow-sm p-4 rounded-lg">
             <div className="flex items-center space-x-4">
               {blog.user.profile_picture_url ? (
@@ -295,10 +374,10 @@ const BlogDetails = () => {
           />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
           <div
-            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto ml-4 rounded-full w-64 h-20`}
+            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
           >
             <div
-              className={`transition ease-in-out duration-300 flex justify-between items-center py-1 bg-white space-x-4 rounded-full h-full w-full`}
+              className={`transition ease-in-out duration-300 flex items-center py-1 bg-white space-x-4 rounded-full h-full w-full`}
             >
               <Tooltip
                 title={isLiked ? "Unlike" : "Like"}
@@ -339,23 +418,35 @@ const BlogDetails = () => {
                   <span>{blog.comment_count}</span>
                 </div>
               </Tooltip>
-              <Tooltip title="Save" placement="bottom" arrow>
-                <div className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer">
-                  <MdBookmarkBorder className="size-4" />
-                </div>
-              </Tooltip>
-              <Tooltip title={copied ? "Link copied!" : "Copy link"} arrow>
-                <IconButton
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 2000);
-                  }}
-                  className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
-                >
-                  <LuLink className="size-4" />
-                </IconButton>
-              </Tooltip>
+              <div className="ml-auto flex items-center space-x-4">
+                <Tooltip title="Save" placement="bottom" arrow>
+                  <div className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer">
+                    <MdBookmarkBorder className="size-4" />
+                  </div>
+                </Tooltip>
+                <Tooltip title={copied ? "Link copied!" : "Copy link"} arrow>
+                  <IconButton
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+                  >
+                    <LuLink className="size-4" />
+                  </IconButton>
+                </Tooltip>
+                {blog.user.id === user?.id && (
+                  <Tooltip title="Edit" arrow>
+                    <IconButton
+                      onClick={() => navigate(`/docs/${blog.id}`)}
+                      className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+                    >
+                      <LuPencil className="size-4" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </div>
             </div>
           </div>
           <RelatedBlogs currentBlogId={Number(blogId)} />
