@@ -6,11 +6,10 @@ import Select, { SelectChangeEvent } from "@mui/material/Select";
 import React, { useEffect, useState } from "react";
 import MenuItem from "@mui/material/MenuItem";
 import { useNavigate } from "react-router-dom";
-import { CircularProgress } from "@mui/material";
+import { CircularProgress, IconButton, Menu } from "@mui/material";
 import { IoMdMore } from "react-icons/io";
-import { Button } from "@/components/ui/button";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
-import { CreateBlogPayload, createNewBlog } from "./api/blog.api";
+import { CreateBlogPayload, createNewBlog, deleteBlog } from "./api/blog.api";
 import { fetchBlogsByUsername } from "../blog-details/api/blog";
 import { useUser } from "@/contexts/UserProvider";
 import { Blog } from "@/types/blog";
@@ -128,6 +127,36 @@ const DocumentDashboard = () => {
       : title;
   };
 
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = (blogId: number) => {
+    navigate(`/docs/${blogId}`);
+  };
+
+  const handleDelete = async (blogId: number) => {
+    try {
+      await deleteBlog(blogId);
+      setUserBlogs((prev) => prev.filter((blog) => blog.id !== blogId));
+      showSnackbar("Document deleted successfully", "success");
+    }
+    catch {
+      showSnackbar("Failed to delete document", "error");
+      return;
+    }
+    finally {
+      handleClose();
+    }
+  };
+
   return (
     <div className="flex flex-col items-center h-screen overflow-auto sidebar">
       <div className="flex justify-center border-mountain-50 border-b-1 w-full h-fit">
@@ -235,16 +264,22 @@ const DocumentDashboard = () => {
                     <p className="bg-white px-2 w-full text-mountain-800 text-xs text-left truncate select-none">
                       {formatDate(blog.created_at)}
                     </p>
-                    <Button
+                    <IconButton
+                      onClick={handleClick}
                       className="bg-white hover:bg-mountain-50 mr-2 w-6 h-6 text-mountain-600 cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering the document click
-                        // Add menu functionality here
-                        console.log("Menu clicked for blog:", blog.id);
-                      }}
+                      size="small"
                     >
                       <IoMdMore className="size-5" />
-                    </Button>
+                    </IconButton>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={handleClose}
+                      onClick={(e) => e.stopPropagation()} // prevent closing on click inside
+                    >
+                      <MenuItem onClick={() => handleEdit(blog.id)}>Edit</MenuItem>
+                      <MenuItem onClick={() => handleDelete(blog.id)}>Delete</MenuItem>
+                    </Menu>
                   </div>
                 </div>
               </div>
