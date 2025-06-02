@@ -24,7 +24,7 @@ import {
 import { PostMedia } from "../types/post-media";
 import { MEDIA_TYPE } from "@/utils/constants";
 import { PostFormValues } from "../types/post-form-values.type";
-import { Checkbox } from "@/components/ui/Checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const UploadForm: React.FC<{
   values: PostFormValues;
