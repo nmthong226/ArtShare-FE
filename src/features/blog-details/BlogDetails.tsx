@@ -11,7 +11,7 @@ import { LuLink, LuPencil } from "react-icons/lu";
 import RelatedBlogs from "./components/RelatedBlogs";
 import { BiComment } from "react-icons/bi";
 import { AiOutlineLike, AiFillLike } from "react-icons/ai";
-import { MdBookmarkBorder } from "react-icons/md";
+import { MdOutlineFlag } from "react-icons/md"; // Report Icon
 import { LikesDialog } from "@/components/like/LikesDialog";
 import { fetchBlogDetails } from "./api/blog";
 import CommentSection, {
@@ -31,16 +31,22 @@ import { createLike, removeLike } from "./api/like-blog";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { TargetType } from "@/utils/constants";
 
+// Import your ReportDialog and the reporting hook
+import ReportDialog from "../user-profile-public/components/ReportDialog";
+import { useReport } from "../user-profile-public/hooks/useReport";
+import { ReportTargetType } from "../user-profile-public/api/report.api";
+
 const BlogDetails = () => {
-  const { blogId } = useParams<{ blogId: string }>(); // get blogId from URL
+  const { blogId } = useParams<{ blogId: string }>();
   const [showAuthorBadge, setShowAuthorBadge] = useState(false);
-  // states for the likes dialog
   const [likesDialogOpen, setLikesDialogOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false); // State for report dialog
   const { user } = useUser();
   const { showSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
   const requireAuth = useRequireAuth();
+
   const {
     data: blog,
     isLoading,
@@ -53,10 +59,11 @@ const BlogDetails = () => {
   });
 
   const navigate = useNavigate();
-
   const commentSectionRef = useRef<CommentSectionRef>(null);
 
-  /* ───────── comments query ───────── */
+  // Reporting Hook
+  const { mutate: reportBlogContent, isPending: isLoadingReport } = useReport();
+
   const {
     data: comments = [],
     isLoading: commentsLoading,
@@ -70,9 +77,7 @@ const BlogDetails = () => {
 
   const followMutation = useMutation({
     mutationFn: () => followUser(blog!.user.id),
-    onSuccess: () => {
-      refetch();
-    },
+    onSuccess: () => refetch(),
     onError: (error: unknown) => {
       const msg =
         error instanceof AxiosError && error.response?.data?.message
@@ -84,9 +89,7 @@ const BlogDetails = () => {
 
   const unfollowMutation = useMutation({
     mutationFn: () => unfollowUser(blog!.user.id),
-    onSuccess: () => {
-      refetch();
-    },
+    onSuccess: () => refetch(),
     onError: (error: unknown) => {
       const msg =
         error instanceof AxiosError && error.response?.data?.message
@@ -96,16 +99,14 @@ const BlogDetails = () => {
     },
   });
 
-  // Like/unlike mutations
   const likeMutation = useMutation({
     mutationFn: () =>
       createLike({
         target_id: Number(blogId),
         target_type: TargetType.BLOG,
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
-    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] }),
     onError: (error: unknown) => {
       const msg =
         error instanceof AxiosError && error.response?.data?.message
@@ -121,9 +122,8 @@ const BlogDetails = () => {
         target_id: Number(blogId),
         target_type: TargetType.BLOG,
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
-    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] }),
     onError: (error: unknown) => {
       const msg =
         error instanceof AxiosError && error.response?.data?.message
@@ -133,7 +133,7 @@ const BlogDetails = () => {
     },
   });
 
-  const isOwnProfile = user?.id === blog?.user.id;
+  const isOwnBlog = user?.id === blog?.user.id;
   const isFollowing = blog?.user.is_following;
 
   const toggleFollow = () =>
@@ -143,11 +143,9 @@ const BlogDetails = () => {
 
   const followBtnLoading =
     followMutation.isPending || unfollowMutation.isPending;
-  // Check if user has liked the blog
   const isLiked = blog?.isLikedByCurrentUser || false;
   const likeCount = blog?.like_count || 0;
 
-  // Function to handle toggling like status
   const handleToggleLike = () =>
     requireAuth("like this blog", () => {
       isLiked ? unlikeMutation.mutate() : likeMutation.mutate();
@@ -158,20 +156,65 @@ const BlogDetails = () => {
       const scrollY = window.scrollY;
       setShowAuthorBadge(scrollY > 150);
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleOpenLikesDialog = () =>
     requireAuth("view likes", () => setLikesDialogOpen(true));
+  const handleCloseLikesDialog = () => setLikesDialogOpen(false);
 
-  const handleCloseLikesDialog = () => {
-    setLikesDialogOpen(false);
+  // Report dialog handlers
+  const handleOpenReportDialog = () => {
+    if (!user) {
+      showSnackbar(
+        "Please login to report this blog",
+        "warning",
+        <Button
+          size="small"
+          color="inherit"
+          onClick={() => (window.location.href = "/login")}
+        >
+          Login
+        </Button>,
+      );
+      return;
+    }
+    if (isOwnBlog) {
+      showSnackbar("You cannot report your own blog.", "info");
+      return;
+    }
+    setReportDialogOpen(true);
   };
+  const handleCloseReportDialog = () => setReportDialogOpen(false);
+
+  const handleReportSubmit = (reason: string) => {
+    if (!blog) return;
+
+    reportBlogContent(
+      {
+        targetId: blog.id,
+        targetType: ReportTargetType.BLOG, // Make sure TargetType.BLOG is defined in your constants
+        reason: reason,
+      },
+      {
+        onSuccess: () => {
+          setReportDialogOpen(false);
+          showSnackbar(
+            "Blog reported successfully. Thank you for your feedback.",
+            "success",
+          );
+        },
+        onError: (err: Error) => {
+          showSnackbar(
+            `Failed to report blog: ${err.message || "Unknown error"}`,
+            "error",
+          );
+        },
+      },
+    );
+  };
+
   const handleCommentAdded = () => {
     refetchComments();
     queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
@@ -181,12 +224,11 @@ const BlogDetails = () => {
     queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
   };
 
-  /* ───────── loading / error ───────── */
-  if (isLoading || commentsLoading)
+  if (isLoading || commentsLoading || !blog)
+    // Added !blog check here for early return
     return (
       <div className="flex justify-center items-center space-x-4 h-screen">
-        <CircularProgress size={36} />
-        <p>Loading…</p>
+        <CircularProgress size={36} /> <p>Loading…</p>
       </div>
     );
   if (error || commentsError)
@@ -196,39 +238,85 @@ const BlogDetails = () => {
       </div>
     );
 
-  if (!blog) return null;
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center space-x-4 h-screen">
-        <CircularProgress size={36} />
-        <p>Loading…</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center p-4 h-screen text-red-500">
-        {(error as Error)?.message}
-      </div>
-    );
-  }
-  if (!blog) return null;
-
   const readingTime = Math.ceil(blog.content.split(/\s+/).length / 200);
 
-  console.log("@@ Current user:", user);
+  // Centralized Action Buttons Component (Optional but recommended for DRY)
+  const ActionButtons = () => (
+    <div className="transition ease-in-out duration-300 flex items-center py-1 bg-white space-x-4 rounded-full h-full w-full">
+      <Tooltip title={isLiked ? "Unlike" : "Like"} placement="bottom" arrow>
+        <div
+          className="flex justify-center items-center bg-blue-50 hover:bg-blue-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+          onClick={handleToggleLike}
+          aria-disabled={likeMutation.isPending || unlikeMutation.isPending}
+        >
+          {isLiked ? (
+            <AiFillLike className="size-5 text-blue-500" />
+          ) : (
+            <AiOutlineLike className="size-5" />
+          )}
+          <p
+            className="ml-1 hover:underline"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenLikesDialog();
+            }}
+          >
+            {likeCount}
+          </p>
+        </div>
+      </Tooltip>
+      <Tooltip title="Comment" placement="bottom" arrow>
+        <div
+          className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+          onClick={() => commentSectionRef.current?.focusInput()}
+        >
+          <BiComment className="mr-1 size-4" />
+          <span>{blog.comment_count}</span>
+        </div>
+      </Tooltip>
+      <div className="ml-auto flex items-center space-x-4">
+        <Tooltip title={copied ? "Link copied!" : "Copy link"} arrow>
+          <IconButton
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+          >
+            <LuLink className="size-4" />
+          </IconButton>
+        </Tooltip>
+        {/* Report Button - Conditionally rendered */}
+        {!isOwnBlog && (
+          <Tooltip title="Report this blog" arrow>
+            <IconButton
+              onClick={handleOpenReportDialog}
+              className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+            >
+              <MdOutlineFlag className="size-4 text-red-500" />
+            </IconButton>
+          </Tooltip>
+        )}
+        {isOwnBlog && (
+          <Tooltip title="Edit" arrow>
+            <IconButton
+              onClick={() => navigate(`/docs/${blog.id}`)}
+              className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+            >
+              <LuPencil className="size-4" />
+            </IconButton>
+          </Tooltip>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col items-center py-12 w-full h-screen sidebar">
       <div className="flex w-full h-full">
         <div className="relative flex flex-col w-[20%]">
-          {/* <div className="top-100 z-10 sticky flex justify-center items-center bg-white shadow-md mr-4 ml-auto rounded-full w-12 h-12">
-            <LuTableOfContents className="size-5" />
-          </div> */}
-          {/* <div className="right-4 bottom-4 z-50 fixed flex justify-center items-center bg-blue-400 shadow-md rounded-full w-12 h-12">
-            <IoIosArrowUp className="mb-1 size-5 text-white" />
-          </div> */}
+          {/* Sidebar content if any */}
         </div>
         <div className="group flex flex-col space-y-4 p-4 w-[60%]">
           <div className="flex space-x-2 w-full">
@@ -238,7 +326,7 @@ const BlogDetails = () => {
             <span>/</span>
             <span className="text-mountain-600 line-clamp-1">{blog.title}</span>
           </div>
-          <h1 className="font-medium text-2xl">{blog.title}</h1>{" "}
+          <h1 className="font-medium text-2xl">{blog.title}</h1>
           <div className="flex items-center space-x-2 text-mountain-600 text-sm">
             <p>
               Published{" "}
@@ -249,83 +337,15 @@ const BlogDetails = () => {
             <span>•</span>
             <p>{readingTime}m reading</p>
           </div>
-          {/* Author Section */}
+
+          {/* Action Bar (conditionally visible based on scroll) */}
           <div
             className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
           >
-            <div
-              className={`transition ease-in-out duration-300 flex items-center py-1 bg-white space-x-4 rounded-full h-full w-full`}
-            >
-              <Tooltip
-                title={isLiked ? "Unlike" : "Like"}
-                placement="bottom"
-                arrow
-              >
-                <div
-                  className="flex justify-center items-center bg-blue-50 hover:bg-blue-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
-                  onClick={handleToggleLike}
-                  aria-disabled={
-                    likeMutation.isPending || unlikeMutation.isPending
-                  }
-                >
-                  {isLiked ? (
-                    <AiFillLike className="size-5 text-blue-500" />
-                  ) : (
-                    <AiOutlineLike className="size-5" />
-                  )}
-                  <p
-                    className="ml-1 hover:underline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenLikesDialog();
-                    }}
-                  >
-                    {likeCount}
-                  </p>
-                </div>
-              </Tooltip>
-              <Tooltip title="Comment" placement="bottom" arrow>
-                <div
-                  className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
-                  onClick={() => {
-                    commentSectionRef.current?.focusInput();
-                  }}
-                >
-                  <BiComment className="mr-1 size-4" />
-                  <span>{blog.comment_count}</span>
-                </div>
-              </Tooltip>
-              <div className="ml-auto flex items-center space-x-4">
-                <Tooltip title="Save" placement="bottom" arrow>
-                  <div className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer">
-                    <MdBookmarkBorder className="size-4" />
-                  </div>
-                </Tooltip>
-                <Tooltip title={copied ? "Link copied!" : "Copy link"} arrow>
-                  <IconButton
-                    onClick={() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
-                    }}
-                    className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
-                  >
-                    <LuLink className="size-4" />
-                  </IconButton>
-                </Tooltip>
-                {blog.user.id === user?.id && (
-                  <Tooltip title="Edit" arrow>
-                    <IconButton
-                      onClick={() => navigate(`/docs/${blog.id}`)}
-                      className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
-                    >
-                      <LuPencil className="size-4" />
-                    </IconButton>
-                  </Tooltip>
-                )}
-              </div>
-            </div>
+            <ActionButtons />
           </div>
+
+          {/* Author Info Box */}
           <div className="flex justify-between items-center bg-gradient-to-r from-indigo-100 to-purple-100 shadow-sm p-4 rounded-lg">
             <div className="flex items-center space-x-4">
               {blog.user.profile_picture_url ? (
@@ -356,7 +376,7 @@ const BlogDetails = () => {
                 </div>
               </div>
             </div>
-            {!isOwnProfile && (
+            {!isOwnBlog && (
               <Button
                 onClick={toggleFollow}
                 disabled={followBtnLoading}
@@ -367,88 +387,20 @@ const BlogDetails = () => {
               </Button>
             )}
           </div>
+
           {/* Blog Content */}
           <div
             className="p-2 rounded-md max-w-none prose lg:prose-xl"
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
+
           <div
-            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
+            className={`${!showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
           >
-            <div
-              className={`transition ease-in-out duration-300 flex items-center py-1 bg-white space-x-4 rounded-full h-full w-full`}
-            >
-              <Tooltip
-                title={isLiked ? "Unlike" : "Like"}
-                placement="bottom"
-                arrow
-              >
-                <div
-                  className="flex justify-center items-center bg-blue-50 hover:bg-blue-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
-                  onClick={handleToggleLike}
-                  aria-disabled={
-                    likeMutation.isPending || unlikeMutation.isPending
-                  }
-                >
-                  {isLiked ? (
-                    <AiFillLike className="size-5 text-blue-500" />
-                  ) : (
-                    <AiOutlineLike className="size-5" />
-                  )}
-                  <p
-                    className="ml-1 hover:underline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenLikesDialog();
-                    }}
-                  >
-                    {likeCount}
-                  </p>
-                </div>
-              </Tooltip>
-              <Tooltip title="Comment" placement="bottom" arrow>
-                <div
-                  className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
-                  onClick={() => {
-                    commentSectionRef.current?.focusInput();
-                  }}
-                >
-                  <BiComment className="mr-1 size-4" />
-                  <span>{blog.comment_count}</span>
-                </div>
-              </Tooltip>
-              <div className="ml-auto flex items-center space-x-4">
-                <Tooltip title="Save" placement="bottom" arrow>
-                  <div className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer">
-                    <MdBookmarkBorder className="size-4" />
-                  </div>
-                </Tooltip>
-                <Tooltip title={copied ? "Link copied!" : "Copy link"} arrow>
-                  <IconButton
-                    onClick={() => {
-                      navigator.clipboard.writeText(window.location.href);
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 2000);
-                    }}
-                    className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
-                  >
-                    <LuLink className="size-4" />
-                  </IconButton>
-                </Tooltip>
-                {blog.user.id === user?.id && (
-                  <Tooltip title="Edit" arrow>
-                    <IconButton
-                      onClick={() => navigate(`/docs/${blog.id}`)}
-                      className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
-                    >
-                      <LuPencil className="size-4" />
-                    </IconButton>
-                  </Tooltip>
-                )}
-              </div>
-            </div>
+            <ActionButtons />
           </div>
+
           <RelatedBlogs currentBlogId={Number(blogId)} />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
           <CommentSection
@@ -464,12 +416,24 @@ const BlogDetails = () => {
         </div>
         <div className="relative flex flex-col w-[20%]" />
       </div>
+
       <LikesDialog
         contentId={Number(blogId)}
         open={likesDialogOpen}
         onClose={handleCloseLikesDialog}
         variant={TargetType.BLOG}
       />
+      {/* Report Dialog Instance */}
+      {blog && ( // Ensure blog data is available
+        <ReportDialog
+          open={reportDialogOpen}
+          onClose={handleCloseReportDialog}
+          onSubmit={handleReportSubmit} // This function will call the reportBlogContent hook
+          submitting={isLoadingReport}
+          itemName={blog.title} // Pass the blog title
+          itemType="blog" // Specify the item type
+        />
+      )}
     </div>
   );
 };
