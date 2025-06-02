@@ -37,7 +37,7 @@ import { useUser } from "@/contexts/UserProvider";
 import { User } from "@/types";
 import { Link as RouterLink } from "react-router-dom";
 import MuiLink from "@mui/material/Link";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useContext } from "react";
 import { FreshRepliesCtx } from "./FreshReplies";

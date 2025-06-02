@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { createPost } from "./api/create-post";
 
 import { useLocation, useNavigate } from "react-router-dom";

@@ -108,7 +108,7 @@ const RelatedBlogs = ({ currentBlogId }: RelatedBlogsProps) => {
               avatar: blog.user.profile_picture_url ?? "",
             }}
             timeReading={`${Math.ceil((blog.content ? blog.content.split(/\s+/).length : 0) / 200)}m reading`}
-            dateCreated={new Date(blog.created_at).toLocaleDateString()}
+            dateCreated={blog.created_at}
             category={blog.categories?.[0]?.name ?? "Uncategorized"}
             like_count={blog.like_count}
             comment_count={blog.comment_count}

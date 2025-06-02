@@ -33,7 +33,7 @@ import { MockModelOptionsData } from "./mock/Data";
 //API Backend
 import { useQueryClient } from "@tanstack/react-query";
 import { generateImages } from "./api/generate-imges.api";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { useSubscriptionInfo } from "@/hooks/useSubscription";
 import axios, { AxiosError } from "axios";
 import {

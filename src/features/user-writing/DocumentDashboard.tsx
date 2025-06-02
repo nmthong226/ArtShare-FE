@@ -1,6 +1,5 @@
 import { IoBookOutline, IoFilter } from "react-icons/io5";
 import { MdOutlineAdd } from "react-icons/md";
-import { TbListNumbers } from "react-icons/tb";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import React, { useEffect, useState } from "react";
@@ -8,7 +7,7 @@ import MenuItem from "@mui/material/MenuItem";
 import { useNavigate } from "react-router-dom";
 import { CircularProgress, IconButton, Menu } from "@mui/material";
 import { IoMdMore } from "react-icons/io";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { CreateBlogPayload, createNewBlog, deleteBlog } from "./api/blog.api";
 import { fetchBlogsByUsername } from "../blog-details/api/blog";
 import { useUser } from "@/contexts/UserProvider";
@@ -27,6 +26,12 @@ const DocumentDashboard = () => {
   const { showSnackbar } = useSnackbar();
   const { user } = useUser();
 
+  // State for managing the menu: store anchor element and the ID of the blog for which the menu is open
+  const [menuState, setMenuState] = useState<{
+    anchorEl: null | HTMLElement;
+    currentBlogId: null | number;
+  }>({ anchorEl: null, currentBlogId: null });
+
   // Fetch user's documents
   useEffect(() => {
     const fetchUserDocuments = async () => {
@@ -39,7 +44,6 @@ const DocumentDashboard = () => {
         setIsLoading(true);
         const blogs = await fetchBlogsByUsername(user.username);
 
-        // Filter blogs based on the selected order
         const now = new Date();
         const filteredBlogs = blogs.filter((blog) => {
           const createdAt = new Date(blog.created_at);
@@ -101,7 +105,7 @@ const DocumentDashboard = () => {
         content: TUTORIAL_TEMPLATE_HTML,
       };
       const newBlog = await createNewBlog(payload);
-      navigate(`/docs/${newBlog.id}`); // jump into WriteBlog
+      navigate(`/docs/${newBlog.id}`);
     } catch (err) {
       showSnackbar("Failed to create tutorial", "error");
       console.error(err);
@@ -109,6 +113,11 @@ const DocumentDashboard = () => {
   };
 
   const handleDocumentClick = (blogId: number) => {
+    if (menuState.anchorEl && menuState.currentBlogId === blogId) {
+      // If clicking the card while its own menu is open, do nothing or close menu
+      handleMenuClose();
+      return;
+    }
     navigate(`/docs/${blogId}`);
   };
 
@@ -127,39 +136,55 @@ const DocumentDashboard = () => {
       : title;
   };
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
+  const handleMenuClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    blogId: number,
+  ) => {
+    event.stopPropagation(); // Prevent card click
+    setMenuState({ anchorEl: event.currentTarget, currentBlogId: blogId });
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
+  // Updated handleClose to reset the new menu state
+  const handleMenuClose = () => {
+    setMenuState({ anchorEl: null, currentBlogId: null });
   };
 
   const handleEdit = (blogId: number) => {
+    // Navigation is done directly
     navigate(`/docs/${blogId}`);
+  };
+
+  // Wrapper for menu item edit click
+  const onEditMenuClick = (blogId: number) => {
+    handleMenuClose(); // Close menu first
+    handleEdit(blogId); // Then navigate
   };
 
   const handleDelete = async (blogId: number) => {
     try {
       await deleteBlog(blogId);
       setUserBlogs((prev) => prev.filter((blog) => blog.id !== blogId));
-      showSnackbar("Document deleted successfully", "success");
-    }
-    catch {
+      showSnackbar("Document deleted successfully", "success", undefined, {
+        vertical: "top",
+        horizontal: "center",
+      });
+    } catch {
       showSnackbar("Failed to delete document", "error");
-      return;
+    } finally {
+      handleMenuClose(); // Ensure menu is closed after delete attempt
     }
-    finally {
-      handleClose();
-    }
+  };
+
+  // Wrapper for menu item delete click
+  const onDeleteMenuClick = (blogId: number) => {
+    // handleDelete already calls handleMenuClose in its finally block
+    handleDelete(blogId);
   };
 
   return (
     <div className="flex flex-col items-center h-screen overflow-auto sidebar">
       <div className="flex justify-center border-mountain-50 border-b-1 w-full h-fit">
+        {/* ... (Create new document buttons - unchanged) ... */}
         <div className="flex flex-col justify-center items-center space-y-2 p-4 w-fit h-full">
           <div className="flex space-x-4 h-full">
             <div
@@ -186,16 +211,6 @@ const DocumentDashboard = () => {
               </div>
               <p className="text-mountain-800 text-sm text-center">
                 Tutorial Template
-              </p>
-            </div>
-            <div className="flex flex-col justify-center space-y-4">
-              <div className="flex justify-center items-center bg-mountain-50 border-1 border-white hover:border-indigo-600 w-42 h-48">
-                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full w-16 h-16">
-                  <TbListNumbers className="size-10" />
-                </div>
-              </div>
-              <p className="text-mountain-800 text-sm text-center">
-                Sale Template
               </p>
             </div>
           </div>
@@ -256,7 +271,7 @@ const DocumentDashboard = () => {
                 <div className="flex flex-col justify-start items-start space-y-2 w-full">
                   <p
                     className="bg-white px-2 w-full text-mountain-800 text-sm text-left line-clamp-1 select-none"
-                    title={blog.title} // Show full title on hover
+                    title={blog.title}
                   >
                     {truncateTitle(blog.title)}
                   </p>
@@ -265,20 +280,28 @@ const DocumentDashboard = () => {
                       {formatDate(blog.created_at)}
                     </p>
                     <IconButton
-                      onClick={handleClick}
+                      onClick={(event) => handleMenuClick(event, blog.id)} // Pass blog.id
                       className="bg-white hover:bg-mountain-50 mr-2 w-6 h-6 text-mountain-600 cursor-pointer"
                       size="small"
                     >
                       <IoMdMore className="size-5" />
                     </IconButton>
                     <Menu
-                      anchorEl={anchorEl}
-                      open={Boolean(anchorEl)}
-                      onClose={handleClose}
-                      onClick={(e) => e.stopPropagation()} // prevent closing on click inside
+                      anchorEl={menuState.anchorEl}
+                      // Open only if this blog's menu was clicked
+                      open={
+                        menuState.currentBlogId === blog.id &&
+                        Boolean(menuState.anchorEl)
+                      }
+                      onClose={handleMenuClose}
+                      onClick={(e) => e.stopPropagation()} // Prevent card click if clicking on Menu background
                     >
-                      <MenuItem onClick={() => handleEdit(blog.id)}>Edit</MenuItem>
-                      <MenuItem onClick={() => handleDelete(blog.id)}>Delete</MenuItem>
+                      <MenuItem onClick={() => onEditMenuClick(blog.id)}>
+                        Edit
+                      </MenuItem>
+                      <MenuItem onClick={() => onDeleteMenuClick(blog.id)}>
+                        Delete
+                      </MenuItem>
                     </Menu>
                   </div>
                 </div>

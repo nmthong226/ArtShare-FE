@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Editor, { EditorHandle } from "./components/Editor";
 import TextEditorHeader from "./components/TextEditorHeader";
 import Toolbar from "./components/Toolbar";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchBlogDetails } from "../blog-details/api/blog";
 import { updateExistingBlog, UpdateBlogPayload } from "./api/blog.api";

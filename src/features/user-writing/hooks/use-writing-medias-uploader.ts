@@ -3,7 +3,7 @@ import {
   GetPresignedUrlResponse,
   uploadFile,
 } from "@/api/storage";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { nanoid } from "nanoid";
 const WRITING_STORAGE_DIRECTORY = "blogs";
 
@@ -31,7 +31,7 @@ export function useWritingMediaUploader() {
 
   const handleUploadImageFile = async (
     imageFile: File,
-    filenNamePrefix: string
+    filenNamePrefix: string,
   ): Promise<string | undefined> => {
     try {
       const presigned: GetPresignedUrlResponse = await getPresignedUrl(
