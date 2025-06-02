@@ -24,27 +24,29 @@ import { formatDate } from "@/lib/utils";
 import Share from "../dialogs/Share";
 
 type Author = {
-  username: string,
-  avatar: string
-}
+  username: string;
+  avatar: string;
+};
 
 type BlogCardProps = {
-  blogId: string,
-  author: Author,
-  title: string,
-  dateCreated: string,
-  timeReading: string,
-  category: string,
-  thumbnail: string,
-  like_count: number,
-  comment_count: number,
-  view_count: number
-}
+  blogId: string;
+  author: Author;
+  title: string;
+  content?: string;
+  dateCreated: string;
+  timeReading: string;
+  category: string;
+  thumbnail: string;
+  like_count: number;
+  comment_count: number;
+  view_count: number;
+};
 
 const BlogCard: React.FC<BlogCardProps> = ({
   blogId,
   author,
   title,
+  content,
   dateCreated,
   timeReading,
   category,
@@ -79,7 +81,11 @@ const BlogCard: React.FC<BlogCardProps> = ({
   }, [open]);
 
   return (
-    <div key={blogId} onClick={handleCardClick} className="group bg-white shadow-md border border-mountain-200 hover:border-indigo-400 rounded-lg w-full hover:cursor-pointer">
+    <div
+      key={blogId}
+      onClick={handleCardClick}
+      className="group bg-white shadow-md border border-mountain-200 hover:border-indigo-400 rounded-lg w-full hover:cursor-pointer"
+    >
       <div className="relative flex justify-between items-center p-2 w-full">
         <div className="flex items-center space-x-2">
           <img src={author.avatar} className="rounded-full w-10 h-10" />
@@ -88,9 +94,10 @@ const BlogCard: React.FC<BlogCardProps> = ({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             onClick={(e) => {
-              handleClickMoreButton(e)
+              handleClickMoreButton(e);
             }}
-            className="top-1/2 right-1 absolute flex justify-center items-center hover:bg-mountain-100 rounded-full w-8 h-8 -translate-y-1/2">
+            className="top-1/2 right-1 absolute flex justify-center items-center hover:bg-mountain-100 rounded-full w-8 h-8 -translate-y-1/2"
+          >
             <BiDotsVertical className="size-5 shrink-0" />
           </PopoverTrigger>
           <PopoverContent className="p-0 border-mountain-200 w-36 text-xs">
@@ -105,8 +112,13 @@ const BlogCard: React.FC<BlogCardProps> = ({
           </PopoverContent>
         </Popover>
       </div>
-      <div className="flex justify-start items-start p-2 w-full h-16">
-        <p className="line-clamp-2">{title}</p>
+      <div className="flex justify-start items-start p-2 w-full">
+        <div className="w-full">
+          <p className="font-medium line-clamp-2 mb-2">{title}</p>
+          {content && (
+            <p className="text-sm text-gray-600 line-clamp-2">{content}</p>
+          )}
+        </div>
       </div>
       <hr className="flex border-mountain-200 border-t-0.5 w-full" />
       <div className="flex flex-col space-y-1 p-2">
@@ -156,7 +168,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default BlogCard
+export default BlogCard;
