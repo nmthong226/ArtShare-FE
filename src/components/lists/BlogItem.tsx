@@ -13,6 +13,7 @@ import { MdBookmarkBorder } from "react-icons/md";
 //Components
 import Share from "../dialogs/Share";
 import ReactTimeAgo from "react-time-ago";
+import { getPlainTextPreview } from "@/features/blog-details/utils/blog";
 
 //Style
 type Author = {
@@ -70,35 +71,6 @@ const BlogItem: React.FC<BlogItemProps> = ({
       window.removeEventListener("scroll", handleScroll);
     };
   }, [open]);
-
-  // Helper function to strip HTML and get plain text preview
-  const getPlainTextPreview = (
-    htmlContent: string,
-    maxLength: number = 150,
-  ): string => {
-    if (!htmlContent) return "";
-    // Remove HTML tags
-    const textOnly = htmlContent.replace(/<[^>]*>/g, "");
-    // Decode HTML entities
-    const decoded = textOnly
-      .replace(/&nbsp;/g, " ")
-      .replace(/&amp;/g, "&")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'");
-
-    // Trim whitespace and limit length
-    const trimmed = decoded.trim();
-    if (trimmed.length <= maxLength) return trimmed;
-
-    // Cut at word boundary
-    const truncated = trimmed.substring(0, maxLength);
-    const lastSpace = truncated.lastIndexOf(" ");
-    return lastSpace > 0
-      ? truncated.substring(0, lastSpace) + "..."
-      : truncated + "...";
-  };
 
   return (
     <div

@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { fetchRelevantBlogs } from "../api/blog";
 import { Blog } from "@/types/blog";
 import { useState } from "react";
+import { getPlainTextPreview } from "../utils/blog";
 
 interface RelatedBlogsProps {
   currentBlogId: number; // ID of the blog for which to find related ones
@@ -93,43 +94,34 @@ const RelatedBlogs = ({ currentBlogId }: RelatedBlogsProps) => {
           <ArrowLeft className="size-5 text-white" />
         </button>
 
-        {relatedBlogs.map((blog: Blog) => (
-          <BlogCard
-            key={blog.id} // Use blog.id instead of blog.blogId
-            blogId={String(blog.id)} // Convert to string and use blog.id
-            thumbnail={
-              Array.isArray(blog.pictures) && blog.pictures[0]
-                ? blog.pictures[0]
-                : "https://placehold.co/600x400"
-            }
-            title={blog.title}
-            author={{
-              username: blog.user.username,
-              avatar: blog.user.profile_picture_url ?? "",
-            }}
-            timeReading={`${Math.ceil((blog.content ? blog.content.split(/\s+/).length : 0) / 200)}m reading`}
-            dateCreated={blog.created_at}
-            category={blog.categories?.[0]?.name ?? "Uncategorized"}
-            like_count={blog.like_count}
-            comment_count={blog.comment_count}
-            view_count={blog.view_count}
-          />
-        ))}
-        {Array.from({ length: Math.max(0, take - relatedBlogs.length) }).map(
-          (_, index) => (
-            <div
-              key={`placeholder-${index}`}
-              className="w-[calc((100%-2*theme(spacing.4))/3)] opacity-0"
-            >
-              {" "}
-              {/* Adjust width to match BlogCard */}
-            </div>
-          ),
-        )}
+        <div className="flex justify-center items-center gap-4 flex-1">
+          {relatedBlogs.map((blog: Blog) => (
+            <BlogCard
+              key={blog.id}
+              blogId={String(blog.id)}
+              thumbnail={
+                Array.isArray(blog.pictures) && blog.pictures[0]
+                  ? blog.pictures[0]
+                  : "https://placehold.co/600x400"
+              }
+              title={blog.title}
+              content={getPlainTextPreview(blog.content)}
+              author={{
+                username: blog.user.username,
+                avatar: blog.user.profile_picture_url ?? "",
+              }}
+              timeReading={`${Math.ceil((blog.content ? blog.content.split(/\s+/).length : 0) / 200)}m reading`}
+              dateCreated={blog.created_at}
+              category={blog.categories?.[0]?.name ?? "Uncategorized"}
+              like_count={blog.like_count}
+              comment_count={blog.comment_count}
+              view_count={blog.view_count}
+            />
+          ))}
+        </div>
 
         <button
           onClick={handleNext}
-          // Disable if loading or if the current page didn't return a full 'take' set (implies no more)
           disabled={
             isPlaceholderData || isLoading || relatedBlogs.length < take
           }
