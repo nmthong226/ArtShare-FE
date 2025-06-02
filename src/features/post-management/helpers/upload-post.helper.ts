@@ -21,6 +21,7 @@ interface CreateFormDataParams {
   isMature?: boolean;
   aiCreated?: boolean;
   cate_ids?: number[];
+  prompt_id?: number;
 }
 
 export const createFormData = ({
@@ -34,6 +35,7 @@ export const createFormData = ({
   isMature,
   aiCreated,
   cate_ids,
+  prompt_id,
 }: CreateFormDataParams) => {
   const formData = new FormData();
   formData.append("title", title);
@@ -53,6 +55,7 @@ export const createFormData = ({
       initialThumbnail: initialThumbnailUrl,
     }),
   );
+  if (prompt_id) formData.append("prompt_id", String(prompt_id));
 
   return formData;
 };

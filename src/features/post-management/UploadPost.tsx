@@ -25,6 +25,7 @@ const UploadPost: React.FC = () => {
   const location = useLocation();
   const selectedPrompt: PromptResult | undefined = location.state?.prompt;
 
+  const [promptId, setPromptId] = useState<number | null>(null);
   const [hasArtNovaImages, setHasArtNovaImages] = useState(false);
   const [postMedias, setPostMedias] = useState<PostMedia[]>([]);
   const [thumbnail, setThumbnail] = useState<PostMedia | null>(null);
@@ -48,6 +49,14 @@ const UploadPost: React.FC = () => {
         return;
       }
 
+      if (hasArtNovaImages && !promptId) {
+        showSnackbar("something went wrong, please try again.", "error");
+        console.error(
+          "AI generated images are selected but no prompt ID is provided.",
+        );
+        return;
+      }
+
       const videoFile = getVideoFileFromPostMedias(postMedias);
 
       const [videoUrl, initialThumbnailUrl, thumbnailUrl] = await Promise.all([
@@ -61,6 +70,7 @@ const UploadPost: React.FC = () => {
         thumbnailUrl!,
         initialThumbnailUrl!,
         videoUrl,
+        promptId,
       );
       navigate("/explore");
     } catch (error) {
@@ -76,6 +86,7 @@ const UploadPost: React.FC = () => {
     thumbnailUrl: string,
     initialThumbnailUrl: string,
     videoUrl?: string,
+    promptId?: number | null,
   ): Promise<void> => {
     const formData = createFormData({
       title: values.title,
@@ -88,6 +99,7 @@ const UploadPost: React.FC = () => {
       isMature: values.isMature,
       aiCreated: hasArtNovaImages,
       cate_ids: values.cate_ids,
+      prompt_id: promptId ?? undefined,
     });
     try {
       const response = await createPost(formData);
@@ -128,6 +140,7 @@ const UploadPost: React.FC = () => {
           };
           setThumbnail(thumbnail);
           setOriginalThumbnail(thumbnail);
+          setPromptId(selectedPrompt.id);
         };
         updatePostMediasFileAsync();
       } catch (err) {
