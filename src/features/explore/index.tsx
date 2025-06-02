@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 
 //Libs
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, UseQueryResult } from "@tanstack/react-query";
 import { Button, Paper, ToggleButton, ToggleButtonGroup } from "@mui/material";
 
 //Icons
@@ -20,8 +20,8 @@ import { fetchPosts } from "./api/get-post";
 
 //Contexts
 import { useSearch } from "@/contexts/SearchProvider";
-import { categoryService } from "@/components/carousels/categories/api/categories.api";
 import { CategoryTypeValues } from "@/constants";
+import { useCategories } from "@/hooks/useCategories";
 
 const getMediaDimensions = (
   url: string,
@@ -59,11 +59,7 @@ const Explore: React.FC = () => {
     data: allCategories,
     isLoading: isLoadingAllCategories,
     isError: isErrorAllCategories,
-  } = useQuery<Category[], Error>({
-    queryKey: ["allCategories"],
-    queryFn: () => categoryService.getAllCategories(1, 200),
-    staleTime: 1000 * 60 * 5,
-  });
+  }: UseQueryResult<Category[]> = useCategories({ page: 1, pageSize: 200 });
 
   const attributeCategories = useMemo(() => {
     if (!allCategories) return [];

@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
   TextField,
-  Checkbox,
-  FormControlLabel,
   IconButton,
   FormHelperText,
   FormControl,
@@ -13,76 +11,44 @@ import {
 import { MdCrop, MdErrorOutline, MdPhotoCameraBack } from "react-icons/md";
 
 import { ImageUpIcon } from "lucide-react";
-import { ImageCropperModal } from "@/components/ui/image-cropper-modal";
-import { Area } from "react-easy-crop";
+import ImageCropperModal from "@/components/ui/image-cropper-modal";
 import SubjectPicker from "./SubjectPicker";
+import {
+  ErrorMessage,
+  Field,
+  FormikErrors,
+  FormikHandlers,
+  FormikHelpers,
+  FormikTouched,
+} from "formik";
+import { PostMedia } from "../types/post-media";
+import { MEDIA_TYPE } from "@/utils/constants";
+import { PostFormValues } from "../types/post-form-values.type";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const UploadForm: React.FC<{
-  thumbnailFile: File | undefined;
-  onThumbnailChange: (
-    file: File | undefined,
-    isOriginal?: boolean,
-    thumbnail_crop_meta?: string,
-  ) => void;
-  isSubmitted: boolean;
-  cate_ids: number[];
-  setCateIds: (value: number[]) => void;
-  title: string;
-  setTitle: (value: string) => void;
-  description: string;
-  setDescription: (value: string) => void;
-  isMature: boolean;
-  setIsMature: (value: boolean) => void;
-  originalThumbnailFile: File | undefined;
-  setOriginalThumbnailFile: (file: File | undefined) => void;
-  lastCrop: { x: number; y: number };
-  lastZoom: number;
-  setLastCrop: (value: { x: number; y: number }) => void;
-  setLastZoom: (value: number) => void;
-  existingThumbnailUrl?: string;
-  initialAspect?: number;
-  initialSelectedAspect?: string;
-  initialCroppedAreaPixels?: Area;
-  initialThumbnailImage?: string;
+  values: PostFormValues;
+  setFieldValue: FormikHelpers<PostFormValues>["setFieldValue"];
+  onThumbnailAddedOrRemoved: (file: File | null) => void;
+  thumbnail: PostMedia | null;
+  setThumbnail: React.Dispatch<React.SetStateAction<PostMedia | null>>;
+  originalThumbnail: PostMedia | null;
+  errors: FormikErrors<PostFormValues>;
+  touched: FormikTouched<PostFormValues>;
+  handleBlur: FormikHandlers["handleBlur"];
+  isMatureAutoDetected: boolean;
 }> = ({
-  thumbnailFile,
-  setOriginalThumbnailFile,
-  onThumbnailChange,
-  isSubmitted,
-  cate_ids,
-  setCateIds,
-  title,
-  setTitle,
-  description,
-  setDescription,
-  isMature,
-  setIsMature,
-  originalThumbnailFile,
-  lastCrop,
-  lastZoom,
-  setLastCrop,
-  setLastZoom,
-  existingThumbnailUrl,
-  initialAspect,
-  initialSelectedAspect,
-  initialCroppedAreaPixels,
+  values,
+  setFieldValue,
+  thumbnail,
+  setThumbnail,
+  originalThumbnail,
+  onThumbnailAddedOrRemoved,
+  errors,
+  touched,
+  isMatureAutoDetected,
 }) => {
-  // const [description, setDescription] = useState("");
   const [thumbnailCropOpen, setThumbnailCropOpen] = useState(false);
-  const [initialThumbnailUrl, setInitialThumbnailUrl] = useState<string | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (!thumbnailCropOpen || !originalThumbnailFile) return;
-
-    const url = URL.createObjectURL(originalThumbnailFile);
-    setInitialThumbnailUrl(url);
-
-    return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [thumbnailCropOpen, originalThumbnailFile]);
 
   return (
     <Box className="space-y-3 mx-auto w-full dark:text-white text-left">
@@ -96,15 +62,15 @@ const UploadForm: React.FC<{
 
         <FormControl
           fullWidth
-          error={isSubmitted && !title.trim()}
+          error={touched.title && Boolean(errors.title)}
           className="space-y-1 px-3 py-3"
         >
-          <TextField
+          <Field
+            name="title" // Connects to Formik state
+            as={TextField} // Render as an MUI TextField
             placeholder="What do you call your artwork"
             variant="outlined"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            error={isSubmitted && !title.trim()}
+            error={touched.title && Boolean(errors.title)}
             sx={{
               "& .MuiOutlinedInput-root": {
                 borderRadius: "5px",
@@ -117,19 +83,19 @@ const UploadForm: React.FC<{
               },
             }}
           />
-          {isSubmitted && !title.trim() && (
-            <FormHelperText>
-              <MdErrorOutline
-                size="1.5em"
-                style={{
-                  verticalAlign: "middle",
-                  marginRight: "0.5em",
-                  color: "red",
-                }}
-              />
-              Title is required
-            </FormHelperText>
-          )}
+          <ErrorMessage name="title">
+            {(errorMsg) => (
+              <FormHelperText error className="flex items-start">
+                <MdErrorOutline
+                  size="1.5em"
+                  style={{
+                    marginRight: "0.4em",
+                  }}
+                />
+                {errorMsg}
+              </FormHelperText>
+            )}
+          </ErrorMessage>
         </FormControl>
       </Box>
       {/* Artwork Description Box */}
@@ -144,14 +110,14 @@ const UploadForm: React.FC<{
           <Typography className="dark:text-mountain-200 text-base text-left">
             Description
           </Typography>
-          <TextField
+          <Field
+            name="description"
+            as={TextField}
             placeholder="Describe your work"
             variant="outlined"
             fullWidth
             multiline
             rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
             slotProps={{
               input: {
                 className:
@@ -168,69 +134,77 @@ const UploadForm: React.FC<{
           </Typography>
           <FormControl component="fieldset" className="space-y-2 px-2">
             {/* Mature content checkbox */}
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={isMature}
-                  onChange={(e) => setIsMature(e.target.checked)}
-                  sx={{
-                    color: "#6b7280",
-                    "&.Mui-checked": { color: "#a5b4fc" },
-                  }}
-                />
-              }
-              label={
-                <>
-                  <span className="ml-2 dark:text-white">
-                    Has mature content
-                  </span>
-                  <span className="dark:text-mountain-200">
-                    {" "}
-                    (see our{" "}
-                    <a href="/mature-content" className="hover:underline">
-                      guidelines
-                    </a>
-                    )
-                  </span>
-                </>
-              }
-            />
-            {/* <FormControlLabel
-              control={
-                <Checkbox
-                  checked={aiCreated}
-                  onChange={(e) => setAiCreated(e.target.checked)}
-                  sx={{
-                    color: "#6b7280",
-                    "&.Mui-checked": { color: "#a5b4fc" },
-                  }}
-                />
-              }
-              label={
-                <span className="ml-2 dark:text-white">Created with AI</span>
-              }
-            /> */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="mature-content"
+                checked={values.isMature || isMatureAutoDetected}
+                disabled={isMatureAutoDetected}
+                onCheckedChange={(checked) =>
+                  setFieldValue("isMature", checked)
+                }
+                className={`${
+                  isMatureAutoDetected ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              />
+              <label
+                htmlFor="mature-content"
+                className={`text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
+                  isMatureAutoDetected
+                    ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    : "text-black dark:text-white cursor-pointer"
+                }`}
+              >
+                <span
+                  className={`ml-1 ${
+                    isMatureAutoDetected
+                      ? "text-gray-400 dark:text-gray-500"
+                      : "text-purple dark:text-white"
+                  }`}
+                >
+                  Has mature content{"\u00A0"}
+                </span>
+                <span
+                  className={`${
+                    isMatureAutoDetected
+                      ? "text-gray-400 dark:text-gray-500"
+                      : "text-black dark:text-white"
+                  }`}
+                >
+                  (see our{" "}
+                  <a
+                    href="/mature-content"
+                    className={`hover:underline ${
+                      isMatureAutoDetected
+                        ? "text-gray-400 dark:text-gray-500 pointer-events-none"
+                        : "text-blue-600 dark:text-blue-400"
+                    }`}
+                  >
+                    guidelines
+                  </a>
+                  )
+                </span>
+              </label>
+            </div>
           </FormControl>
         </Box>
       </Box>
-      {initialThumbnailUrl && (
+      {originalThumbnail && (
         <ImageCropperModal
-          image={initialThumbnailUrl}
+          thumbnailMeta={values.thumbnailMeta}
+          originalThumbnailUrl={originalThumbnail.url}
           open={thumbnailCropOpen}
           onClose={() => setThumbnailCropOpen(false)}
-          initialCrop={lastCrop}
-          initialZoom={lastZoom}
-          initialAspect={initialAspect}
-          initialSelectedAspect={initialSelectedAspect}
-          initialCroppedAreaPixels={initialCroppedAreaPixels}
-          onCropChange={setLastCrop}
-          onZoomChange={setLastZoom}
           onCropped={(blob, thumbnail_crop_meta) => {
-            onThumbnailChange(
-              new File([blob], "cropped_thumbnail.png", { type: "image/png" }),
-              false,
-              thumbnail_crop_meta,
-            );
+            console.log("Cropped thumbnail meta:", thumbnail_crop_meta);
+            setThumbnail({
+              file: new File([blob], "cropped_thumbnail.png", {
+                type: "image/png",
+              }),
+              url: URL.createObjectURL(blob),
+              type: MEDIA_TYPE.IMAGE,
+            });
+
+            setFieldValue("thumbnailMeta", thumbnail_crop_meta);
           }}
         />
       )}
@@ -247,24 +221,12 @@ const UploadForm: React.FC<{
         </Typography>
         <Box
           className={`flex flex-col justify-center items-center border ${
-            thumbnailFile || existingThumbnailUrl
-              ? "border-none"
-              : "border-gray-500 border-dashed"
+            thumbnail ? "border-none" : "border-gray-500 border-dashed"
           } rounded min-h-32 overflow-hidden bg-mountain-200`}
           component="label"
         >
-          {thumbnailFile ? (
-            <img
-              src={URL.createObjectURL(thumbnailFile)}
-              alt="Thumbnail"
-              className="max-h-64"
-            />
-          ) : existingThumbnailUrl ? (
-            <img
-              src={existingThumbnailUrl}
-              alt="Existing Thumbnail"
-              className="max-h-64"
-            />
+          {thumbnail ? (
+            <img src={thumbnail.url} alt="Thumbnail" className="max-h-64" />
           ) : (
             <>
               <ImageUpIcon className="text-gray-400 text-4xl" />
@@ -279,12 +241,12 @@ const UploadForm: React.FC<{
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                onThumbnailChange(file, true); // ✅ original
+                onThumbnailAddedOrRemoved(file);
               }
             }}
           />
         </Box>
-        {(thumbnailFile || existingThumbnailUrl) && (
+        {thumbnail && (
           <div className="flex gap-2">
             <Tooltip title="Crop">
               <IconButton
@@ -308,11 +270,7 @@ const UploadForm: React.FC<{
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      setOriginalThumbnailFile(file);
-                      onThumbnailChange(file);
-                      // ✅ Reset crop and zoom
-                      setLastCrop({ x: 0, y: 0 });
-                      setLastZoom(1);
+                      onThumbnailAddedOrRemoved(file);
                     }
                   }}
                 />
@@ -335,7 +293,10 @@ const UploadForm: React.FC<{
           {/* Dialog for Selection */}
           <Box className="space-y-1 px-3 pb-3">
             {/** TODO: uncomment this */}
-            <SubjectPicker cate_ids={cate_ids} setCateIds={setCateIds} />
+            <SubjectPicker
+              cate_ids={values.cate_ids}
+              setCateIds={(val) => setFieldValue("cate_ids", val)}
+            />
           </Box>
         </Box>
 

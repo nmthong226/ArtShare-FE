@@ -12,7 +12,7 @@ export function usePostMediaUploader() {
 
   const handleUploadVideo = async (
     videoFile: File,
-  ): Promise<string | undefined> => {
+  ): Promise<string> => {
     try {
       const presignedUrlResponse: GetPresignedUrlResponse =
         await getPresignedUrl(
@@ -32,7 +32,7 @@ export function usePostMediaUploader() {
   const handleUploadImageFile = async (
     imageFile: File,
     filenNamePrefix: string
-  ): Promise<string | undefined> => {
+  ): Promise<string> => {
     try {
       const presigned: GetPresignedUrlResponse = await getPresignedUrl(
         `${filenNamePrefix}_${nanoid(6)}`,

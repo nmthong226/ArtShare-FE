@@ -121,10 +121,10 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               return (
                 <Tooltip
                   title={item.label}
+                  key={item.label}
                   placement="right"
                   arrow
                   disableHoverListener={expand}
-                  key={item.label}
                 >
                   <Link
                     to={item.href}
@@ -168,10 +168,10 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               return (
                 <Tooltip
                   title={item.label}
+                  key={item.label}
                   placement="right"
                   arrow
                   disableHoverListener={expand}
-                  key={item.label} // Moved key to Tooltip
                 >
                   <Link
                     to={item.href}
