@@ -14,6 +14,8 @@ interface ReportDialogProps {
   onClose: () => void;
   onSubmit: (reason: string) => void;
   submitting?: boolean;
+  itemName?: string;
+  itemType?: string;
 }
 
 const ReportDialog: React.FC<ReportDialogProps> = ({
@@ -21,6 +23,8 @@ const ReportDialog: React.FC<ReportDialogProps> = ({
   onClose,
   onSubmit,
   submitting = false,
+  itemName,
+  itemType,
 }) => {
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
@@ -42,7 +46,13 @@ const ReportDialog: React.FC<ReportDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>Report</DialogTitle>
+      <DialogTitle>
+        Report{" "}
+        {itemType
+          ? itemType.charAt(0).toUpperCase() + itemType.slice(1)
+          : "Content"}
+        {itemName && `: "${itemName}"`}
+      </DialogTitle>
       <DialogContent dividers>
         <TextField
           autoFocus
