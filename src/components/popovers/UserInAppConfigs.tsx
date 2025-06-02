@@ -2,13 +2,12 @@
 import { useState } from "react";
 
 // Context/hooks
-import { useTheme } from "@/contexts/ThemeProvider";
 import { useUser } from "@/contexts/UserProvider";
 
 // Icons
 import { MdDarkMode, MdMoreVert } from "react-icons/md";
 import { MdLightMode } from "react-icons/md";
-
+import { useTheme } from "@/contexts/ThemeProvider";
 // Components
 import {
   Popover,
@@ -17,7 +16,7 @@ import {
 } from "@/components/ui/popover";
 // Avatars
 import BoringAvatar from "boring-avatars";
-import { AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,10 +64,23 @@ const UserInAppConfigs = () => {
           >
             {user ? (
               user.profile_picture_url ? (
-                <AvatarImage
-                  src={user.profile_picture_url}
-                  className="object-cover"
-                />
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={user.profile_picture_url} />
+                  <AvatarFallback>
+                    <BoringAvatar
+                      size={40}
+                      name={user.username}
+                      variant="beam"
+                      colors={[
+                        "#84bfc3",
+                        "#fff5d6",
+                        "#ffb870",
+                        "#d96153",
+                        "#000511",
+                      ]}
+                    />
+                  </AvatarFallback>
+                </Avatar>
               ) : (
                 <BoringAvatar
                   size={40}
@@ -98,7 +110,23 @@ const UserInAppConfigs = () => {
           <>
             <div className="flex items-center space-x-2 p-3">
               {user.profile_picture_url ? (
-                <AvatarImage src={user.profile_picture_url} />
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={user.profile_picture_url} />
+                  <AvatarFallback>
+                    <BoringAvatar
+                      size={40}
+                      name={user.username}
+                      variant="beam"
+                      colors={[
+                        "#84bfc3",
+                        "#fff5d6",
+                        "#ffb870",
+                        "#d96153",
+                        "#000511",
+                      ]}
+                    />
+                  </AvatarFallback>
+                </Avatar>
               ) : (
                 <BoringAvatar
                   size={40}

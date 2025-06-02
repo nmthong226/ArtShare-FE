@@ -3,8 +3,6 @@ import {
   Box,
   Typography,
   TextField,
-  Checkbox,
-  FormControlLabel,
   IconButton,
   FormHelperText,
   FormControl,
@@ -26,6 +24,7 @@ import {
 import { PostMedia } from "../types/post-media";
 import { MEDIA_TYPE } from "@/utils/constants";
 import { PostFormValues } from "../types/post-form-values.type";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const UploadForm: React.FC<{
   values: PostFormValues;
@@ -135,49 +134,57 @@ const UploadForm: React.FC<{
           </Typography>
           <FormControl component="fieldset" className="space-y-2 px-2">
             {/* Mature content checkbox */}
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={values.isMature || isMatureAutoDetected}
-                  disabled={isMatureAutoDetected}
-                  onChange={(e) => setFieldValue("isMature", e.target.checked)}
-                />
-              }
-              label={
-                <>
-                  <span
-                    className={`ml-1 ${
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="mature-content"
+                checked={values.isMature || isMatureAutoDetected}
+                disabled={isMatureAutoDetected}
+                onCheckedChange={(checked) =>
+                  setFieldValue("isMature", checked)
+                }
+                className={`${
+                  isMatureAutoDetected ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              />
+              <label
+                htmlFor="mature-content"
+                className={`text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${
+                  isMatureAutoDetected
+                    ? "text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    : "text-black dark:text-white cursor-pointer"
+                }`}
+              >
+                <span
+                  className={`ml-1 ${
+                    isMatureAutoDetected
+                      ? "text-gray-400 dark:text-gray-500"
+                      : "text-purple dark:text-white"
+                  }`}
+                >
+                  Has mature content{"\u00A0"}
+                </span>
+                <span
+                  className={`${
+                    isMatureAutoDetected
+                      ? "text-gray-400 dark:text-gray-500"
+                      : "text-black dark:text-white"
+                  }`}
+                >
+                  (see our{" "}
+                  <a
+                    href="/mature-content"
+                    className={`hover:underline ${
                       isMatureAutoDetected
-                        ? "text-gray-400 dark:text-gray-500" // Grayed out text when mature
-                        : "dark:text-white"
+                        ? "text-gray-400 dark:text-gray-500 pointer-events-none"
+                        : "text-blue-600 dark:text-blue-400"
                     }`}
                   >
-                    Has mature content
-                  </span>
-                  <span
-                    className={`${
-                      isMatureAutoDetected
-                        ? "text-gray-400 dark:text-gray-500" // Grayed out text when mature
-                        : "dark:text-mountain-200"
-                    }`}
-                  >
-                    {" "}
-                    (see our{" "}
-                    <a
-                      href="/mature-content"
-                      className={`hover:underline ${
-                        isMatureAutoDetected
-                          ? "text-gray-400 dark:text-gray-500 pointer-events-none" // Gray out link and disable clicks
-                          : ""
-                      }`}
-                    >
-                      guidelines
-                    </a>
-                    )
-                  </span>
-                </>
-              }
-            />
+                    guidelines
+                  </a>
+                  )
+                </span>
+              </label>
+            </div>
           </FormControl>
         </Box>
       </Box>
