@@ -1,6 +1,6 @@
 // TODO: remove this unused file
 
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 
 export default function useVideoFileHandler(
   setVideoFile: (file: File | undefined) => void,

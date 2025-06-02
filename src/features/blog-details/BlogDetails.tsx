@@ -21,7 +21,7 @@ import { fetchBlogComments } from "../post/api/comment.api";
 import { formatDistanceToNow } from "date-fns";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/contexts/UserProvider";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import {
   followUser,
   unfollowUser,
@@ -241,7 +241,7 @@ const BlogDetails = () => {
           <h1 className="font-medium text-2xl">{blog.title}</h1>{" "}
           <div className="flex items-center space-x-2 text-mountain-600 text-sm">
             <p>
-              Posted{" "}
+              Published{" "}
               {formatDistanceToNow(new Date(blog.created_at), {
                 addSuffix: true,
               })}

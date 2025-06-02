@@ -8,7 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { PostMenu } from "./PostMenu";
 import { auth } from "@/firebase";
 import { deletePost } from "@/api/post/post";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { useReport } from "@/features/user-profile-public/hooks/useReport";
 import ReportDialog from "@/features/user-profile-public/components/ReportDialog"; // This file will not be changed
 import { useState } from "react";

@@ -1,5 +1,5 @@
 import { useUser } from "@/contexts/UserProvider";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { Button } from "@mui/material";
 
 export function useRequireAuth() {

@@ -5,7 +5,7 @@ import { MEDIA_TYPE } from "@/utils/constants";
 import TabValue from "../enum/media-tab-value";
 import MediaUploadTab from "./media-upload-tab";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { RiImageCircleAiLine } from "react-icons/ri";
 import { TbDeviceDesktop } from "react-icons/tb";
 import MediaPreview from "./media-preview";

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Tooltip } from "@mui/material";
 import UploadForm from "./components/UploadForm"; // Adjust import path as needed
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { createPost } from "./api/create-post";
 
 import { useLocation, useNavigate } from "react-router-dom";

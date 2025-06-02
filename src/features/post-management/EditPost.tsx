@@ -6,7 +6,7 @@ import {
   Backdrop,
   CircularProgress,
 } from "@mui/material";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 
@@ -20,8 +20,12 @@ import { Area } from "react-easy-crop";
 import { fetchImageFileFromUrl } from "@/utils/fetch-media.utils";
 import { PostMedia } from "./types/post-media";
 import { usePostMediaUploader } from "./hooks/use-post-medias-uploader";
-import { createFormDataForEdit, getImageUrlsToRetain, getNewImageFiles, getNewVideoFile } from "./helpers/edit-post.helper";
-
+import {
+  createFormDataForEdit,
+  getImageUrlsToRetain,
+  getNewImageFiles,
+  getNewVideoFile,
+} from "./helpers/edit-post.helper";
 
 interface ThumbnailMeta {
   crop: { x: number; y: number };
@@ -62,7 +66,7 @@ const EditPost: React.FC = () => {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [postMedias, setPostMedias] = useState<PostMedia[]>([])
+  const [postMedias, setPostMedias] = useState<PostMedia[]>([]);
   const [thumbnailFile, setThumbnailFile] = useState<File | undefined>();
   const [originalThumbnailFile, setOriginalThumbnailFile] = useState<
     File | undefined
@@ -86,10 +90,7 @@ const EditPost: React.FC = () => {
   const isUploadMediaValid = postMedias.length > 0;
   const imageMedias = postMedias.filter((media) => media.type === "image");
   const videoMedia = postMedias.find((media) => media.type === "video");
-  const {
-    handleUploadVideo,
-    handleUploadImageFile,
-  } = usePostMediaUploader();
+  const { handleUploadVideo, handleUploadImageFile } = usePostMediaUploader();
 
   const getThumbnailCropMeta = () => {
     const cropMeta = JSON.parse(thumbnailCropMeta);
@@ -114,13 +115,11 @@ const EditPost: React.FC = () => {
     const metaData = getThumbnailCropMeta();
     setThumbnailMeta(metaData);
 
-    fetchImageFileFromUrl(metaData.initialThumbnail).then(
-      (file) => {
-        setLastCrop(metaData?.crop);
-        setLastZoom(metaData?.zoom);
-        setOriginalThumbnailFile(file);
-      },
-    );
+    fetchImageFileFromUrl(metaData.initialThumbnail).then((file) => {
+      setLastCrop(metaData?.crop);
+      setLastZoom(metaData?.zoom);
+      setOriginalThumbnailFile(file);
+    });
   }, [thumbnailCropMeta]);
 
   /** ─────────────────── preload fetched post into state ─────────────────── */
@@ -138,13 +137,11 @@ const EditPost: React.FC = () => {
     const initialMedias = postData.medias.map((media) => ({
       url: media.url,
       type: media.media_type,
-      file: new File([], 'template file for existing media'),
+      file: new File([], "template file for existing media"),
     }));
 
     setPostMedias(initialMedias);
   }, [postData]);
-
-
 
   /** ─────────────────── submit ─────────────────── */
   const handleSubmit = async () => {
@@ -168,10 +165,11 @@ const EditPost: React.FC = () => {
       const [newVideoUrl, newInitialThumbnailUrl, newThumbnailUrl] =
         await Promise.all([
           newVideoFile && handleUploadVideo(newVideoFile),
-          originalThumbnailFile && handleUploadImageFile(originalThumbnailFile, "original_thumbnail"),
+          originalThumbnailFile &&
+            handleUploadImageFile(originalThumbnailFile, "original_thumbnail"),
           thumbnailFile && handleUploadImageFile(thumbnailFile, "thumbnail"),
         ] as Promise<string | undefined>[]);
-      
+
       const body = createFormDataForEdit(
         title,
         getImageUrlsToRetain(imageMedias),
