@@ -36,6 +36,8 @@ import ReportDialog from "../user-profile-public/components/ReportDialog";
 import { useReport } from "../user-profile-public/hooks/useReport";
 import { ReportTargetType } from "../user-profile-public/api/report.api";
 
+import "./BlogDetails.css";
+
 const BlogDetails = () => {
   const { blogId } = useParams<{ blogId: string }>();
   const [showAuthorBadge, setShowAuthorBadge] = useState(false);
@@ -390,7 +392,7 @@ const BlogDetails = () => {
 
           {/* Blog Content */}
           <div
-            className="p-2 rounded-md max-w-none prose lg:prose-xl"
+            className="p-2 rounded-md max-w-none prose lg:prose-xl reset-tailwind"
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
           <hr className="flex border-mountain-200 border-t-1 w-full" />
