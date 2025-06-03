@@ -9,12 +9,6 @@ import { updateExistingBlog, UpdateBlogPayload } from "./api/blog.api";
 import { Blog } from "@/types/blog";
 import { AxiosError } from "axios";
 
-const isContentEmpty = (htmlContent: string | undefined): boolean => {
-  if (!htmlContent) return true;
-  const textContent = htmlContent.replace(/<[^>]*>/g, "").trim();
-  return textContent.length === 0;
-};
-
 const WriteBlog = () => {
   const editorRef = useRef<EditorHandle>(null);
   const { showSnackbar } = useSnackbar();
@@ -29,6 +23,7 @@ const WriteBlog = () => {
   >(null); // State to hold fetched content
 
   const [isPublished, setIsPublished] = useState(false);
+  const [tooltipOpen, setTooltipOpen] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
@@ -134,46 +129,15 @@ const WriteBlog = () => {
   const handleExportDocument = async () => {
     if (!editorRef.current || !blogId) return;
 
-    const trimmedTitle = blogTitle.trim();
-    const content = editorRef.current?.getContent();
-
-    if (!trimmedTitle || trimmedTitle === "Untitled Document") {
-      showSnackbar(
-        "Please provide a title for your blog before publishing.",
-        "error",
-      );
-      return;
-    }
-    if (isContentEmpty(content)) {
-      showSnackbar(
-        "Blog content cannot be empty. Please write something before publishing.",
-        "error",
-      );
-      return;
-    }
-
-    const numericBlogId = parseInt(blogId, 10);
-    const payload: UpdateBlogPayload = {
-      title: trimmedTitle,
-      is_published: true,
-      content,
-    };
-
+    const link = `http://localhost:5173/blogs/${blogId}`; // replace with your dynamic link
     try {
-      const updatedBlog: Blog = await updateExistingBlog(
-        numericBlogId,
-        payload,
-      );
-      showSnackbar("Blog published successfully!", "success");
-      navigate(`/blogs/${updatedBlog.id}`);
-    } catch (error: unknown) {
-      let errorMessage = "Failed to publish blog.";
-      if (error instanceof AxiosError) {
-        errorMessage = error.response?.data?.message || errorMessage;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      showSnackbar(errorMessage, "error");
+      await navigator.clipboard.writeText(link);
+      setTooltipOpen(true);
+      setTimeout(() => {
+        setTooltipOpen(false);
+      }, 1500);
+    } catch (err) {
+      console.error('Failed to copy!', err);
     }
   };
 
@@ -222,6 +186,7 @@ const WriteBlog = () => {
           text={blogTitle}
           setText={setBlogTitle}
           isPublished={isPublished}
+          tooltipOpen={tooltipOpen}
         />
         <div
           className={`border-l-1 bg-mountain-50 border-l-mountain-100 dark:border-l-mountain-700 h-full w-full`}
