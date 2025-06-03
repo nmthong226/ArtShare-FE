@@ -192,7 +192,10 @@ const ListButton = () => {
             label: "Bullet List",
             icon: ListIcon,
             isActive: () => editor?.isActive("bulletList"),
-            onClick: () => editor?.chain().focus().toggleBulletList().run(),
+            onClick: () => {
+              const check = editor?.chain().focus().toggleBulletList().run()
+              console.log("Bullet List toggled:", check);
+            },
         },
         {
             label: "Ordered List",

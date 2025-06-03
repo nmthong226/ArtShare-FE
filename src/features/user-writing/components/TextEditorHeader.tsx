@@ -2,7 +2,7 @@
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { Tooltip } from "@mui/material";
 import { InfoIcon } from "lucide-react";
-import { MdLockOutline } from "react-icons/md";
+import { MdCheckCircle, MdLockOutline } from "react-icons/md";
 import { AiOutlineSave } from "react-icons/ai";
 //Components
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,7 @@ interface TextEditorHeader {
   text: string;
   setText: (text: string) => void;
   isPublished: boolean;
+  tooltipOpen: boolean;
 }
 
 const TextEditorHeader: React.FC<TextEditorHeader> = ({
@@ -27,6 +28,7 @@ const TextEditorHeader: React.FC<TextEditorHeader> = ({
   text,
   setText,
   isPublished,
+  tooltipOpen,
 }) => {
   const { user, loading } = useUser();
 
@@ -74,14 +76,25 @@ const TextEditorHeader: React.FC<TextEditorHeader> = ({
             <AiOutlineSave className="mr-2 h-4 w-4 flex-shrink-0" />
             <span>{isPublished ? "Save and publish" : "Publish"}</span>
           </Button>
-          <Button
-            type="submit"
-            onClick={handleExport}
-            className="bg-indigo-400 shadow hover:brightness-95 border border-mountain-400 rounded-full w-36 h-9 font-medium text-white hover:cursor-pointer" // This button remains the same (indigo/purple)
-          >
-            <MdLockOutline />
-            <p>Share Blog</p>
-          </Button>
+          {isPublished && (
+            <Button
+              type="submit"
+              onClick={handleExport}
+              className="bg-indigo-400 shadow hover:brightness-95 border border-mountain-400 rounded-full w-36 h-9 font-medium text-white hover:cursor-pointer"
+            >
+              {tooltipOpen ? (
+                <>
+                  <p>Link copied!</p>
+                  <MdCheckCircle style={{ marginRight: "8px" }} />
+                </>
+              ) : (
+                <>
+                  <MdLockOutline style={{ marginRight: "8px" }} />
+                  <p>Share Blog</p>
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
       <div className={`flex items-center h-full`}>
