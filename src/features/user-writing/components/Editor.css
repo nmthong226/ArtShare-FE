@@ -280,3 +280,14 @@
 .reset-tailwind iframe {
   border: 2px inset;
 }
+
+/* Link styles */
+.reset-tailwind a {
+  color: var(--color-blue-700);
+  cursor: pointer;
+}
+
+.reset-tailwind a:hover {
+  color: var(--color-blue-600);
+  text-decoration: underline;
+}
