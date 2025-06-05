@@ -14,10 +14,12 @@ import { useUser } from "@/contexts/UserProvider";
 import { Blog } from "@/types/blog";
 import { TUTORIAL_TEMPLATE_HTML } from "@/constants/template";
 
+// Define a type for the sort order
+type BlogSortOrder = "latest" | "oldest" | "last7days" | "last30days";
+
 const DocumentDashboard = () => {
-  const [order, setOrder] = React.useState<
-    "today" | "last7days" | "last30days"
-  >("today");
+  // Set "latest" as the default order
+  const [order, setOrder] = React.useState<BlogSortOrder>("latest");
   const [userBlogs, setUserBlogs] = useState<Blog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,13 +28,11 @@ const DocumentDashboard = () => {
   const { showSnackbar } = useSnackbar();
   const { user } = useUser();
 
-  // State for managing the menu: store anchor element and the ID of the blog for which the menu is open
   const [menuState, setMenuState] = useState<{
     anchorEl: null | HTMLElement;
     currentBlogId: null | number;
   }>({ anchorEl: null, currentBlogId: null });
 
-  // Fetch user's documents
   useEffect(() => {
     const fetchUserDocuments = async () => {
       if (!user?.username) {
@@ -43,27 +43,46 @@ const DocumentDashboard = () => {
       try {
         setIsLoading(true);
         const blogs = await fetchBlogsByUsername(user.username);
+        let processedBlogs = [...blogs]; // Create a mutable copy
 
         const now = new Date();
-        const filteredBlogs = blogs.filter((blog) => {
-          const createdAt = new Date(blog.created_at);
-          const diffInDays = Math.floor(
-            (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24),
-          );
 
-          switch (order) {
-            case "today":
-              return diffInDays === 0;
-            case "last7days":
+        // Apply date range filtering for "last7days" or "last30days"
+        if (order === "last7days" || order === "last30days") {
+          processedBlogs = processedBlogs.filter((blog) => {
+            // Handle potential null updated_at
+            if (!blog.updated_at) return false;
+
+            const updatedAtDate = new Date(blog.updated_at);
+            const diffInMilliseconds = now.getTime() - updatedAtDate.getTime();
+            const diffInDays = Math.floor(
+              diffInMilliseconds / (1000 * 60 * 60 * 24),
+            );
+
+            if (order === "last7days") {
               return diffInDays <= 7;
-            case "last30days":
+            }
+            if (order === "last30days") {
               return diffInDays <= 30;
-            default:
-              return true;
+            }
+            return true;
+          });
+        }
+
+        // Apply sorting based on updated_at
+        processedBlogs.sort((a, b) => {
+          // IMPORTANT: Using a.updated_at and b.updated_at for sorting
+          const dateA = new Date(a.updated_at || a.created_at).getTime();
+          const dateB = new Date(b.updated_at || b.created_at).getTime();
+
+          if (order === "oldest") {
+            return dateA - dateB; // Ascending for oldest update
           }
+          // "latest", "last7days", "last30days" will sort by most recent update first
+          return dateB - dateA; // Descending for latest update
         });
 
-        setUserBlogs(filteredBlogs);
+        setUserBlogs(processedBlogs);
         setError(null);
       } catch (err) {
         console.error("Error fetching user documents:", err);
@@ -78,7 +97,7 @@ const DocumentDashboard = () => {
   }, [user?.username, order]);
 
   const handleChange = (event: SelectChangeEvent) => {
-    setOrder(event.target.value as "today" | "last7days" | "last30days");
+    setOrder(event.target.value as BlogSortOrder);
   };
 
   const createNewDocument = async () => {
@@ -88,7 +107,6 @@ const DocumentDashboard = () => {
         is_published: false,
         content: "Untitled Document",
       };
-
       const createdBlog = await createNewBlog(newBlogPayload);
       navigate(`/docs/${createdBlog.id}`);
     } catch (error) {
@@ -114,7 +132,6 @@ const DocumentDashboard = () => {
 
   const handleDocumentClick = (blogId: number) => {
     if (menuState.anchorEl && menuState.currentBlogId === blogId) {
-      // If clicking the card while its own menu is open, do nothing or close menu
       handleMenuClose();
       return;
     }
@@ -140,27 +157,21 @@ const DocumentDashboard = () => {
     event: React.MouseEvent<HTMLButtonElement>,
     blogId: number,
   ) => {
-    event.stopPropagation(); // Prevent card click
+    event.stopPropagation();
     setMenuState({ anchorEl: event.currentTarget, currentBlogId: blogId });
   };
 
-  // Updated handleClose to reset the new menu state
   const handleMenuClose = () => {
     setMenuState({ anchorEl: null, currentBlogId: null });
   };
 
-  const handleEdit = (blogId: number) => {
-    // Navigation is done directly
+  const onEditMenuClick = (blogId: number) => {
+    handleMenuClose();
     navigate(`/docs/${blogId}`);
   };
 
-  // Wrapper for menu item edit click
-  const onEditMenuClick = (blogId: number) => {
+  const onDeleteMenuClick = async (blogId: number) => {
     handleMenuClose(); // Close menu first
-    handleEdit(blogId); // Then navigate
-  };
-
-  const handleDelete = async (blogId: number) => {
     try {
       await deleteBlog(blogId);
       setUserBlogs((prev) => prev.filter((blog) => blog.id !== blogId));
@@ -170,21 +181,12 @@ const DocumentDashboard = () => {
       });
     } catch {
       showSnackbar("Failed to delete document", "error");
-    } finally {
-      handleMenuClose(); // Ensure menu is closed after delete attempt
     }
-  };
-
-  // Wrapper for menu item delete click
-  const onDeleteMenuClick = (blogId: number) => {
-    // handleDelete already calls handleMenuClose in its finally block
-    handleDelete(blogId);
   };
 
   return (
     <div className="flex flex-col items-center h-screen overflow-auto sidebar">
       <div className="flex justify-center border-mountain-50 border-b-1 w-full h-fit">
-        {/* ... (Create new document buttons - unchanged) ... */}
         <div className="flex flex-col justify-center items-center space-y-2 p-4 w-fit h-full">
           <div className="flex space-x-4 h-full">
             <div
@@ -230,11 +232,13 @@ const DocumentDashboard = () => {
                   MenuProps={{
                     disableScrollLock: true,
                   }}
-                  className="relative pl-8 rounded-full w-36 h-10"
+                  className="relative pl-8 rounded-full w-36 h-10" // Adjust width if needed for new labels
                 >
-                  <MenuItem value={"today"}>Today</MenuItem>
-                  <MenuItem value={"last7days"}>7 days</MenuItem>
-                  <MenuItem value={"last30days"}>30 days</MenuItem>
+                  {/* Updated MenuItems */}
+                  <MenuItem value={"latest"}>Latest</MenuItem>
+                  <MenuItem value={"oldest"}>Oldest</MenuItem>
+                  <MenuItem value={"last7days"}>Last 7 days</MenuItem>
+                  <MenuItem value={"last30days"}>Last 30 days</MenuItem>
                 </Select>
                 <IoFilter className="top-1/2 left-4 absolute -translate-y-1/2" />
               </FormControl>
@@ -254,7 +258,7 @@ const DocumentDashboard = () => {
             </div>
           ) : userBlogs.length === 0 ? (
             <div className="flex justify-center items-center col-span-full py-8 text-gray-500">
-              <span>No documents found for the selected time period.</span>
+              <span>No documents found for the selected criteria.</span>
             </div>
           ) : (
             userBlogs.map((blog) => (
@@ -280,7 +284,7 @@ const DocumentDashboard = () => {
                       {formatDate(blog.created_at)}
                     </p>
                     <IconButton
-                      onClick={(event) => handleMenuClick(event, blog.id)} // Pass blog.id
+                      onClick={(event) => handleMenuClick(event, blog.id)}
                       className="bg-white hover:bg-mountain-50 mr-2 w-6 h-6 text-mountain-600 cursor-pointer"
                       size="small"
                     >
@@ -288,13 +292,12 @@ const DocumentDashboard = () => {
                     </IconButton>
                     <Menu
                       anchorEl={menuState.anchorEl}
-                      // Open only if this blog's menu was clicked
                       open={
                         menuState.currentBlogId === blog.id &&
                         Boolean(menuState.anchorEl)
                       }
                       onClose={handleMenuClose}
-                      onClick={(e) => e.stopPropagation()} // Prevent card click if clicking on Menu background
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <MenuItem onClick={() => onEditMenuClick(blog.id)}>
                         Edit

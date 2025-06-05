@@ -11,7 +11,7 @@ export interface Blog {
   like_count: number;
   comment_count: number;
   share_count: number;
-  updated_at: string | null;
+  updated_at?: string | null;
   average_rating: number;
   is_protected: boolean;
   rating_count: number;
@@ -111,6 +111,7 @@ export interface SimpleBlogResponseDto {
   title: string;
   content: string;
   created_at: string;
+  updated_at: string | null;
   like_count: number;
   comment_count: number;
   share_count: number;
@@ -142,7 +143,7 @@ export const mapSimpleBlogResponseToBlog = (
     comment_count: backendBlog.comment_count,
     view_count: backendBlog.view_count,
     share_count: backendBlog.share_count,
-    updated_at: null, // Not provided in response
+    updated_at: backendBlog.updated_at,
     average_rating: 0, // Not provided in response
     is_protected: false, // Not provided in response
     rating_count: 0, // Not provided in response

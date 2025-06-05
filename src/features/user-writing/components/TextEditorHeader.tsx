@@ -76,25 +76,24 @@ const TextEditorHeader: React.FC<TextEditorHeader> = ({
             <AiOutlineSave className="mr-2 h-4 w-4 flex-shrink-0" />
             <span>{isPublished ? "Save and publish" : "Publish"}</span>
           </Button>
-          {isPublished && (
-            <Button
-              type="submit"
-              onClick={handleExport}
-              className="bg-indigo-400 shadow hover:brightness-95 border border-mountain-400 rounded-full w-36 h-9 font-medium text-white hover:cursor-pointer"
-            >
-              {tooltipOpen ? (
-                <>
-                  <p>Link copied!</p>
-                  <MdCheckCircle style={{ marginRight: "8px" }} />
-                </>
-              ) : (
-                <>
-                  <MdLockOutline style={{ marginRight: "8px" }} />
-                  <p>Share Blog</p>
-                </>
-              )}
-            </Button>
-          )}
+          <Button
+            type="submit"
+            onClick={handleExport}
+            disabled={!isPublished} // Disable if not published
+            className="bg-indigo-400 shadow hover:brightness-95 border border-mountain-400 rounded-full w-36 h-9 font-medium text-white hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" // Added disabled styles
+          >
+            {tooltipOpen && isPublished ? ( // Show "Link copied" only if published and tooltip is open
+              <>
+                <p>Link copied!</p>
+                <MdCheckCircle style={{ marginRight: "8px" }} />
+              </>
+            ) : (
+              <>
+                <MdLockOutline style={{ marginRight: "8px" }} />
+                <p>Share blog</p>
+              </>
+            )}
+          </Button>
         </div>
       </div>
       <div className={`flex items-center h-full`}>
