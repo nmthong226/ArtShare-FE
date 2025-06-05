@@ -33,6 +33,14 @@ const DocumentDashboard = () => {
     currentBlogId: null | number;
   }>({ anchorEl: null, currentBlogId: null });
 
+  // Function to get thumbnail image from blog
+  const getThumbnail = (blog: Blog): string => {
+    if (Array.isArray(blog.pictures) && blog.pictures[0]) {
+      return blog.pictures[0];
+    }
+    return "https://placehold.co/600x400";
+  };
+
   useEffect(() => {
     const fetchUserDocuments = async () => {
       if (!user?.username) {
@@ -267,10 +275,16 @@ const DocumentDashboard = () => {
                 className="flex flex-col justify-center items-center space-y-4 bg-white pb-2 border border-mountain-200 hover:border-indigo-600 rounded-lg cursor-pointer transition-colors duration-200"
                 onClick={() => handleDocumentClick(blog.id)}
               >
-                <div className="flex justify-center items-end bg-mountain-50 border border-mountain-50 rounded-t-lg w-full aspect-square">
-                  <div className="flex flex-col justify-center items-center bg-white p-2 w-[70%] h-[80%] text-mountain-400">
-                    <span className="text-xs select-none">My document</span>
-                  </div>
+                <div className="flex justify-center items-center bg-mountain-50 border border-mountain-50 rounded-t-lg w-full aspect-square overflow-hidden">
+                  <img
+                    src={getThumbnail(blog)}
+                    alt={blog.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to placeholder if image fails to load
+                      e.currentTarget.src = "https://placehold.co/600x400";
+                    }}
+                  />
                 </div>
                 <div className="flex flex-col justify-start items-start space-y-2 w-full">
                   <p
