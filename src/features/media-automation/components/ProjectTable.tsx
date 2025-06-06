@@ -19,9 +19,10 @@ import { IoFilter, IoTrashBin } from 'react-icons/io5';
 import { Button } from '@mui/material';
 import { getComparator } from '../utils/Utils';
 import { useMemo, useState } from 'react';
-import ProjectDetailsModal from './ProjectDetails';
-import { Data, EnhancedTableProps, EnhancedTableToolbarProps, HeadCell, Order, SortableKeys } from '../types/types';
+import { Data, EnhancedTableProps, EnhancedTableToolbarProps, HeadCell, Order, SortableKeys } from '../types/automation-project';
 import { ProjectData } from '../mocks/data';
+import { generateSlug } from '@/utils/common';
+import { useNavigate } from 'react-router-dom';
 
 const headCells: readonly HeadCell[] = [
     {
@@ -146,18 +147,16 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
     );
 }
 export default function ProjectTable() {
+    const navigate = useNavigate();
     const [order, setOrder] = useState<Order>('asc');
     const [orderBy, setOrderBy] = useState<SortableKeys>('projectName');
     const [selected, setSelected] = useState<readonly number[]>([]);
     const [page, setPage] = useState(0);
     const [dense, setDense] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [selectedRow, setSelectedRow] = useState<Data | null>(null);
-    const [openDialog, setOpenDialog] = useState(false);
 
     const handleRowClick = (row: Data) => {
-        setSelectedRow(row);
-        setOpenDialog(true);
+        navigate(`/auto/${generateSlug(row.projectName)}/details`, { state: { row } });
     };
 
     const handleRequestSort = (
@@ -338,11 +337,11 @@ export default function ProjectTable() {
                     className='overflow-hidden'
                 />
             </div>
-            <ProjectDetailsModal
+            {/* <ProjectDetailsModal
                 openDiaLog={openDialog}
                 setOpenDialog={setOpenDialog}
                 selectedRow={selectedRow!}
-            />
+            /> */}
         </div>
     );
 }

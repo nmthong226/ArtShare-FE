@@ -2,12 +2,18 @@ import { MdOutlineAddBox } from "react-icons/md"
 import ProjectTable from "./components/ProjectTable"
 import { FaCalendarCheck, FaCalendarDays } from "react-icons/fa6"
 import { FaCalendarTimes } from "react-icons/fa"
+import { useNavigate } from "react-router-dom"
 
 const AutomationProject = () => {
+    const navigate = useNavigate();
+    const navigateToCreateProject = () => {
+        navigate("/auto/my-projects/new");
+    }
+
     return (
         <div className="flex flex-col space-y-4 p-4 w-full h-screen">
             <div className='flex gap-x-12 w-full'>
-                <div className='flex justify-center items-center space-x-2 bg-mountain-50 hover:bg-mountain-50/80 shadow-md p-4 rounded-3xl w-1/3 h-28 cursor-pointer'>
+                <div onClick={navigateToCreateProject} className='flex justify-center items-center space-x-2 bg-mountain-50 hover:bg-mountain-50/80 shadow-md p-4 rounded-3xl w-1/3 h-28 cursor-pointer'>
                     <MdOutlineAddBox className="size-8" />
                     <p className="font-medium text-lg">Create New Project</p>
                 </div>

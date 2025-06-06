@@ -1,4 +1,4 @@
-import { AutoPost, Data, Order, PostStatus, SortableKeys } from "../types/types";
+import { AutoPost, Data, Order, PostStatus, SortableKeys } from "../types/automation-project";
 
 export function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
     if (b[orderBy] < a[orderBy]) {

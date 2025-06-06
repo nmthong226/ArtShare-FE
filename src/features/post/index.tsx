@@ -87,7 +87,7 @@ const Post: React.FC = () => {
 
   if (!postId || isNaN(numericPostId)) {
     return (
-      <div className="flex items-center justify-center m-4">
+      <div className="flex justify-center items-center m-4">
         Invalid Post ID.
       </div>
     );
@@ -95,7 +95,7 @@ const Post: React.FC = () => {
 
   if (isPostLoading || isCommentsLoading) {
     return (
-      <div className="flex items-center justify-center h-screen m-4 text-center">
+      <div className="flex justify-center items-center m-4 h-screen text-center">
         <CircularProgress size={36} />
         <p className="ml-2">Loading...</p>
       </div>
@@ -104,7 +104,7 @@ const Post: React.FC = () => {
 
   if (postError) {
     return (
-      <div className="flex items-center justify-center m-4">
+      <div className="flex justify-center items-center m-4">
         Error loading post:{" "}
         {(postError as Error).message || "Failed to fetch post."}
       </div>
@@ -113,7 +113,7 @@ const Post: React.FC = () => {
 
   if (commentsError && postData) {
     return (
-      <div className="flex items-center justify-center m-4">
+      <div className="flex justify-center items-center m-4">
         Error loading comments:{" "}
         {(commentsError as Error).message || "Failed to fetch comments."}
       </div>
@@ -122,7 +122,7 @@ const Post: React.FC = () => {
 
   if (!postData) {
     return (
-      <div className="flex items-center justify-center m-4">
+      <div className="flex justify-center items-center m-4">
         Post not found or data is unavailable.
       </div>
     );
@@ -130,7 +130,7 @@ const Post: React.FC = () => {
 
   if (!comments) {
     return (
-      <div className="flex items-center justify-center m-4">
+      <div className="flex justify-center items-center m-4">
         Comments not found or data is unavailable.
       </div>
     );
@@ -139,10 +139,10 @@ const Post: React.FC = () => {
   const displayAssets = !postData.is_mature || showMatureContent;
 
   return (
-    <div className="relative flex-grow bg-mountain-50 p-4 h-[calc(100vh-4rem)] overflow-y-scroll no-scrollbar">
+    <div className="relative flex-grow h-[calc(100vh-4rem)] overflow-hidden">
       {/* Mobile Layout */}
-      <div className="relative flex flex-col h-full p-4 bg-white shadow md:hidden rounded-2xl">
-        <div className="h-full overflow-y-auto rounded-2xl">
+      <div className="md:hidden relative flex flex-col bg-white shadow p-4 rounded-t-3xl h-full">
+        <div className="h-full overflow-y-auto sidebar">
           <PostArtist artist={postData.user} postData={postData} />
           {displayAssets ? (
             <PostAssets medias={postData.medias} />
@@ -165,16 +165,16 @@ const Post: React.FC = () => {
       </div>
 
       {/* Desktop Layout */}
-      <div className="flex-row hidden h-full gap-4 md:flex">
-        <div className="flex items-center justify-center flex-grow h-full">
+      <div className="hidden md:flex flex-row gap-4 h-full">
+        <div className="flex flex-grow justify-center items-center h-full overflow-hidden sidebar">
           {displayAssets ? (
             <PostAssets medias={postData.medias} />
           ) : (
             <MatureContentWarning onShow={handleShowMatureContent} />
           )}
         </div>
-        <div className="relative flex-shrink-0 bg-white shadow py-0 pl-4 sm:w-[256px] md:w-[384px] lg:w-[448px] overflow-hidden">
-          <div className="flex flex-col h-full gap-4 sidebar">
+        <div className="relative flex-shrink-0 bg-white shadow py-0 pl-4 rounded-t-3xl sm:w-[256px] md:w-[384px] lg:w-[448px] overflow-hidden">
+          <div className="flex flex-col gap-4 h-full sidebar">
             <PostArtist artist={postData!.user} postData={postData!} />
             <PostInfo
               postData={postData}

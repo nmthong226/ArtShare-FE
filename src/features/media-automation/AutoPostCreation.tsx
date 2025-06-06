@@ -1,6 +1,8 @@
 const AutoPostCreation = () => {
     return (
-        <div>PostCreation</div>
+        <div className={`flex flex-row w-full h-screen`}>
+
+        </div>
     )
 }
 

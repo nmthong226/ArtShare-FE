@@ -83,6 +83,7 @@ export const routesForHeaders = [
     path: "/blogs/:id",
     label: "Read Blogs",
     description: "Dive into creative experiences shared by artists",
+    parent: "/blogs"
   },
   {
     path: "/docs",
@@ -105,6 +106,7 @@ export const routesForHeaders = [
     path: "/posts/:id",
     label: "Post Details",
     description: "View artwork in detail and engage with the artist's post",
+    parent: "/explore"
   },
   {
     path: "/collections",
@@ -122,13 +124,31 @@ export const routesForHeaders = [
     description: "This place is yours",
   },
   {
-    path: "/auto/new-connect",
+    path: "/auto/link-social",
     label: "Link Socials",
     description: "Connect social accounts to enable automated posting",
+  },
+  {
+    path: "/auto/:slug/posts/new",
+    label: "Create Posts For Workflow",
+    description: "",
+    parent: "/auto/:slug/details"
   },
   {
     path: "/auto/my-projects",
     label: "Automation Projects",
     description: "Manage your automated content workflows",
+  },
+  {
+    path: "/auto/my-projects/new",
+    label: "New Workflow",
+    description: "Create new workflow for automative upload",
+    parent: "/auto/my-projects",
+  },
+  {
+    path: "/auto/:slug/details",
+    label: "Details",
+    description: "Manage your automated content workflows",
+    parent: "/auto/my-projects",
   },
 ];

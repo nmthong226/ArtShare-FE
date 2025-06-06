@@ -2,37 +2,35 @@ import { Link } from "react-router-dom";
 
 //Icons
 import { InfoIcon } from "lucide-react";
-import { BiEdit } from "react-icons/bi";
 import { FaArrowLeftLong } from "react-icons/fa6";
-import { RiImageAiLine } from "react-icons/ri";
 
 //Components
 import Tooltip from "@mui/material/Tooltip";
-import UserInAppConfigs from "../popovers/UserInAppConfigs";
+import UserButton from "@/components/header/user-button";
+import UserInAppConfigs from "@/components/popovers/UserInAppConfigs";
 
 //Context
 import { useUser } from "@/contexts/UserProvider";
-import UserButton from "./user-button";
 
-const AIHeader = () => {
-  const { user, loading } = useUser();
+const AutoPostHeader = () => {
+    const { user, loading } = useUser();
 
     return (
         <nav className={`z-50 flex relative justify-between items-center bg-gradient-to-r from-indigo-100 via-purple-50 to-pink-50 dark:bg-mountain-950 px-4 border-b-1 border-b-mountain-100 dark:border-b-mountain-700 w-full h-16`}>
             <div className="flex items-center h-full">
-                <Link to="/explore" className='flex justify-center items-center hover:bg-mountain-100 mr-4 p-2 rounded-lg'>
+                <Link to="/auto/my-projects" className='flex justify-center items-center hover:bg-mountain-100 mr-4 p-2 rounded-lg'>
                     <FaArrowLeftLong className='size-5 text-mountain-600' />
                 </Link>
                 <div className='flex items-center space-x-2'>
                     <span className='flex font-medium text-lg'>
-                        Dashboard
+                        Automation Projects
                     </span>
                     <Tooltip title={"Return Home"}>
                         <InfoIcon className='size-4' />
                     </Tooltip>
                 </div>
             </div>
-            <div className="hidden top-1/2 left-1/2 absolute lg:flex justify-between items-center space-x-2 bg-mountain-50 px-1 rounded-2xl w-fit h-10 -translate-x-1/2 -translate-y-1/2">
+            {/* <div className="hidden top-1/2 left-1/2 absolute lg:flex justify-between items-center space-x-2 bg-mountain-50 px-1 rounded-2xl w-fit h-10 -translate-x-1/2 -translate-y-1/2">
                 {[
                     { label: 'Text To Image', href: '/image/tool/text-to-image', icon: RiImageAiLine },
                     // { label: 'Creative Upscale', href: '/image/tool/upscale', icon: LuImageUpscale },
@@ -46,7 +44,7 @@ const AIHeader = () => {
                         </Link>
                     )
                 })}
-            </div>
+            </div> */}
             <div className={`flex items-center h-full space-x-2`}>
                 <UserButton user={user!} loading={loading!} />
                 <UserInAppConfigs />
@@ -55,4 +53,4 @@ const AIHeader = () => {
     )
 }
 
-export default AIHeader;
+export default AutoPostHeader;

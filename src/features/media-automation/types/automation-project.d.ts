@@ -82,3 +82,9 @@ interface HeadCellItemTable {
     label: string;
     numeric: boolean;
 }
+
+interface GenPostContent {
+    id: number;
+    title: string;
+    content: string;
+}

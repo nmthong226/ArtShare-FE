@@ -73,12 +73,10 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
     isOpen(type) ? `${type}-popover` : undefined;
 
   return (
-    <aside
-      className={`${expand ? "w-60" : "w-16"} h-screen transition-all ease-in-out duration-500  top-0 z-20 sticky xs:flex flex-col border-r-1 border-indigo-200 flex-shrink-0 flex-none justify-between space-y-4 dark:bg-mountain-950 py-4 dark:border-r-mountain-700 overflow-hidden`}
-    >
-      <div className="flex flex-col space-y-6">
+    <aside className={`${expand ? "w-60" : "w-16"} h-screen transition-all ease-in-out duration-500  top-0 z-20 sticky xs:flex flex-col border-r-1 border-indigo-200 flex-shrink-0 flex-none justify-between space-y-4 dark:bg-mountain-950 dark:border-r-mountain-700 overflow-hidden`}>
+      <div className="flex flex-col">
         {/* Sidebar Header */}
-        <div className="flex justify-between items-center px-4">
+        <div className="flex justify-between items-center px-4 h-16">
           <div
             className={`flex items-center overflow-hidden ease-in-out transition-all duration-500 ${expand ? "w-auto opacity-100" : "opacity-0"}`}
           >
@@ -243,13 +241,13 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                     <RiImageAiLine className="mr-2 size-4" />
                     <p>Text To Image</p>
                   </Link>
-                  <Link
+                  {/* <Link
                     to="/image/tool/upscale"
                     className="flex items-center p-2 border-mountain-200 border-b-1 hover:text-blue-600 text-sm"
                   >
                     <LuImageUpscale className="mr-2 size-4" />
                     <p>Creative Upscale</p>
-                  </Link>
+                  </Link> */}
                   <Link
                     to="/image/tool/editor"
                     className="flex items-center p-2 hover:text-blue-600 text-sm"
@@ -261,11 +259,8 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               </Popover>
               <CollapsibleContent className="space-y-1 ml-6 px-1 border-purple-800 border-l-1 overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
                 {[
-                  {
-                    label: "Image Generation",
-                    href: "/image/tool/text-to-image",
-                  },
-                  { label: "Creative Upscale", href: "#" },
+                  { label: "Image Generation", href: "/image/tool/text-to-image" },
+                  // { label: "Creative Upscale", href: "#" },
                   { label: "Image Editor", href: "/image/tool/editor" },
                 ].map((item, index) => {
                   const isActive = pathname === item.href;
@@ -360,7 +355,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               </Popover>
               <CollapsibleContent className="space-y-1 ml-6 px-1 border-purple-800 border-l-1 overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
                 {[
-                  { label: 'Link Socials', href: '/auto/new-connect' },
+                  { label: 'Link Socials', href: '/auto/link-social' },
                   { label: 'Manage Workflows', href: '/auto/my-projects' },
                   { label: 'Scheduling Center', href: '#' },
                 ].map((item, index) => {

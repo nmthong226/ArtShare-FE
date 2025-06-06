@@ -8,7 +8,9 @@ import Checkbox from '@mui/material/Checkbox';
 import Tooltip from '@mui/material/Tooltip';
 import { Button } from '@mui/material';
 import { useState } from 'react';
-import { Data, HeadCellItemTable, ItemTableProps, Order, SortableKeysItemTable } from '../types/types';
+import { Data, HeadCellItemTable, ItemTableProps, Order, SortableKeysItemTable } from '../types/automation-project';
+import { useNavigate } from 'react-router-dom';
+import { generateSlug } from '@/utils/common';
 
 const headCells: readonly HeadCellItemTable[] = [
     {
@@ -85,6 +87,7 @@ const ProjectItemTable = ({ selectedRow }: { selectedRow: Data }) => {
     const [selected, setSelected] = useState<readonly number[]>([]);
     const [page] = useState(0);
     const [rowsPerPage] = useState(7);
+    const navigate = useNavigate();
 
     const handleRequestSort = (
         _event: React.MouseEvent<unknown>,
@@ -125,6 +128,13 @@ const ProjectItemTable = ({ selectedRow }: { selectedRow: Data }) => {
 
     const emptyRows =
         page > 0 ? Math.max(0, (1 + page) * rowsPerPage - (selectedRow.posts ? selectedRow.posts.length : 0)) : 0;
+
+    const handleAddPostClick = () => {
+        if (!selectedRow) return;
+        const slug = generateSlug(selectedRow.projectName || 'project');
+
+        navigate(`/auto/${slug}/posts/new`);
+    }
 
     return (
         <div className='flex border border-mountain-200 rounded-3xl w-full'>
@@ -217,7 +227,7 @@ const ProjectItemTable = ({ selectedRow }: { selectedRow: Data }) => {
                                             onClick={() => console.log('Add post clicked')} // Replace with your add logic
                                         >
                                             <TableCell colSpan={7} align="center">
-                                                <Button variant="outlined" color="primary" className='bg-white border-mountain-200 w-48 text-mountain-950'>
+                                                <Button onClick={() => handleAddPostClick()} variant="outlined" color="primary" className='bg-white border-mountain-200 w-48 text-mountain-950'>
                                                     + Add Post
                                                 </Button>
                                             </TableCell>
