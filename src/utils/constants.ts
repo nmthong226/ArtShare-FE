@@ -86,7 +86,7 @@ export const routesForHeaders = [
   },
   {
     path: "/docs",
-    label: "My Documents",
+    label: "My Writing",
     description: "Your space to write and manage your knowledge, sharings",
   },
   {

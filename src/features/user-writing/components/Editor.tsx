@@ -36,6 +36,10 @@ import { EditorView } from "@tiptap/pm/view";
 import { Mark, MarkType, ResolvedPos } from "@tiptap/pm/model";
 import "./Editor.css";
 
+interface EditorProps {
+  onChange?: () => void;
+}
+
 export type EditorHandle = {
   getContent: () => string | undefined;
   setContent: (content: string) => void;
@@ -292,7 +296,7 @@ const LinkEditModal = ({
   );
 };
 
-const Editor = forwardRef<EditorHandle>((_, ref) => {
+const Editor = forwardRef<EditorHandle, EditorProps>(({ onChange }, ref) => {
   const { setEditor } = useEditorStore();
   const [linkModal, setLinkModal] = useState<{
     isOpen: boolean;
@@ -487,6 +491,11 @@ const Editor = forwardRef<EditorHandle>((_, ref) => {
       },
       onCreate({ editor }) {
         setEditor(editor);
+      },
+      onUpdate() {
+        if (onChange) {
+          onChange();
+        }
       },
     },
     [],

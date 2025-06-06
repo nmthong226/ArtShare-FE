@@ -3,31 +3,97 @@ import Editor, { EditorHandle } from "./components/Editor";
 import TextEditorHeader from "./components/TextEditorHeader";
 import Toolbar from "./components/Toolbar";
 import { useSnackbar } from "@/hooks/useSnackbar";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { fetchBlogDetails } from "../blog-details/api/blog";
 import { updateExistingBlog, UpdateBlogPayload } from "./api/blog.api";
 import { Blog } from "@/types/blog";
 import { AxiosError } from "axios";
+import { TUTORIAL_TEMPLATE_HTML } from "@/constants/template";
+import { AutoSaveStatus } from "./components/AutoSaveStatus";
 
 const WriteBlog = () => {
   const editorRef = useRef<EditorHandle>(null);
   const { showSnackbar } = useSnackbar();
   const { blogId } = useParams<{ blogId: string }>();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const isNewDocument = blogId === "new";
+  const templateType = searchParams.get("template");
 
   const [blogTitle, setBlogTitle] = useState("Untitled Document");
-  const [isApiLoading, setIsApiLoading] = useState(true);
+  const [isApiLoading, setIsApiLoading] = useState(!isNewDocument);
   const [isContentLoadedIntoEditor, setIsContentLoadedIntoEditor] =
-    useState(false);
+    useState(isNewDocument);
   const [initialFetchedContent, setInitialFetchedContent] = useState<
     string | null
-  >(null); // State to hold fetched content
-
+  >(
+    isNewDocument
+      ? templateType === "tutorial"
+        ? TUTORIAL_TEMPLATE_HTML
+        : ""
+      : null,
+  );
   const [isPublished, setIsPublished] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState<boolean>(false);
-
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<
+    "saved" | "saving" | "unsaved" | "error"
+  >("saved");
+  const [lastSaved, setLastSaved] = useState<Date | undefined>(undefined);
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("@@ has unsaved changes", hasUnsavedChanges, blogId);
+    if (!hasUnsavedChanges || !blogId || blogId === "new") return;
+
+    const autoSaveTimer = setTimeout(async () => {
+      const content = editorRef.current?.getContent();
+      if (content && blogId !== "new") {
+        try {
+          await updateExistingBlog(parseInt(blogId, 10), {
+            content,
+            title: blogTitle,
+            is_published: false, // Keep as draft
+          });
+          setHasUnsavedChanges(false); // Reset after successful save
+          console.log("Auto-saved successfully");
+        } catch (error) {
+          console.error("Auto-save failed:", error);
+        }
+      }
+    }, 5000); // Auto-save every 5 seconds
+
+    return () => clearTimeout(autoSaveTimer);
+  }, [hasUnsavedChanges, blogId, blogTitle]);
+
+  // Add a function to handle editor content changes
+  const handleEditorChange = () => {
+    if (!isNewDocument && blogId !== "new") {
+      setHasUnsavedChanges(true);
+    }
+  };
+
+  // Also trigger on title changes
+  const handleTitleChange = (newTitle: string) => {
+    setBlogTitle(newTitle);
+    if (!isNewDocument && blogId !== "new") {
+      setHasUnsavedChanges(true);
+    }
+  };
+
+  useEffect(() => {
+    // Skip API call for new documents
+    if (isNewDocument) {
+      setIsApiLoading(false);
+      if (editorRef.current) {
+        const content =
+          templateType === "tutorial" ? TUTORIAL_TEMPLATE_HTML : "";
+        editorRef.current.setContent(content);
+        editorRef.current.focus();
+      }
+      return;
+    }
+
     if (!blogId) {
       showSnackbar("No blog ID provided.", "error");
       navigate("/blogs", { replace: true });
@@ -73,7 +139,7 @@ const WriteBlog = () => {
       .finally(() => {
         setIsApiLoading(false);
       });
-  }, [blogId, navigate, showSnackbar]);
+  }, [blogId, navigate, showSnackbar, isNewDocument, templateType]);
 
   // This effect ensures content is set if the editor wasn't ready during the fetch's .then()
   useEffect(() => {
@@ -115,6 +181,37 @@ const WriteBlog = () => {
     }
   }, [isContentLoadedIntoEditor, isApiLoading]);
 
+  // Update the auto-save effect
+  useEffect(() => {
+    if (!hasUnsavedChanges || !blogId || blogId === "new") return;
+
+    // Set status to unsaved when changes are detected
+    setSaveStatus("unsaved");
+
+    const autoSaveTimer = setTimeout(async () => {
+      const content = editorRef.current?.getContent();
+      if (content && blogId !== "new") {
+        setSaveStatus("saving");
+        try {
+          await updateExistingBlog(parseInt(blogId, 10), {
+            content,
+            title: blogTitle,
+            is_published: false,
+          });
+          setHasUnsavedChanges(false);
+          setSaveStatus("saved");
+          setLastSaved(new Date());
+          console.log("Auto-saved successfully");
+        } catch (error) {
+          console.error("Auto-save failed:", error);
+          setSaveStatus("error");
+        }
+      }
+    }, 5000);
+
+    return () => clearTimeout(autoSaveTimer);
+  }, [hasUnsavedChanges, blogId, blogTitle]);
+
   if (isApiLoading) {
     return (
       <div className="flex justify-center items-center w-full h-screen">
@@ -137,13 +234,14 @@ const WriteBlog = () => {
         setTooltipOpen(false);
       }, 1500);
     } catch (err) {
-      console.error('Failed to copy!', err);
+      console.error("Failed to copy!", err);
     }
   };
 
   const handleSaveBlog = async (currentTitle: string) => {
     if (!editorRef.current || !blogId) return;
 
+    setSaveStatus("saving");
     const content = editorRef.current?.getContent();
     const images = editorRef.current?.getImages() || [];
     const numericBlogId = parseInt(blogId, 10);
@@ -161,10 +259,12 @@ const WriteBlog = () => {
         numericBlogId,
         payload,
       );
-      // showSnackbar("Blog saved successfully!", "success");
+      setSaveStatus("saved");
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
       navigate(`/blogs/${updatedBlog.id}`);
-      // setBlogTitle(updatedBlog.title);
     } catch (error: unknown) {
+      setSaveStatus("error");
       let errorMessage = "Failed to save blog.";
       if (error instanceof AxiosError) {
         errorMessage = error.response?.data?.message || errorMessage;
@@ -184,9 +284,12 @@ const WriteBlog = () => {
           handleExport={handleExportDocument}
           handleSaveBlog={handleSaveBlog}
           text={blogTitle}
-          setText={setBlogTitle}
+          setText={handleTitleChange}
           isPublished={isPublished}
           tooltipOpen={tooltipOpen}
+          saveStatus={
+            <AutoSaveStatus status={saveStatus} lastSaved={lastSaved} />
+          }
         />
         <div
           className={`border-l-1 bg-mountain-50 border-l-mountain-100 dark:border-l-mountain-700 h-full w-full`}
@@ -197,7 +300,7 @@ const WriteBlog = () => {
               <LuPencilLine className="size-6 text-white" />
             </div> */}
             <div className="flex mx-auto py-4 print:py-0 pb-20 w-[794px] print:w-full min-w-max min-h-[1123px] overflow-y-hidden mt-6">
-              <Editor ref={editorRef} />
+              <Editor ref={editorRef} onChange={handleEditorChange} />
             </div>
           </div>
         </div>

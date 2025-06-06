@@ -1,5 +1,5 @@
 //Icons
-import { FaArrowLeftLong } from "react-icons/fa6";
+import { FaArrowLeftLong, FaEye } from "react-icons/fa6";
 import { Tooltip } from "@mui/material";
 import { InfoIcon } from "lucide-react";
 import { MdCheckCircle, MdLockOutline } from "react-icons/md";
@@ -11,26 +11,30 @@ import UserButton from "@/components/header/user-button";
 import UserInAppConfigs from "@/components/popovers/UserInAppConfigs";
 //Context
 import { useUser } from "@/contexts/UserProvider";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
-interface TextEditorHeader {
+interface TextEditorHeaderProps {
   handleExport: () => void;
   handleSaveBlog: (blogName: string) => void;
   text: string;
   setText: (text: string) => void;
   isPublished: boolean;
   tooltipOpen: boolean;
+  saveStatus?: React.ReactNode;
 }
 
-const TextEditorHeader: React.FC<TextEditorHeader> = ({
+const TextEditorHeader: React.FC<TextEditorHeaderProps> = ({
   handleExport,
   handleSaveBlog,
   text,
   setText,
   isPublished,
   tooltipOpen,
+  saveStatus,
 }) => {
   const { user, loading } = useUser();
+  const navigate = useNavigate();
+  const { blogId } = useParams<{ blogId: string }>();
 
   const baseWidth = 300;
   const maxWidth = 600;
@@ -39,66 +43,125 @@ const TextEditorHeader: React.FC<TextEditorHeader> = ({
     baseWidth + Math.max(0, (text.length - 36) * 8),
     maxWidth,
   );
+
+  const handlePreview = () => {
+    if (blogId && blogId !== "new") {
+      navigate(`/blogs/${blogId}`);
+    }
+  };
+
   return (
     <nav
-      className={`top-0 z-50 sticky px-4 flex justify-between items-center bg-gradient-to-r from-indigo-100 via-purple-50 to-pink-50 dark:bg-mountain-950 border-b-1 border-b-mountain-100 dark:border-b-mountain-700 w-full h-16`}
+      className={`
+        top-0 z-50 sticky w-full h-16 px-4
+        flex items-center justify-between gap-4
+        bg-gradient-to-r from-indigo-100 via-purple-50 to-pink-50
+        dark:bg-mountain-950
+        border-b-1 border-b-mountain-100 dark:border-b-mountain-700
+      `}
     >
-      <div className="flex items-center h-full">
+      {/* ===== Left Section ===== */}
+      <div className="flex items-center gap-4 flex-shrink-0">
         <Link
           to="/docs"
-          className="flex justify-center items-center hover:bg-mountain-50 mr-4 p-2 rounded-lg"
+          className="flex justify-center items-center hover:bg-mountain-50 p-2 rounded-lg transition-colors"
         >
           <FaArrowLeftLong className="size-5 text-mountain-600" />
         </Link>
-        <div className="flex items-center space-x-2">
-          <span className="flex font-medium text-lg">My Documents</span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-lg whitespace-nowrap">
+            My Writing
+          </span>
           <Tooltip
-            title={"Share your exprience through characters, paragraphs..."}
+            title={"Share your experience through characters, paragraphs..."}
           >
             <InfoIcon className="size-4" />
           </Tooltip>
         </div>
       </div>
-      <div className="top-1/2 left-1/2 absolute flex justify-between items-center space-x-2 w-[600px] -translate-x-1/2 -translate-y-1/2">
+
+      {/* ===== Center Section ===== */}
+      <div className="flex-grow flex items-center justify-center gap-4">
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
           style={{ width: `${dynamicWidth}px` }}
-          className="flex bg-white/60 px-4 rounded-full h-12 placeholder:text-mountain-600 transition-all duration-300 ease-in-out"
+          className="
+            flex-shrink
+            bg-white/60 px-4 rounded-full h-12
+            placeholder:text-mountain-600
+            transition-all duration-300 ease-in-out"
           placeholder="Name Your Document Here..."
         />
-        <div className="flex space-x-2">
-          <Button
-            onClick={() => handleSaveBlog(text)}
-            className="bg-green-600 shadow hover:brightness-95 border border-emerald-700 rounded-full h-9 px-4 font-medium text-white" // Changed background: from-emerald-500 to-green-600
-            // Changed border: border-emerald-700 (to match the new gradient)
-          >
-            <AiOutlineSave className="mr-2 h-4 w-4 flex-shrink-0" />
-            <span>{isPublished ? "Save and publish" : "Publish"}</span>
-          </Button>
-          <Button
-            type="submit"
-            onClick={handleExport}
-            disabled={!isPublished} // Disable if not published
-            className="bg-indigo-400 shadow hover:brightness-95 border border-mountain-400 rounded-full w-36 h-9 font-medium text-white hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" // Added disabled styles
-          >
-            {tooltipOpen && isPublished ? ( // Show "Link copied" only if published and tooltip is open
-              <>
-                <p>Link copied!</p>
-                <MdCheckCircle style={{ marginRight: "8px" }} />
-              </>
-            ) : (
-              <>
-                <MdLockOutline style={{ marginRight: "8px" }} />
-                <p>Share blog</p>
-              </>
-            )}
-          </Button>
-        </div>
+        {saveStatus && <div className="flex-shrink-0">{saveStatus}</div>}
       </div>
-      <div className={`flex items-center h-full`}>
-        <UserButton user={user!} loading={loading!} />
-        <UserInAppConfigs />
+
+      {/* ===== Right Section ===== */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <Tooltip
+          title={
+            blogId === "new" ? "Save document first to preview" : "Preview blog"
+          }
+        >
+          <div>
+            <Button
+              onClick={handlePreview}
+              variant="outline"
+              size="icon"
+              disabled={blogId === "new"}
+              className="
+          bg-white/60 hover:bg-white/90 border-gray-300
+          rounded-full h-9 w-9
+          disabled:opacity-50 disabled:cursor-not-allowed
+        "
+            >
+              <FaEye className="h-4 w-4 text-gray-600" />
+            </Button>
+          </div>
+        </Tooltip>
+
+        <Button
+          onClick={() => handleSaveBlog(text)}
+          className="
+            bg-green-600 shadow hover:brightness-95
+            border border-emerald-700 rounded-full
+            h-9 px-4 font-medium text-white
+            flex items-center gap-2
+          "
+        >
+          <AiOutlineSave className="h-4 w-4" />
+          <span className="whitespace-nowrap">
+            {isPublished ? "Save and publish" : "Publish"}
+          </span>
+        </Button>
+        <Button
+          type="submit"
+          onClick={handleExport}
+          disabled={!isPublished}
+          className="
+            bg-indigo-400 shadow hover:brightness-95
+            border border-mountain-400 rounded-full
+            w-36 h-9 font-medium text-white
+            disabled:opacity-50 disabled:cursor-not-allowed
+            flex items-center justify-center gap-2
+          "
+        >
+          {tooltipOpen && isPublished ? (
+            <>
+              <span>Link copied!</span>
+              <MdCheckCircle />
+            </>
+          ) : (
+            <>
+              <MdLockOutline />
+              <span>Share blog</span>
+            </>
+          )}
+        </Button>
+        <div className="flex items-center">
+          <UserButton user={user!} loading={loading!} />
+          <UserInAppConfigs />
+        </div>
       </div>
     </nav>
   );
