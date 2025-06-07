@@ -479,15 +479,12 @@ const BlogDetails = () => {
   );
 
   return (
-    <div className="flex flex-col items-center py-12 w-full h-screen sidebar bg-white dark:bg-mountain-950">
-      <div className="flex w-full h-full">
-        <div className="relative flex flex-col w-[20%]">
-          {/* Sidebar content if any */}
-        </div>
-        <div
-          ref={scrollContainerRef}
-          className="group flex flex-col space-y-4 p-4 w-[60%] overflow-y-auto h-full"
-        >
+    <div
+      ref={scrollContainerRef}
+      className="w-full h-screen overflow-y-auto sidebar bg-white dark:bg-mountain-950"
+    >
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="group flex flex-col space-y-8">
           <div className="flex space-x-2 w-full">
             <Link
               to="/blogs"
@@ -502,7 +499,7 @@ const BlogDetails = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <h1 className="font-medium text-2xl text-black dark:text-white">
+            <h1 className="font-medium text-4xl text-black dark:text-white">
               {blog.title}
             </h1>
             {/* Show draft badge if not published and user is the owner */}
@@ -580,7 +577,7 @@ const BlogDetails = () => {
           {/* For unpublished blogs, hide or disable certain actions */}
           {isPublished && (
             <div
-              className={`transition-all duration-300 ease-in-out w-full h-20 flex justify-center items-center mr-auto
+              className={`transition-all duration-300 ease-in-out w-full h-20 flex justify-center items-center
                 ${showAuthorBadge ? "sticky bottom-4 z-10" : "opacity-100"}`}
             >
               <ActionButtons />
@@ -642,7 +639,7 @@ const BlogDetails = () => {
           {isPublished ? (
             <>
               <div
-                className={`${showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
+                className={`${showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"} transition ease-in-out duration-300 flex justify-center items-center rounded-full w-full h-20`}
               >
                 <ActionButtons />
               </div>
@@ -687,8 +684,7 @@ const BlogDetails = () => {
             </div>
           )}
         </div>
-        <div className="relative flex flex-col w-[20%]" />
-      </div>
+      </main>
 
       {/* Only show likes dialog for published blogs */}
       {isPublished && (
