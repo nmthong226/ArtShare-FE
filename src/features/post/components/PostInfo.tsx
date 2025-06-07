@@ -15,9 +15,9 @@ import { LikesDialog } from "@/components/like/LikesDialog";
 import { useUser } from "@/contexts/UserProvider";
 // 👉 Like/unlike API helpers
 import { likePost, unlikePost } from "../api/post.api";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { TargetType } from "@/utils/constants";
+import { useSnackbar } from "@/hooks/useSnackbar";
 
 interface SimpleCollection {
   id: number;

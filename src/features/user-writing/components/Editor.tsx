@@ -1,6 +1,7 @@
+import { useEditor, EditorContent } from "@tiptap/react";
 import Bold from "@tiptap/extension-bold";
 import BulletList from "@tiptap/extension-bullet-list";
-import { Color } from "@tiptap/extension-color";
+import Color from "@tiptap/extension-color";
 import Document from "@tiptap/extension-document";
 import FontFamily from "@tiptap/extension-font-family";
 import Heading from "@tiptap/extension-heading";
@@ -28,199 +29,532 @@ import Youtube from "@tiptap/extension-youtube";
 import Placeholder from "@tiptap/extension-placeholder";
 import { FontSizeExtension } from "../extensions/font-size";
 import { LineHeightExtension } from "../extensions/line-height";
-
-import { EditorContent, useEditor } from "@tiptap/react";
-
-import "../styles/editor.css";
-
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { useEditorStore } from "../stores/use-editor-store";
-import { forwardRef, useImperativeHandle } from "react";
-import { CircularProgress } from "@mui/material";
+import { Node as ProseMirrorNode } from "@tiptap/pm/model";
+import { EditorView } from "@tiptap/pm/view";
+import { Mark, MarkType, ResolvedPos } from "@tiptap/pm/model";
+import "./Editor.css";
 
-type EditorProps = {
-  isLoading?: boolean;
-};
+interface EditorProps {
+  onChange?: () => void;
+}
 
 export type EditorHandle = {
   getContent: () => string | undefined;
-  setContent: (html: string) => void;
+  setContent: (content: string) => void;
+  getImages: () => { src: string; alt?: string; title?: string }[];
+  focus: () => void;
 };
 
-const Editor = forwardRef<EditorHandle, EditorProps>(({ isLoading }, ref) => {
+// ...existing helper functions remain the same...
+const getMarkRange = ($pos?: ResolvedPos, type?: MarkType) => {
+  if (!$pos || !type) {
+    return false;
+  }
+
+  const nodeBefore = $pos.nodeBefore;
+  const nodeAfter = $pos.nodeAfter;
+  let targetNode: ProseMirrorNode | null | undefined = null;
+  let targetNodePos = -1;
+
+  if ($pos.parent.isTextblock && $pos.depth > 0) {
+    if ($pos.textOffset > 0) {
+      targetNode = $pos.parent.child($pos.index());
+      targetNodePos =
+        $pos.start() + $pos.parent.child($pos.index()).attrs.offset;
+      targetNodePos = $pos.pos - $pos.textOffset;
+    } else if ($pos.index() > 0 && $pos.parent.child($pos.index() - 1).isText) {
+      targetNode = $pos.parent.child($pos.index() - 1);
+      targetNodePos = $pos.pos - targetNode.nodeSize;
+    } else if ($pos.parent.child($pos.index()).isText) {
+      targetNode = $pos.parent.child($pos.index());
+      targetNodePos = $pos.pos;
+    }
+  }
+
+  if (!targetNode) {
+    if (nodeBefore && nodeBefore.isText) {
+      targetNode = nodeBefore;
+      targetNodePos = $pos.pos - nodeBefore.nodeSize;
+    } else if (nodeAfter && nodeAfter.isText) {
+      targetNode = nodeAfter;
+      targetNodePos = $pos.pos;
+    }
+  }
+
+  if (!targetNode || !targetNode.isText) {
+    const marksAtPos = $pos.marks();
+    const markAtCursor = marksAtPos.find((m) => m.type === type);
+    if (markAtCursor) {
+      let from = $pos.pos;
+      let to = $pos.pos;
+      if (
+        $pos.nodeAfter &&
+        $pos.nodeAfter.isText &&
+        markAtCursor.isInSet($pos.nodeAfter.marks)
+      ) {
+        to = $pos.pos + $pos.nodeAfter.nodeSize;
+      } else if (
+        $pos.nodeBefore &&
+        $pos.nodeBefore.isText &&
+        markAtCursor.isInSet($pos.nodeBefore.marks)
+      ) {
+        from = $pos.pos - $pos.nodeBefore.nodeSize;
+      } else {
+        const textNode =
+          $pos.textOffset > 0
+            ? $pos.parent.child($pos.index())
+            : $pos.nodeAfter;
+        if (textNode && textNode.isText) {
+          from = $pos.pos - $pos.textOffset;
+          to = from + textNode.nodeSize;
+        } else {
+          return false;
+        }
+      }
+      return { from, to, mark: markAtCursor };
+    }
+    return false;
+  }
+
+  const mark = targetNode.marks.find((m) => m.type === type);
+  if (!mark) {
+    return false;
+  }
+
+  const currentPos = targetNodePos;
+  let from = currentPos;
+  let to = currentPos + targetNode.nodeSize;
+
+  let currentIndex = $pos.parent.childCount;
+  for (let i = 0; i < $pos.parent.childCount; i++) {
+    if ($pos.parent.child(i) === targetNode) {
+      currentIndex = i;
+      break;
+    }
+  }
+
+  while (currentIndex > 0) {
+    const prevNode = $pos.parent.child(currentIndex - 1);
+    if (prevNode.isText && mark.isInSet(prevNode.marks)) {
+      from -= prevNode.nodeSize;
+      currentIndex--;
+    } else {
+      break;
+    }
+  }
+
+  for (let i = 0; i < $pos.parent.childCount; i++) {
+    if ($pos.parent.child(i) === targetNode) {
+      currentIndex = i;
+      break;
+    }
+  }
+
+  while (currentIndex < $pos.parent.childCount - 1) {
+    const nextNode = $pos.parent.child(currentIndex + 1);
+    if (nextNode.isText && mark.isInSet(nextNode.marks)) {
+      to += nextNode.nodeSize;
+      currentIndex++;
+    } else {
+      break;
+    }
+  }
+
+  return {
+    from,
+    to,
+    mark,
+  };
+};
+
+const findLinkRange = (doc: ProseMirrorNode, pos: number, linkMark: Mark) => {
+  let start = pos;
+  let end = pos;
+
+  while (start > 0) {
+    const prevPos = doc.resolve(start - 1);
+    const hasLink = prevPos
+      .marks()
+      .some(
+        (m: Mark) =>
+          m.type === linkMark.type && m.attrs.href === linkMark.attrs.href,
+      );
+    if (hasLink) {
+      start--;
+    } else {
+      break;
+    }
+  }
+
+  while (end < doc.content.size) {
+    const nextPos = doc.resolve(end);
+    const hasLink = nextPos
+      .marks()
+      .some(
+        (m: Mark) =>
+          m.type === linkMark.type && m.attrs.href === linkMark.attrs.href,
+      );
+    if (hasLink) {
+      end++;
+    } else {
+      break;
+    }
+  }
+
+  return { start, end };
+};
+
+interface LinkRange {
+  start: number;
+  end: number;
+}
+
+interface LinkModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentUrl: string;
+  onSave: (url: string) => void;
+  position: { x: number; y: number };
+}
+
+// Link Edit Modal Component with dark mode
+const LinkEditModal = ({
+  isOpen,
+  onClose,
+  currentUrl,
+  onSave,
+  position,
+}: LinkModalProps) => {
+  const [url, setUrl] = useState(currentUrl || "");
+
+  if (!isOpen) return null;
+
+  const handleSave = () => {
+    onSave(url);
+    onClose();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSave();
+    } else if (e.key === "Escape") {
+      onClose();
+    }
+  };
+
+  return (
+    <div
+      className="fixed bg-white dark:bg-mountain-800 border border-gray-200 dark:border-mountain-600 rounded-md shadow-lg p-3 z-50 min-w-80"
+      style={{ left: `${position.x}px`, top: `${position.y}px` }}
+    >
+      <div className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Edit Link
+      </div>
+      <input
+        type="text"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Enter URL..."
+        className="w-full px-3 py-2 border border-gray-300 dark:border-mountain-600 rounded-md text-sm bg-white dark:bg-mountain-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+        autoFocus
+      />
+      <div className="mt-2 flex gap-2">
+        <button
+          onClick={handleSave}
+          className="px-3 py-1 bg-blue-500 dark:bg-blue-600 text-white text-sm rounded hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
+        >
+          Save
+        </button>
+        <button
+          onClick={onClose}
+          className="px-3 py-1 bg-gray-300 dark:bg-mountain-600 text-gray-700 dark:text-gray-200 text-sm rounded hover:bg-gray-400 dark:hover:bg-mountain-500 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const Editor = forwardRef<EditorHandle, EditorProps>(({ onChange }, ref) => {
   const { setEditor } = useEditorStore();
-  const editor = useEditor({
-    onCreate({ editor }) {
-      setEditor(editor);
-    },
-    onDestroy() {
-      setEditor(null);
-    },
-    onUpdate({ editor }) {
-      setEditor(editor);
-    },
-    onSelectionUpdate({ editor }) {
-      setEditor(editor);
-    },
-    onTransaction({ editor }) {
-      setEditor(editor);
-    },
-    onBlur({ editor }) {
-      setEditor(editor);
-    },
-    onFocus({ editor }) {
-      setEditor(editor);
-    },
-    onContentError({ editor }) {
-      setEditor(editor);
-    },
-    editorProps: {
-      attributes: {
-        style: "padding-left: 56px; padding-right: 56px;",
-        class:
-          "focus:outline-none print:border-0 bg-white border border-[#C7C7C7] flex flex-col min-h-full w-[816px] pt-10 pr-14 pb-10 cursor-text",
+  const [linkModal, setLinkModal] = useState<{
+    isOpen: boolean;
+    url: string;
+    position: { x: number; y: number };
+    linkRange: LinkRange | null;
+    view: EditorView | null;
+  }>({
+    isOpen: false,
+    url: "",
+    position: { x: 0, y: 0 },
+    linkRange: null,
+    view: null,
+  });
+
+  const editor = useEditor(
+    {
+      immediatelyRender: true,
+      editable: true,
+      content: "",
+      extensions: [
+        Bold,
+        BulletList,
+        Color,
+        Document,
+        FontFamily,
+        FontSizeExtension,
+        Gapcursor,
+        Heading.configure({ levels: [1, 2, 3] }),
+        Highlight.configure({ multicolor: true }),
+        History,
+        ListItem,
+        LineHeightExtension.configure({
+          types: ["heading", "paragraph"],
+          defaultLineHeight: "normal",
+        }),
+        Paragraph,
+        Italic,
+        Image,
+        ImageResize,
+        Table.configure({ resizable: true }),
+        TableRow,
+        TableHeader,
+        TableCell,
+        TaskList,
+        TaskItem.configure({ nested: true }),
+        Text,
+        TextAlign.configure({ types: ["heading", "paragraph"] }),
+        TextStyle,
+        Underline,
+        OrderedList,
+        Placeholder.configure({ placeholder: "Write something …" }),
+        Youtube.configure({
+          inline: true,
+          controls: true,
+          allowFullscreen: true,
+        }),
+        Link.configure({
+          openOnClick: false,
+          autolink: true,
+          HTMLAttributes: {
+            target: "_blank",
+            rel: "noopener noreferrer",
+          },
+        }),
+      ],
+      editorProps: {
+        attributes: {
+          class: `focus:outline-none print:border-0 bg-white dark:bg-mountain-800 border border-[#C7C7C7] dark:border-mountain-600 flex flex-col min-h-full w-[816px] cursor-text reset-tailwind p-10 text-gray-900 dark:text-gray-100`,
+          style: "all:revert;",
+        },
+        handleClick: (view, pos, event) => {
+          const { schema, doc } = view.state;
+          const range = doc.resolve(pos);
+          const link = range
+            .marks()
+            .find((mark) => mark.type === schema.marks.link);
+
+          if (link && (event.ctrlKey || event.metaKey)) {
+            event.preventDefault();
+            window.open(link.attrs.href, "_blank", "noopener,noreferrer");
+            return true;
+          }
+          return false;
+        },
+        handleDOMEvents: {
+          contextmenu: (view, event) => {
+            const { schema, doc } = view.state;
+            const pos = view.posAtCoords({
+              left: event.clientX,
+              top: event.clientY,
+            });
+            if (!pos) return false;
+
+            const range = doc.resolve(pos.pos);
+            const link = range
+              .marks()
+              .find((mark) => mark.type === schema.marks.link);
+
+            if (link) {
+              event.preventDefault();
+
+              const contextMenu = document.createElement("div");
+              // Check if dark mode is active
+              const isDarkMode =
+                document.documentElement.classList.contains("dark");
+              contextMenu.className = isDarkMode
+                ? "fixed bg-mountain-800 border border-mountain-600 rounded-md shadow-lg p-1 z-50"
+                : "fixed bg-white border border-gray-200 rounded-md shadow-lg p-1 z-50";
+              contextMenu.style.left = `${event.clientX}px`;
+              contextMenu.style.top = `${event.clientY}px`;
+
+              // Open Link option
+              const openButton = document.createElement("button");
+              openButton.className = isDarkMode
+                ? "block w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-mountain-700 rounded"
+                : "block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded";
+              openButton.innerHTML = "🔗 Open Link";
+              openButton.onclick = () => {
+                window.open(link.attrs.href, "_blank", "noopener,noreferrer");
+                document.body.removeChild(contextMenu);
+              };
+
+              // Edit Link option
+              const editButton = document.createElement("button");
+              editButton.className = isDarkMode
+                ? "block w-full text-left px-3 py-2 text-sm hover:bg-blue-800/30 text-blue-400 rounded"
+                : "block w-full text-left px-3 py-2 text-sm hover:bg-blue-50 text-blue-600 rounded";
+              editButton.innerHTML = "✏️ Edit Link";
+              editButton.onclick = () => {
+                const linkRange = findLinkRange(doc, pos.pos, link);
+                setLinkModal({
+                  isOpen: true,
+                  url: link.attrs.href,
+                  position: { x: event.clientX, y: event.clientY },
+                  linkRange,
+                  view,
+                });
+                document.body.removeChild(contextMenu);
+              };
+
+              // Remove Link option
+              const unlinkButton = document.createElement("button");
+              unlinkButton.className = isDarkMode
+                ? "block w-full text-left px-3 py-2 text-sm hover:bg-red-800/30 text-red-400 rounded"
+                : "block w-full text-left px-3 py-2 text-sm hover:bg-red-50 text-red-600 rounded";
+              unlinkButton.innerHTML = "🔓 Remove Link";
+              unlinkButton.onclick = () => {
+                const $pos = view.state.doc.resolve(pos.pos);
+                const markRange = getMarkRange($pos, schema.marks.link);
+
+                if (markRange) {
+                  const tr = view.state.tr.removeMark(
+                    markRange.from,
+                    markRange.to,
+                    schema.marks.link,
+                  );
+                  view.dispatch(tr);
+                } else {
+                  view.dispatch(
+                    view.state.tr.removeMark(
+                      pos.pos,
+                      pos.pos + 1,
+                      schema.marks.link,
+                    ),
+                  );
+                }
+
+                document.body.removeChild(contextMenu);
+              };
+
+              contextMenu.appendChild(openButton);
+              contextMenu.appendChild(editButton);
+              contextMenu.appendChild(unlinkButton);
+              document.body.appendChild(contextMenu);
+
+              const removeMenu = () => {
+                if (document.body.contains(contextMenu)) {
+                  document.body.removeChild(contextMenu);
+                }
+                document.removeEventListener("click", removeMenu);
+              };
+              setTimeout(
+                () => document.addEventListener("click", removeMenu),
+                0,
+              );
+
+              return true;
+            }
+            return false;
+          },
+        },
+      },
+      onCreate({ editor }) {
+        setEditor(editor);
+      },
+      onUpdate() {
+        if (onChange) {
+          onChange();
+        }
       },
     },
-    extensions: [
-      Bold,
-      BulletList,
-      Color,
-      Document,
-      FontFamily,
-      FontSizeExtension,
-      Gapcursor,
-      Heading.configure({
-        levels: [1, 2, 3],
-      }),
-      Highlight.configure({
-        multicolor: true,
-      }),
-      History,
-      ListItem,
-      LineHeightExtension.configure({
-        types: ["heading", "paragraph"],
-        defaultLineHeight: "normal",
-      }),
-      Paragraph,
-      Italic,
-      Image,
-      ImageResize,
-      Table.configure({
-        resizable: true,
-      }),
-      TableRow,
-      TableHeader,
-      TableCell,
-      TaskList,
-      TaskItem.configure({
-        nested: true,
-      }),
-      Text,
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
-      TextStyle,
-      Underline,
-      OrderedList,
-      Placeholder.configure({
-        placeholder: "Write something …",
-      }),
-      Youtube.configure({
-        inline: true,
-        controls: true,
-        allowFullscreen: true,
-      }),
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
-        defaultProtocol: "https",
-        protocols: ["http", "https"],
-        isAllowedUri: (url, ctx) => {
-          try {
-            // construct URL
-            const parsedUrl = url.includes(":")
-              ? new URL(url)
-              : new URL(`${ctx.defaultProtocol}://${url}`);
+    [],
+  );
 
-            // use default validation
-            if (!ctx.defaultValidate(parsedUrl.href)) {
-              return false;
-            }
+  const handleLinkSave = (newUrl: string) => {
+    if (linkModal.view && linkModal.linkRange) {
+      const { view, linkRange } = linkModal;
+      const { schema } = view.state;
 
-            // disallowed protocols
-            const disallowedProtocols = ["ftp", "file", "mailto"];
-            const protocol = parsedUrl.protocol.replace(":", "");
+      const tr = view.state.tr
+        .removeMark(linkRange.start, linkRange.end, schema.marks.link)
+        .addMark(
+          linkRange.start,
+          linkRange.end,
+          schema.marks.link.create({ href: newUrl }),
+        );
 
-            if (disallowedProtocols.includes(protocol)) {
-              return false;
-            }
-
-            // only allow protocols specified in ctx.protocols
-            const allowedProtocols = ctx.protocols.map((p) =>
-              typeof p === "string" ? p : p.scheme,
-            );
-
-            if (!allowedProtocols.includes(protocol)) {
-              return false;
-            }
-
-            // disallowed domains
-            const disallowedDomains = [
-              "example-phishing.com",
-              "malicious-site.net",
-            ];
-            const domain = parsedUrl.hostname;
-
-            if (disallowedDomains.includes(domain)) {
-              return false;
-            }
-
-            // all checks have passed
-            return true;
-          } catch {
-            return false;
-          }
-        },
-        shouldAutoLink: (url) => {
-          try {
-            // construct URL
-            const parsedUrl = url.includes(":")
-              ? new URL(url)
-              : new URL(`https://${url}`);
-
-            // only auto-link if the domain is not in the disallowed list
-            const disallowedDomains = [
-              "example-no-autolink.com",
-              "another-no-autolink.com",
-            ];
-            const domain = parsedUrl.hostname;
-
-            return !disallowedDomains.includes(domain);
-          } catch {
-            return false;
-          }
-        },
-      }),
-    ],
-    content: ``,
-  });
+      view.dispatch(tr);
+    }
+  };
 
   useImperativeHandle(ref, () => ({
     getContent: () => editor?.getHTML(),
-    setContent: (html: string) => {
-      if (editor && html) {
-        editor.commands.setContent(html);
+    setContent: (content: string) => {
+      if (editor) {
+        editor.commands.setContent(content);
+        setTimeout(() => {
+          if (editor && !editor.isDestroyed) {
+            editor.chain().focus().run();
+          }
+        }, 50);
+      }
+    },
+    getImages: () => {
+      const images: { src: string; alt?: string; title?: string }[] = [];
+      editor?.state.doc.descendants((node) => {
+        if (node.type.name === "image") {
+          images.push({
+            src: node.attrs.src,
+            alt: node.attrs.alt,
+            title: node.attrs.title,
+          });
+        }
+      });
+      return images;
+    },
+    focus: () => {
+      if (editor && !editor.isDestroyed) {
+        editor.chain().focus().run();
+        setTimeout(() => {
+          const dom = document.querySelector(".tiptap");
+          if (dom) {
+            (dom as HTMLElement).focus();
+          }
+        }, 10);
       }
     },
   }));
 
-  if (isLoading)
-    return (
-      <div className="flex justify-center items-center py-10 w-full h-full">
-        <CircularProgress size={36} />
-      </div>
-    );
-
-  return <EditorContent editor={editor} className="max-w-full prose" />;
+  return (
+    <>
+      <EditorContent
+        editor={editor}
+        className="max-w-full prose dark:prose-invert"
+      />
+      <LinkEditModal
+        isOpen={linkModal.isOpen}
+        onClose={() => setLinkModal((prev) => ({ ...prev, isOpen: false }))}
+        currentUrl={linkModal.url}
+        onSave={handleLinkSave}
+        position={linkModal.position}
+      />
+    </>
+  );
 });
 
 export default Editor;

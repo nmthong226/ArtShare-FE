@@ -3,7 +3,7 @@
 //  theme styler — it feeds the current theme into MUI’s design system.
 import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
 import { lightTheme, darkTheme } from "@/styles";
-import { useTheme } from "@/contexts/ThemeProvider";
+import { useTheme } from "@/hooks/useTheme";
 
 export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
