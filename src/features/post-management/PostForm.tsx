@@ -2,7 +2,7 @@ import { Form, Formik, FormikHelpers, FormikProps } from "formik";
 import React, { useState } from "react";
 import { Box, Button, Tooltip } from "@mui/material";
 import UploadForm from "./components/UploadForm"; // Adjust import path as needed
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 
 import MediaSelection from "./components/MediaSelectionPanel";
 import { FaMagic } from "react-icons/fa";
