@@ -40,6 +40,7 @@ export const UserProfileCard = () => {
     enabled: !!username,
   });
 
+
   useEffect(() => {
     // Once the profile refetch shows isFollowing === false, drop the flag
     if (!profileData?.isFollowing) {
