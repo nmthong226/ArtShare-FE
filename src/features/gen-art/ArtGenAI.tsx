@@ -43,6 +43,7 @@ import {
 import { buildTempPromptResult } from "./helper/image-gen.helper";
 import { useScrollBottom } from "@/hooks/useScrollBottom";
 import { usePromptHistory } from "@/hooks/usePromptHistory";
+import { useLocation } from "react-router-dom";
 
 {
   /*
@@ -66,9 +67,9 @@ const ArtGenAI = () => {
   const [userPrompt, setUserPrompt] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [scrollTrigger, setScrollTrigger] = useState(0);
-
+  const location = useLocation();
   //Setting Panel
-  const [modelKey] = useState<ModelKey>(ModelKey.GPT_IMAGE_1);
+  const [modelKey, setModelKey] = useState<ModelKey>(ModelKey.GPT_IMAGE_1);
   const [style, setStyle] = useState<StyleOption>(MockModelOptionsData[0]);
   const [aspectRatio, setAspectRatio] = useState<AspectOption>(
     aspectOptions[0],
@@ -92,6 +93,32 @@ const ArtGenAI = () => {
   } = usePromptHistory();
   useScrollBottom(scrollRef, [scrollTrigger], 200);
 
+  useEffect(() => {
+    if (!location.state) return;
+    const { prompt, modelKey, aspectRatio, lighting, camera, style } =
+      location.state as any;
+
+    if (prompt) setUserPrompt(prompt);
+
+    // modelKey is enum – keep your existing default if parsing fails
+    if (modelKey && Object.values(ModelKey).includes(modelKey))
+      setModelKey(modelKey as ModelKey);
+
+    // helper to look up option objects by value
+    const findOpt = <T extends { value: string }>(arr: T[], v?: string) =>
+      arr.find((o) => o.value === v) ?? arr[0];
+
+    setAspectRatio(findOpt(aspectOptions, aspectRatio));
+    setLighting(findOpt(lightingOptions, lighting));
+    setCamera(findOpt(cameraOptions, camera));
+
+    // style list = array of { name: "anime", … }
+    const styleOpt =
+      MockModelOptionsData.find(
+        (o) => o.name.toLowerCase() === (style ?? "").toLowerCase(),
+      ) ?? MockModelOptionsData[0];
+    setStyle(styleOpt);
+  }, [location.state]);
   const placeholderIdRef = useRef<number>(-1);
 
   const handleGenerate = async () => {
