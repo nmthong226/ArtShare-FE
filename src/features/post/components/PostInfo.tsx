@@ -15,7 +15,9 @@ import { LikesDialog } from "@/components/like/LikesDialog";
 import { useUser } from "@/contexts/UserProvider";
 // 👉 Like/unlike API helpers
 import { likePost, unlikePost } from "../api/post.api";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { TargetType } from "@/utils/constants";
+import { useSnackbar } from "@/hooks/useSnackbar";
 
 interface SimpleCollection {
   id: number;
@@ -32,11 +34,7 @@ type PostInfoProps = {
   setCommentCount: React.Dispatch<React.SetStateAction<number>>; // Accept setState function for comment count
 };
 
-const PostInfo = ({
-  postData,
-  // commentCount,
-  // setCommentCount,
-}: PostInfoProps) => {
+const PostInfo = ({ postData }: PostInfoProps) => {
   const { postCommentsRef } = useFocusContext();
   const { showSnackbar } = useSnackbar();
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -55,6 +53,12 @@ const PostInfo = ({
   const [likeCount, setLikeCount] = useState<number>(postData.like_count);
   const [isLiking, setIsLiking] = useState(false);
   const [isFetchingLike] = useState(false);
+  const requireAuth = useRequireAuth();
+
+  useEffect(() => {
+    setUserLike(postData.isLikedByCurrentUser ?? false);
+    setLikeCount(postData.like_count);
+  }, [postData.isLikedByCurrentUser, postData.like_count]);
 
   useEffect(() => {
     const loadCollectionNames = async () => {
@@ -73,11 +77,7 @@ const PostInfo = ({
     };
     loadCollectionNames();
   }, [postData.id]);
-  // const handleCommentAdded = () => {
-  //   console.log("Comment added. Previous count:", commentCount);
-  //   setCommentCount((prev) => prev + 1); // Increment comment count when a comment is added
-  //   console.log("Updated comment count:", commentCount + 1);
-  // };
+
   const handleOpenSaveDialog = () => {
     setIsCreateDialogOpen(false);
     setIsSaveDialogOpen(true);
@@ -105,31 +105,32 @@ const PostInfo = ({
   );
 
   // Like / Unlike handler (optimistic update)
-  const handleLikeClick = async () => {
-    if (!user) {
-      showSnackbar("Please log in to like", "error");
-      return;
-    }
-    console.log("HELLO");
-    if (isLiking || isFetchingLike) return;
-    const willLike = !userLike;
-    setUserLike(willLike);
-    setLikeCount((prev) => (willLike ? prev + 1 : Math.max(prev - 1, 0)));
-    setIsLiking(true);
-    try {
-      willLike ? await likePost(postData.id) : await unlikePost(postData.id);
-    } catch (error) {
-      console.error(error)
-      setUserLike(!willLike);
-      setLikeCount((prev) => (willLike ? Math.max(prev - 1, 0) : prev + 1));
-    } finally {
-      setIsLiking(false);
-    }
-  };
+  const handleLikeClick = () =>
+    requireAuth("like this post", async () => {
+      if (!user) {
+        showSnackbar("Please log in to like", "error");
+        return;
+      }
+      if (isLiking || isFetchingLike) return;
+      const willLike = !userLike;
+      setUserLike(willLike);
+      setLikeCount((prev) => (willLike ? prev + 1 : Math.max(prev - 1, 0)));
+      setIsLiking(true);
+      try {
+        willLike ? await likePost(postData.id) : await unlikePost(postData.id);
+      } catch (error) {
+        console.error("Error toggling like status:", error);
+        setUserLike(!willLike);
+        setLikeCount((prev) => (willLike ? Math.max(prev - 1, 0) : prev + 1));
+      } finally {
+        setIsLiking(false);
+      }
+    });
 
-  const handleOpenLikesDialog = () => {
-    if (likeCount > 0) setIsLikesDialogOpen(true);
-  };
+  const handleOpenLikesDialog = () =>
+    requireAuth("view likes", () => {
+      if (likeCount > 0) setIsLikesDialogOpen(true);
+    });
   const handleCloseLikesDialog = () => setIsLikesDialogOpen(false);
 
   const handleFocusCommentInput = () => {
@@ -148,7 +149,7 @@ const PostInfo = ({
 
   return (
     <>
-      <div className="bg-white rounded-2xl overflow-none">
+      <div className="bg-white dark:bg-mountain-950 rounded-2xl overflow-none">
         <CardContent className="flex flex-col gap-2 p-0">
           {/* Title, description, date */}
           <div className="flex flex-col gap-2">
@@ -174,7 +175,7 @@ const PostInfo = ({
             {postData.categories?.map((cat) => (
               <div
                 key={cat.id}
-                className="bg-mountain-50 px-2 py-1 rounded text-xs"
+                className="bg-mountain-50 dark:bg-mountain-800 px-2 py-1 rounded text-xs"
               >
                 {cat.name}
               </div>
@@ -184,18 +185,18 @@ const PostInfo = ({
           {/* Stats */}
           <div className="flex gap-6 text-mountain-950">
             <div
-              className={`flex items-center gap-1 text-sm ${likeCount > 0 ? "cursor-pointer hover:underline" : "cursor-default"}`}
+              className={`text-mountain-950 dark:text-mountain-100 flex items-center gap-1 text-sm ${likeCount > 0 ? "cursor-pointer hover:underline" : "cursor-default"}`}
               onClick={handleOpenLikesDialog}
               title={likeCount > 0 ? "View who liked this" : "No likes yet"}
             >
               <p className="font-semibold">{likeCount}</p>
-              <span className="text-mountain-600">
+              <span className="text-mountain-600 dark:text-mountain-200">
                 {likeCount > 1 ? " Likes" : " Like"}
               </span>
             </div>
-            <div className="flex items-center gap-1 text-sm">
+            <div className="flex items-center gap-1 text-sm text-mountain-950 dark:text-mountain-100">
               <p className="font-semibold">{postData.comment_count}</p>
-              <span className="text-mountain-600">
+              <span className="text-mountain-600 dark:text-mountain-200">
                 {postData.comment_count > 1 ? " Comments" : " Comment"}
               </span>
             </div>
@@ -204,33 +205,33 @@ const PostInfo = ({
           {/* Actions */}
           <div className="flex justify-between w-full">
             <Button
-              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900"
+              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900 dark:text-blue-200 hover:dark:bg-blue-900"
               title={userLike ? "Unlike" : "Like"}
               onClick={handleLikeClick}
               disabled={isLiking || isFetchingLike}
             >
               {userLike ? (
-                <AiFillLike className="size-6 text-blue-900" />
+                <AiFillLike className="size-6 text-blue-900 dark:text-blue-200" />
               ) : (
                 <AiOutlineLike className="size-6" />
               )}
             </Button>
             <Button
-              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900"
+              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900 dark:text-blue-200 hover:dark:bg-blue-900"
               title="Comment"
               onClick={handleFocusCommentInput}
             >
               <MessageSquareText className="size-5" />
             </Button>
             <Button
-              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900"
+              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900 dark:text-blue-200 hover:dark:bg-blue-900"
               title="Save"
               onClick={handleOpenSaveDialog}
             >
               <Bookmark className="size-5" />
             </Button>
             <Button
-              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900"
+              className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900 dark:text-blue-200 hover:dark:bg-blue-900"
               title="Copy Link"
             >
               <Share2 className="size-5" />
@@ -259,7 +260,7 @@ const PostInfo = ({
         contentId={postData.id}
         open={isLikesDialogOpen}
         onClose={handleCloseLikesDialog}
-        variant="post"
+        variant={TargetType.POST}
       />
     </>
   );

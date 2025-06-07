@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from "react";
-import Cropper, { Area } from "react-easy-crop";
+import React, { useEffect, useState } from "react";
+import Cropper, { Area, Point } from "react-easy-crop";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,26 +10,25 @@ import {
   IconButton,
 } from "@mui/material";
 import { MdClose } from "react-icons/md";
-import getCroppedImg from "@/utils/cropImage";
 import MuiButton from "@mui/material/Button";
+import { ThumbnailMeta } from "@/features/post-management/types/crop-meta.type";
+import getCroppedImg from "@/utils/cropImage";
+
+const DEFAULT_CROP = { x: 0, y: 0 };
+const DEFAULT_ZOOM = 1;
+const DEFAULT_ASPECT_LABEL = "Original";
 
 interface Props {
-  image: string;
+  originalThumbnailUrl: string;
   open: boolean;
   onClose: () => void;
-  onCropped: (croppedFile: Blob, thumbnail_crop_meta: string) => void;
-  initialCrop?: { x: number; y: number };
-  initialZoom?: number;
-  initialAspect?: number;
-  initialSelectedAspect?: string;
-  initialCroppedAreaPixels?: Area;
-  onCropChange?: (crop: { x: number; y: number }) => void;
-  onZoomChange?: (zoom: number) => void;
+  onCropped: (croppedFile: Blob, thumbnail_crop_meta: ThumbnailMeta) => void;
+  thumbnailMeta: ThumbnailMeta;
 }
 
 interface AspectOption {
   label: string;
-  value: number | "free";
+  value: number;
 }
 
 const aspectOptions: AspectOption[] = [
@@ -39,40 +38,46 @@ const aspectOptions: AspectOption[] = [
   { label: "9:16", value: 9 / 16 },
 ];
 
-export const ImageCropperModal: React.FC<Props> = ({
-  image,
+const ImageCropperModal: React.FC<Props> = ({
+  originalThumbnailUrl,
   open,
   onClose,
   onCropped,
-  initialCrop,
-  initialZoom,
-  initialAspect,
-  initialSelectedAspect,
-  initialCroppedAreaPixels,
-  onCropChange,
-  onZoomChange,
+  thumbnailMeta,
 }) => {
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
+  const [crop, setCrop] = useState<Point>(DEFAULT_CROP);
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [aspect, setAspect] = useState<number | undefined>(undefined);
-  const [selectedAspect, setSelectedAspect] = useState("Free");
+  const [selectedAspect, setSelectedAspect] = useState(DEFAULT_ASPECT_LABEL);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  console.log("ImageCropperModal rendered with thumbnailMeta:", thumbnailMeta);
+  console.log("originalThumbnailUrl:", originalThumbnailUrl);
 
   useEffect(() => {
-    if (initialCroppedAreaPixels) {
-      setCroppedAreaPixels(initialCroppedAreaPixels);
+    if (!open) return;
+    console.log("ImageCropperModal opened with thumbnailMeta:", thumbnailMeta);
+    setCrop(thumbnailMeta.crop ?? DEFAULT_CROP);
+    setZoom(thumbnailMeta.zoom ?? DEFAULT_ZOOM);
+    setSelectedAspect(thumbnailMeta.selectedAspect ?? DEFAULT_ASPECT_LABEL);
+    if (!thumbnailMeta.aspect) {
+      // we don't need to store the natural aspect so we handle it here ayo
+      const img = new Image();
+      img.src = originalThumbnailUrl;
+      img.onload = () => {
+        const naturalAspect = img.width / img.height;
+        setAspect(naturalAspect);
+      };
+    } else {
+      setAspect(thumbnailMeta.aspect);
     }
-  }, [image]);
+  }, [open, originalThumbnailUrl, thumbnailMeta]);
 
-  const onCropComplete = useCallback((_: Area, croppedPixels: Area) => {
-    setCroppedAreaPixels(croppedPixels);
-  }, []);
-
-  console.log("📥 Received props:", { initialCrop, initialZoom, image, open });
-
-  const cropImage = async () => {
+  const cropImageAndSave = async () => {
     if (croppedAreaPixels) {
-      const cropped = await getCroppedImg(image, croppedAreaPixels);
+      const cropped = await getCroppedImg(
+        originalThumbnailUrl,
+        croppedAreaPixels,
+      );
       const thumbnail_crop_meta = {
         crop,
         zoom,
@@ -80,35 +85,15 @@ export const ImageCropperModal: React.FC<Props> = ({
         croppedAreaPixels,
         selectedAspect,
       };
-      onCropped(cropped, JSON.stringify(thumbnail_crop_meta));
+      onCropped(cropped, thumbnail_crop_meta);
       onClose();
     }
   };
 
   const handleAspectChange = (option: AspectOption) => {
-    setAspect(option.value === "free" ? undefined : option.value);
+    setAspect(option.value);
     setSelectedAspect(option.label);
   };
-
-  useEffect(() => {
-    if (!image) return;
-
-    const img = new Image();
-    img.src = image;
-    img.onload = () => {
-      const naturalAspect = initialAspect ?? img.width / img.height;
-      setAspect(naturalAspect);
-      setSelectedAspect(initialSelectedAspect ?? "Original");
-    };
-  }, [image]);
-
-  // Reset crop/zoom only on file change
-  useEffect(() => {
-    if (!open || !image) return;
-
-    setCrop(initialCrop ?? { x: 0, y: 0 });
-    setZoom(initialZoom ?? 1);
-  }, [image]);
 
   return (
     <Dialog
@@ -143,20 +128,18 @@ export const ImageCropperModal: React.FC<Props> = ({
           style={{ height: 320, minHeight: 280 }}
         >
           <Cropper
-            image={image}
+            image={originalThumbnailUrl}
+            initialCroppedAreaPixels={
+              thumbnailMeta.croppedAreaPixels ?? undefined
+            }
             crop={crop}
             zoom={zoom}
             aspect={aspect}
-            onCropChange={(newCrop) => {
-              setCrop(newCrop);
-              onCropChange?.(newCrop); // propagate up
-            }}
-            onZoomChange={(newZoom) => {
-              console.log("@@new zoom in parent", newZoom);
-              setZoom(newZoom);
-              onZoomChange?.(newZoom); // propagate up
-            }}
-            onCropComplete={onCropComplete}
+            onCropChange={setCrop}
+            onZoomChange={setZoom}
+            onCropComplete={(_: Area, croppedPixels: Area) =>
+              setCroppedAreaPixels(croppedPixels)
+            }
           />
         </div>
 
@@ -175,9 +158,7 @@ export const ImageCropperModal: React.FC<Props> = ({
               step="0.1"
               value={zoom}
               onChange={(e) => {
-                const value = Number(e.target.value);
-                setZoom(value);
-                onZoomChange?.(value);
+                setZoom(Number(e.target.value));
               }}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" // Added dark mode bg
             />
@@ -223,10 +204,12 @@ export const ImageCropperModal: React.FC<Props> = ({
           Cancel
         </MuiButton>
 
-        <MuiButton variant="contained" onClick={cropImage}>
+        <MuiButton variant="contained" onClick={cropImageAndSave}>
           Crop & Save
         </MuiButton>
       </DialogActions>
     </Dialog>
   );
 };
+
+export default ImageCropperModal;

@@ -4,8 +4,8 @@ import { Comment, CreateCommentDto } from "@/types/comment";
 /** Get comments for a given post id (returns the response data only). */
 export const fetchComments = async (
   targetId: number, // post / blog id
-  parentCommentId?: number, // optional: fetch replies of this id
   targetType: "POST" | "BLOG" = "POST",
+  parentCommentId?: number, // optional: fetch replies of this id
 ): Promise<Comment[]> => {
   const { data } = await api.get<Comment[]>("/comments", {
     params: {
@@ -14,6 +14,17 @@ export const fetchComments = async (
       ...(parentCommentId != null && { parent_comment_id: parentCommentId }),
     },
   });
+  return data;
+};
+export const fetchBlogComments = async (postId: number): Promise<Comment[]> => {
+  const { data } = await api.get<Comment[]>("/comments", {
+    params: {
+      target_id: postId,
+      target_type: "BLOG",
+      likedByCurrentUser: Boolean,
+    },
+  });
+  console.log(data);
   return data;
 };
 /** NEW: create a comment (or reply) */

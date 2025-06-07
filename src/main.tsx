@@ -8,6 +8,8 @@ import { FocusProvider } from "./contexts/focus/FocusProvider.tsx";
 import "./index.css";
 import App from "./App.tsx";
 import { SnackbarProvider } from "./contexts/SnackbarProvider.tsx";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 
 import TimeAgo from "javascript-time-ago";
 
@@ -20,7 +22,26 @@ import { Elements } from "@stripe/react-stripe-js";
 TimeAgo.addDefaultLocale(en);
 TimeAgo.addLocale(vi);
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 0,
+      retry: 1,
+    },
+  },
+});
+
+const localStoragePersister = createSyncStoragePersister({
+  storage: window.sessionStorage,
+});
+
+persistQueryClient({
+  queryClient,
+  persister: localStoragePersister,
+  maxAge: 1000 * 60 * 5, // Optional: How long to keep persisted data (e.g., 24 hours)
+  // This should usually align with or be less than gcTime
+});
+
 const stripePromise = loadStripe(
   import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string,
 );

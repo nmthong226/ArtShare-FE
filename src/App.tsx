@@ -2,7 +2,7 @@ import "./App.css";
 import { BrowserRouter } from "react-router-dom";
 import { AppRoutes } from "./routes";
 import React, { Suspense } from "react";
-import Loading from "./pages/Loading";
+import Loading from "./components/loading/Loading";
 
 // Context/Provider
 import { LanguageProvider } from "@/contexts/LanguageProvider";

@@ -16,7 +16,6 @@ import OnboardingProfile from "./pages/Onboarding";
 import Dashboard from "./features/app-dashboard/Dashboard";
 import OnboardingRoute from "./components/ProtectedItems/OnboardingRoute";
 import RequireOnboard from "./components/ProtectedItems/RequireOnboard";
-import TextEditorLayout from "./layouts/featLayouts/TextEditorLayout";
 
 // Lazy imports for pages/features
 const LandingPage = lazy(() => import("@/pages/Home"));
@@ -37,8 +36,12 @@ const Post = lazy(() => import("@/features/post"));
 const EditPost = lazy(() => import("@/features/post-management/EditPost"));
 const UploadPost = lazy(() => import("@/features/post-management/UploadPost"));
 const Collection = lazy(() => import("@/features/collection"));
-const UserProfile = lazy(() => import("@/features/user-profile-private/UserProfile"));
-const DocumentDashboard = lazy(() => import("@/features/user-writing/DocumentDashboard"));
+const UserProfile = lazy(
+  () => import("@/features/user-profile-private/UserProfile"),
+);
+const DocumentDashboard = lazy(
+  () => import("@/features/user-writing/DocumentDashboard"),
+);
 const MyWriting = lazy(() => import("@/features/user-writing/MyWriting"));
 const ArtGeneration = lazy(() => import("@/features/gen-art/ArtGenAI"));
 const ImageEditor = lazy(() => import("@/features/edit-image/EditImage"));
@@ -139,8 +142,8 @@ const routeConfig: RouteObject[] = [
           { path: "/post/:postId/edit", element: <EditPost /> },
           { path: "/posts/new", element: <UploadPost /> },
           { path: "/collections", element: <Collection /> },
-          { path: "/docs", element: <DocumentDashboard /> }
-        ]
+          { path: "/docs", element: <DocumentDashboard /> },
+        ],
       },
       // In-App AI Private
       {
@@ -160,26 +163,11 @@ const routeConfig: RouteObject[] = [
       {
         element: (
           <ProtectedInAppRoute>
-            <TextEditorLayout>
-              <Outlet />
-            </TextEditorLayout>
+            <Outlet />
           </ProtectedInAppRoute>
         ),
         children: [
-          { path: "/docs/new", element: <MyWriting /> },
-        ]
-      },
-      // In-App Text Editor Private
-      {
-        element: (
-          <ProtectedInAppRoute>
-            <TextEditorLayout>
-              <Outlet />
-            </TextEditorLayout>
-          </ProtectedInAppRoute>
-        ),
-        children: [
-          { path: "/docs/new", element: <MyWriting /> },
+          { path: "/docs/:blogId", element: <MyWriting /> },
         ]
       },
       // Catch-all -> redirect

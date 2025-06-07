@@ -1,6 +1,10 @@
 // src/hooks/useReportUser.ts
 import { useMutation } from "@tanstack/react-query";
-import { CreateReportDto, ReportTargetType, submitReport } from "../api/report.api";
+import {
+  CreateReportDto,
+  ReportTargetType,
+  submitReport,
+} from "../api/report.api";
 
 interface ReportUserVariables {
   targetId: number;
@@ -19,10 +23,8 @@ export function useReportUser() {
         reason,
         target_url: url,
       };
-      console.log('response', dto);
+      console.log("response", dto);
       return submitReport(dto);
     },
   });
 }
-
-

@@ -1,14 +1,11 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { Avatar, Box, Button, IconButton, Tooltip } from "@mui/material";
-import {
-  MdAdd,
-  MdClose,
-} from "react-icons/md";
+import { MdAdd, MdClose } from "react-icons/md";
 import { MEDIA_TYPE } from "@/utils/constants";
 import TabValue from "../enum/media-tab-value";
 import MediaUploadTab from "./media-upload-tab";
 import AutoSizer from "react-virtualized-auto-sizer";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { RiImageCircleAiLine } from "react-icons/ri";
 import { TbDeviceDesktop } from "react-icons/tb";
 
@@ -20,77 +17,97 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import { LuImageOff } from "react-icons/lu";
 import MediaPreview from "./media-preview";
-import UploadFromDevice from "./upload-from-device";
-import BrowseAiImages from "./browse-ai-image";
+import UploadFromDevice from "./UploadFromDevice";
 import { IoSparkles } from "react-icons/io5";
 import InfoMediaRemaining from "./InfoMediaRemaining";
 import { PostMedia } from "../types/post-media";
-
-const MAX_IMAGES = 4;
-const MAX_VIDEO = 1;
-const VIDEO_THUMBNAIL_DEFAULT_URL = "https://cdn.prod.website-files.com/67862f03f11f4116194d307a/67eff145fcba92bac1eb6bb3_Video-Placeholder.jpg";
+import PostAiImages from "./post-ai-images";
+import useIsMature from "../hooks/useIsMature";
+import {
+  MAX_IMAGES,
+  MAX_VIDEO,
+  validateVideoDuration,
+  VIDEO_THUMBNAIL_DEFAULT_URL,
+} from "../helpers/media-upload.helper";
+import Loading from "@/pages/Loading";
 
 interface MediaSelectorPanelProps {
   postMedias: PostMedia[];
   setPostMedias: React.Dispatch<React.SetStateAction<PostMedia[]>>;
-  setThumbnailFile: (
-    file?: File,
-    isOriginal?: boolean,
-    thumbnail_crop_meta?: string,
-  ) => void;
+  onThumbnailAddedOrRemoved: (file: File | null) => void;
   hasArtNovaImages: boolean;
   setHasArtNovaImages: React.Dispatch<React.SetStateAction<boolean>>;
+  isMatureAutoDetected: boolean;
+  handleIsMatureAutoDetected: React.Dispatch<React.SetStateAction<boolean>>;
 }
-
-const validateVideoDuration = (
-  file: File,
-  maxDurationSec = 60,
-): Promise<boolean> => {
-  return new Promise((resolve) => {
-    const videoElement = document.createElement("video");
-    videoElement.preload = "metadata";
-    videoElement.onloadedmetadata = () => {
-      URL.revokeObjectURL(videoElement.src);
-      resolve(videoElement.duration <= maxDurationSec);
-    };
-    videoElement.onerror = () => resolve(false);
-    videoElement.src = URL.createObjectURL(file);
-  });
-};
 
 export default function MediaSelectorPanel({
   postMedias,
   setPostMedias,
-  setThumbnailFile,
+  onThumbnailAddedOrRemoved,
   hasArtNovaImages,
   setHasArtNovaImages,
+  isMatureAutoDetected,
+  handleIsMatureAutoDetected,
 }: MediaSelectorPanelProps) {
   const { showSnackbar } = useSnackbar();
 
-  const [tabValue, setTabValue] = useState<TabValue>(hasArtNovaImages ? TabValue.BROWSE_GENAI : TabValue.UPLOAD_MEDIA);
+  const [tabValue, setTabValue] = useState<TabValue>(
+    hasArtNovaImages ? TabValue.BROWSE_GENAI : TabValue.UPLOAD_MEDIA,
+  );
   const [pendingTab, setPendingTab] = useState<TabValue | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [selectedPreviewMedia, setSelectedPreviewMedia] = useState<PostMedia | null>(null);
+  const [matureDialogOpen, setMatureDialogOpen] = useState(false);
+  const [selectedPreviewMedia, setSelectedPreviewMedia] =
+    useState<PostMedia | null>(null);
 
   const handleTabChange = (newTab: TabValue) => {
-    if (hasArtNovaImages && postMedias.length > 0 &&  newTab !== TabValue.BROWSE_GENAI) {
+    if (
+      hasArtNovaImages &&
+      postMedias.length > 0 &&
+      newTab !== TabValue.BROWSE_GENAI
+    ) {
       setPendingTab(newTab);
       setConfirmDialogOpen(true);
     } else if (newTab !== TabValue.UPLOAD_MEDIA && postMedias.length > 0) {
       setPendingTab(newTab);
       setConfirmDialogOpen(true);
     } else {
-      setTabValue(newTab)
+      setTabValue(newTab);
     }
   };
 
   useEffect(() => {
-    hasArtNovaImages ? setTabValue(TabValue.BROWSE_GENAI) : setTabValue(TabValue.UPLOAD_MEDIA);
+    hasArtNovaImages
+      ? setTabValue(TabValue.BROWSE_GENAI)
+      : setTabValue(TabValue.UPLOAD_MEDIA);
   }, [hasArtNovaImages]);
 
+  useEffect(() => {
+    const isMatureDetected = postMedias.some((media) => media.isMature);
+    if (isMatureDetected && !isMatureAutoDetected) {
+      console.log(
+        "Mature content detected in post medias",
+        isMatureDetected,
+        isMatureAutoDetected,
+      );
+      setMatureDialogOpen(true);
+      handleIsMatureAutoDetected(true);
+    }
+
+    if (!isMatureDetected && isMatureAutoDetected) {
+      handleIsMatureAutoDetected(false);
+    }
+  }, [postMedias, isMatureAutoDetected, handleIsMatureAutoDetected]);
+
+  const {
+    checkMaturityForNewItems,
+    isLoading: isCheckingMature,
+    // isError: matureError,
+  } = useIsMature();
 
   const captureThumbnailFromVideo = (videoElement: HTMLVideoElement) => {
     const canvas = document.createElement("canvas");
@@ -108,9 +125,10 @@ export default function MediaSelectorPanel({
 
     canvas.toBlob((blob) => {
       if (blob) {
-        setThumbnailFile(
-          new File([blob], "thumbnailFromVideo.png", { type: "image/png" }),
-          true,
+        onThumbnailAddedOrRemoved(
+          new File([blob], "thumbnailFromVideo.png", {
+            type: "image/png",
+          }),
         );
       } else {
         console.error("Failed to create blob from canvas");
@@ -118,7 +136,7 @@ export default function MediaSelectorPanel({
     }, "image/png");
   };
 
-  const handleImagesAdded = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleImagesAdded = async (event: ChangeEvent<HTMLInputElement>) => {
     const newFiles = event.target.files;
     if (!newFiles || newFiles.length === 0) return;
 
@@ -128,39 +146,37 @@ export default function MediaSelectorPanel({
       type: MEDIA_TYPE.IMAGE,
       url: URL.createObjectURL(file),
     }));
+
+    const matureProcessedImageMedias =
+      await checkMaturityForNewItems(newImageMedias);
+
     // combine with existing files
-    const combinedMedias = [...postMedias, ...newImageMedias];
+    const combinedMedias = [...postMedias, ...matureProcessedImageMedias];
+
+    console.log("Combined Medias:", combinedMedias);
 
     // image count
     const imageCount = combinedMedias.filter(
       (media) => media.type === MEDIA_TYPE.IMAGE,
     ).length;
     if (imageCount > MAX_IMAGES) {
-      showSnackbar(
-        `You can only upload up to ${MAX_IMAGES} images.`,
-        "error",
-      );
+      showSnackbar(`You can only upload up to ${MAX_IMAGES} images.`, "error");
       return;
     }
     setPostMedias(combinedMedias);
 
     // first time adding a media
     if (postMedias.length === 0) {
-      setThumbnailFile(combinedMedias[0].file, true);
+      onThumbnailAddedOrRemoved(combinedMedias[0].file);
       setHasArtNovaImages?.(false);
     }
   };
 
-  const handleVideoAdded = async (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleVideoAdded = async (event: ChangeEvent<HTMLInputElement>) => {
     const videoFiles = event.target.files;
     if (!videoFiles || videoFiles.length === 0) return;
     if (videoFiles.length > MAX_VIDEO) {
-      showSnackbar(
-        `You can only upload up to ${MAX_VIDEO} video.`,
-        "error",
-      );
+      showSnackbar(`You can only upload up to ${MAX_VIDEO} video.`, "error");
       return;
     }
     const file = videoFiles[0];
@@ -219,14 +235,13 @@ export default function MediaSelectorPanel({
     // if the last preview is removed, set selectedPreviewMedia to null
     if (postMedias.length === 1) {
       setSelectedPreviewMedia(null);
-      setThumbnailFile(undefined, true);
+      onThumbnailAddedOrRemoved(null);
     }
     // if removing the last AI image
     if (postMedias.length === 1 && hasArtNovaImages) {
       setHasArtNovaImages(false);
     }
-  }
-
+  };
 
   if (!selectedPreviewMedia && postMedias.length > 0) {
     setSelectedPreviewMedia(postMedias[0]);
@@ -235,12 +250,12 @@ export default function MediaSelectorPanel({
   const imageCount = postMedias.filter(
     (media) => media.type === MEDIA_TYPE.IMAGE,
   ).length;
-  const hasVideo = postMedias.filter(
-    (media) => media.type === MEDIA_TYPE.VIDEO,
-  ).length > 0;
+  const hasVideo =
+    postMedias.filter((media) => media.type === MEDIA_TYPE.VIDEO).length > 0;
 
   return (
     <Box className="flex flex-col items-start dark:bg-mountain-900 rounded-md w-[60%] h-full text-gray-900 dark:text-white">
+      {isCheckingMature && <Loading />}
       {/* Tabs */}
       <div className="z-20 flex gap-x-1 bg-white mb-3 p-1.25 border border-mountain-200 rounded-full w-full">
         <MediaUploadTab
@@ -265,21 +280,21 @@ export default function MediaSelectorPanel({
           return (
             <Box
               sx={{
-                display: 'flex',
+                display: "flex",
                 width,
                 height: adjustedHeight,
                 flexDirection: "column",
                 alignItems: "center",
                 overflow: "hidden",
                 minHeight: 0,
-                position: "relative"
+                position: "relative",
               }}
             >
               <Box
                 className="top-2 z-50 absolute flex justify-between items-center space-x-2 mb-2 p-1 px-2 rounded-lg w-full"
                 sx={{ flexShrink: 0 }}
               >
-                <InfoMediaRemaining 
+                <InfoMediaRemaining
                   currentImageCount={imageCount}
                   MaxImage={MAX_IMAGES}
                   hasVideo={hasVideo}
@@ -287,7 +302,9 @@ export default function MediaSelectorPanel({
                   hasAI={tabValue !== TabValue.BROWSE_GENAI}
                 />
                 <Tooltip title="Marked as an AI Post. Its prompt may appear in trending suggestions for others to reuse.">
-                  <div className={`${imageCount > 0 && hasArtNovaImages ? 'flex' : 'hidden'} hover:cursor-pointer text-base items-center space-x-2 px-4 py-1 bg-white shadow rounded-full`}>
+                  <div
+                    className={`${imageCount > 0 && hasArtNovaImages ? "flex" : "hidden"} hover:cursor-pointer text-base items-center space-x-2 px-4 py-1 bg-white shadow rounded-full`}
+                  >
                     <IoSparkles className="mr-2 text-amber-300" />
                     <p>Generated by ArtNova</p>
                   </div>
@@ -306,20 +323,14 @@ export default function MediaSelectorPanel({
                 className="flex flex-col justify-center items-center bg-mountain-100 border border-gray-500 border-dashed rounded-lg w-full h-full"
               >
                 {selectedPreviewMedia ? (
-                  <MediaPreview
-                    media={selectedPreviewMedia}
+                  <MediaPreview media={selectedPreviewMedia} />
+                ) : tabValue === TabValue.UPLOAD_MEDIA ? (
+                  <UploadFromDevice
+                    onAddImages={handleImagesAdded}
+                    onAddVideo={handleVideoAdded}
                   />
                 ) : (
-                  tabValue === TabValue.UPLOAD_MEDIA ? (
-                    <UploadFromDevice
-                      onAddImages={handleImagesAdded}
-                      onAddVideo={handleVideoAdded}
-                    />
-                  ) : (
-                    <BrowseAiImages
-                      handleImageFilesChange={handleImagesAdded}
-                    />
-                  )
+                  <PostAiImages handleImageFilesChange={handleImagesAdded} />
                 )}
               </Box>
               {/* Carousel */}
@@ -327,50 +338,49 @@ export default function MediaSelectorPanel({
                 className="flex space-x-2 pt-3 h-fit custom-scrollbar"
                 sx={{ flexShrink: 0, overflowX: "hidden" }}
               >
-                {postMedias.map(
-                  (media, i) => (
-                    <Box
-                      key={i}
-                      className="relative border-1 rounded-md cursor-pointer bounce-item"
-                      sx={{
-                        borderColor:
-                          selectedPreviewMedia?.file === media.file
-                            ? "primary.main"
-                            : "transparent",
+                {postMedias.map((media, i) => (
+                  <Box
+                    key={i}
+                    className="relative border-1 rounded-md cursor-pointer bounce-item"
+                    sx={{
+                      borderColor:
+                        selectedPreviewMedia?.file === media.file
+                          ? "primary.main"
+                          : "transparent",
+                    }}
+                    onClick={() => setSelectedPreviewMedia(media)}
+                  >
+                    <Avatar
+                      src={
+                        media.type === MEDIA_TYPE.IMAGE
+                          ? media.url
+                          : VIDEO_THUMBNAIL_DEFAULT_URL
+                      }
+                      className="rounded-md"
+                      sx={{ width: 80, height: 80 }}
+                    />
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveMediaPreview(media);
                       }}
-                      onClick={() => setSelectedPreviewMedia(media)}
+                      size="small"
+                      className="group -top-2 -right-2 absolute bg-gray-600 hover:bg-gray-400 opacity-60"
                     >
-                      <Avatar
-                        src={
-                          media.type === MEDIA_TYPE.IMAGE
-                            ? media.url
-                            : VIDEO_THUMBNAIL_DEFAULT_URL}
-                        className="rounded-md"
-                        sx={{ width: 80, height: 80 }}
+                      <MdClose
+                        className="text-white group-hover:text-black text-sm"
+                        size={16}
                       />
-                      <IconButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveMediaPreview(media);
-                        }}
-                        size="small"
-                        className="group -top-2 -right-2 absolute bg-gray-600 hover:bg-gray-400 opacity-60"
-                      >
-                        <MdClose
-                          className="text-white group-hover:text-black text-sm"
-                          size={16}
-                        />
-                      </IconButton>
-                    </Box>
-                  ),
-                )}
+                    </IconButton>
+                  </Box>
+                ))}
                 <Box
                   className="flex justify-center items-center border border-mountain-600 rounded-md w-[80px] h-[80px] text-gray-900 dark:text-white cursor-pointer"
                   component="label"
                   hidden={
-                    (imageCount === 0 && !hasVideo)
-                    || imageCount === MAX_IMAGES
-                    || hasArtNovaImages
+                    (imageCount === 0 && !hasVideo) ||
+                    imageCount === MAX_IMAGES ||
+                    hasArtNovaImages
                   }
                 >
                   <MdAdd size={32} />
@@ -399,7 +409,10 @@ export default function MediaSelectorPanel({
             <LuImageOff className="size-12 text-mountain-600" />
           </div>
           <DialogFooter>
-            <Button className="bg-mountain-100 hover:bg-mountain-100/80" onClick={() => setConfirmDialogOpen(false)}>
+            <Button
+              className="bg-mountain-100 hover:bg-mountain-100/80"
+              onClick={() => setConfirmDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button
@@ -409,11 +422,33 @@ export default function MediaSelectorPanel({
                 setTabValue(pendingTab!);
                 setConfirmDialogOpen(false);
                 setSelectedPreviewMedia(null);
-                setThumbnailFile(undefined, true);
+                onThumbnailAddedOrRemoved(null);
                 setHasArtNovaImages(false);
               }}
             >
               Yes, discard and switch
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={matureDialogOpen} onOpenChange={setMatureDialogOpen}>
+        <DialogContent className="flex flex-col w-108">
+          <DialogHeader>
+            <DialogTitle>Mature content detected</DialogTitle>
+            <DialogDescription>
+              Your images contain mature content. We will automatically mark
+              this post as mature.
+            </DialogDescription>
+          </DialogHeader>
+          {/* <div className="flex justify-center items-center bg-mountain-100 py-6">
+            <LuImageOff className="size-12 text-mountain-600" />
+          </div> */}
+          <DialogFooter>
+            <Button
+              className="bg-mountain-100 hover:bg-mountain-100/80"
+              onClick={() => setMatureDialogOpen(false)}
+            >
+              Yes, I acknowledge
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -15,7 +15,11 @@ export const formatDate = (date: string) => {
   const today = new Date();
 
   // Normalize to midnight for accurate date-only comparison
-  const target = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  const target = new Date(
+    targetDate.getFullYear(),
+    targetDate.getMonth(),
+    targetDate.getDate(),
+  );
   const now = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
   const msInDay = 24 * 60 * 60 * 1000;
@@ -26,6 +30,12 @@ export const formatDate = (date: string) => {
 
   return targetDate.toLocaleDateString("en-US", {
     month: "short",
-    day: "2-digit"
+    day: "2-digit",
   });
+};
+
+const IS_TEMPORARY_ID_THRESHOLD = 2_000_000_000; // An INT4 max is 2,147,483,647. Date.now() is much larger.
+
+export const isTemporaryCommentId = (id: number): boolean => {
+  return id > IS_TEMPORARY_ID_THRESHOLD;
 };
