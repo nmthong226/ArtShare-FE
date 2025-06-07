@@ -56,7 +56,7 @@ const TextEditorHeader: React.FC<TextEditorHeaderProps> = ({
         top-0 z-50 sticky w-full h-16 px-4
         flex items-center justify-between gap-4
         bg-gradient-to-r from-indigo-100 via-purple-50 to-pink-50
-        dark:bg-mountain-950
+        dark:bg-gradient-to-r dark:from-mountain-900 dark:via-mountain-800 dark:to-mountain-900
         border-b-1 border-b-mountain-100 dark:border-b-mountain-700
       `}
     >
@@ -64,18 +64,18 @@ const TextEditorHeader: React.FC<TextEditorHeaderProps> = ({
       <div className="flex items-center gap-4 flex-shrink-0">
         <Link
           to="/docs"
-          className="flex justify-center items-center hover:bg-mountain-50 p-2 rounded-lg transition-colors"
+          className="flex justify-center items-center hover:bg-mountain-50 dark:hover:bg-mountain-700 p-2 rounded-lg transition-colors"
         >
-          <FaArrowLeftLong className="size-5 text-mountain-600" />
+          <FaArrowLeftLong className="size-5 text-mountain-600 dark:text-mountain-300" />
         </Link>
         <div className="flex items-center gap-2">
-          <span className="font-medium text-lg whitespace-nowrap">
+          <span className="font-medium text-lg whitespace-nowrap text-gray-900 dark:text-gray-100">
             My Writing
           </span>
           <Tooltip
             title={"Share your experience through characters, paragraphs..."}
           >
-            <InfoIcon className="size-4" />
+            <InfoIcon className="size-4 text-mountain-600 dark:text-mountain-300" />
           </Tooltip>
         </div>
       </div>
@@ -88,8 +88,11 @@ const TextEditorHeader: React.FC<TextEditorHeaderProps> = ({
           style={{ width: `${dynamicWidth}px` }}
           className="
             flex-shrink
-            bg-white/60 px-4 rounded-full h-12
-            placeholder:text-mountain-600
+            bg-white/60 dark:bg-mountain-800/80 px-4 rounded-full h-12
+            border border-gray-200 dark:border-mountain-600
+            text-gray-900 dark:text-gray-100
+            placeholder:text-mountain-600 dark:placeholder:text-mountain-400
+            focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
             transition-all duration-300 ease-in-out"
           placeholder="Name Your Document Here..."
         />
@@ -110,12 +113,15 @@ const TextEditorHeader: React.FC<TextEditorHeaderProps> = ({
               size="icon"
               disabled={blogId === "new"}
               className="
-          bg-white/60 hover:bg-white/90 border-gray-300
-          rounded-full h-9 w-9
-          disabled:opacity-50 disabled:cursor-not-allowed
-        "
+                bg-white/60 dark:bg-mountain-700/80 
+                hover:bg-white/90 dark:hover:bg-mountain-600/90 
+                border-gray-300 dark:border-mountain-600
+                rounded-full h-9 w-9
+                disabled:opacity-50 disabled:cursor-not-allowed
+                transition-colors
+              "
             >
-              <FaEye className="h-4 w-4 text-gray-600" />
+              <FaEye className="h-4 w-4 text-gray-600 dark:text-gray-300" />
             </Button>
           </div>
         </Tooltip>
@@ -123,10 +129,12 @@ const TextEditorHeader: React.FC<TextEditorHeaderProps> = ({
         <Button
           onClick={() => handleSaveBlog(text)}
           className="
-            bg-green-600 shadow hover:brightness-95
-            border border-emerald-700 rounded-full
+            bg-green-600 dark:bg-green-700 shadow hover:brightness-95
+            border border-emerald-700 dark:border-emerald-800 rounded-full
             h-9 px-4 font-medium text-white
             flex items-center gap-2
+            hover:bg-green-700 dark:hover:bg-green-800
+            transition-colors
           "
         >
           <AiOutlineSave className="h-4 w-4" />
@@ -134,16 +142,19 @@ const TextEditorHeader: React.FC<TextEditorHeaderProps> = ({
             {isPublished ? "Save and publish" : "Publish"}
           </span>
         </Button>
+
         <Button
           type="submit"
           onClick={handleExport}
           disabled={!isPublished}
           className="
-            bg-indigo-400 shadow hover:brightness-95
-            border border-mountain-400 rounded-full
+            bg-indigo-400 dark:bg-indigo-600 shadow hover:brightness-95
+            border border-mountain-400 dark:border-indigo-700 rounded-full
             w-36 h-9 font-medium text-white
             disabled:opacity-50 disabled:cursor-not-allowed
             flex items-center justify-center gap-2
+            hover:bg-indigo-500 dark:hover:bg-indigo-700
+            transition-colors
           "
         >
           {tooltipOpen && isPublished ? (
@@ -158,6 +169,7 @@ const TextEditorHeader: React.FC<TextEditorHeaderProps> = ({
             </>
           )}
         </Button>
+
         <div className="flex items-center">
           <UserButton user={user!} loading={loading!} />
           <UserInAppConfigs />

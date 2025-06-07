@@ -47,42 +47,32 @@ export type EditorHandle = {
   focus: () => void;
 };
 
+// ...existing helper functions remain the same...
 const getMarkRange = ($pos?: ResolvedPos, type?: MarkType) => {
   if (!$pos || !type) {
     return false;
   }
 
-  // Get the node at or before the cursor.
-  // If $pos.parentOffset is 0, it means cursor is at the start of a node or parent.
-  // If $pos.textOffset is 0 but $pos.parentOffset > 0, cursor is at the start of an inline node.
-  // We want the node that the cursor is "in" or immediately to its left.
   const nodeBefore = $pos.nodeBefore;
   const nodeAfter = $pos.nodeAfter;
   let targetNode: ProseMirrorNode | null | undefined = null;
   let targetNodePos = -1;
 
-  // Check if the cursor is inside a text node
   if ($pos.parent.isTextblock && $pos.depth > 0) {
-    // Check if we are inside a text-containing block
     if ($pos.textOffset > 0) {
-      // Cursor is inside a text node
       targetNode = $pos.parent.child($pos.index());
       targetNodePos =
-        $pos.start() + $pos.parent.child($pos.index()).attrs.offset; // This might not be right, use $pos.pos - $pos.textOffset
+        $pos.start() + $pos.parent.child($pos.index()).attrs.offset;
       targetNodePos = $pos.pos - $pos.textOffset;
     } else if ($pos.index() > 0 && $pos.parent.child($pos.index() - 1).isText) {
-      // Cursor is at the start of a text node, look left
       targetNode = $pos.parent.child($pos.index() - 1);
       targetNodePos = $pos.pos - targetNode.nodeSize;
     } else if ($pos.parent.child($pos.index()).isText) {
-      // Cursor is at start of first text node
       targetNode = $pos.parent.child($pos.index());
       targetNodePos = $pos.pos;
     }
   }
 
-  // If we couldn't find a text node directly, try $pos.nodeBefore or $pos.nodeAfter if they are text nodes.
-  // This part might be redundant if the above logic is solid.
   if (!targetNode) {
     if (nodeBefore && nodeBefore.isText) {
       targetNode = nodeBefore;
@@ -94,7 +84,6 @@ const getMarkRange = ($pos?: ResolvedPos, type?: MarkType) => {
   }
 
   if (!targetNode || !targetNode.isText) {
-    // Fallback: If cursor is not directly in/near text, check marks at $pos
     const marksAtPos = $pos.marks();
     const markAtCursor = marksAtPos.find((m) => m.type === type);
     if (markAtCursor) {
@@ -113,7 +102,6 @@ const getMarkRange = ($pos?: ResolvedPos, type?: MarkType) => {
       ) {
         from = $pos.pos - $pos.nodeBefore.nodeSize;
       } else {
-        // Mark is likely on a non-text node or at an edge, try a minimal range
         const textNode =
           $pos.textOffset > 0
             ? $pos.parent.child($pos.index())
@@ -122,7 +110,7 @@ const getMarkRange = ($pos?: ResolvedPos, type?: MarkType) => {
           from = $pos.pos - $pos.textOffset;
           to = from + textNode.nodeSize;
         } else {
-          return false; // Cannot determine range
+          return false;
         }
       }
       return { from, to, mark: markAtCursor };
@@ -139,9 +127,7 @@ const getMarkRange = ($pos?: ResolvedPos, type?: MarkType) => {
   let from = currentPos;
   let to = currentPos + targetNode.nodeSize;
 
-  // Scan backward from the targetNode
   let currentIndex = $pos.parent.childCount;
-  // Find currentIndex of targetNode
   for (let i = 0; i < $pos.parent.childCount; i++) {
     if ($pos.parent.child(i) === targetNode) {
       currentIndex = i;
@@ -159,7 +145,6 @@ const getMarkRange = ($pos?: ResolvedPos, type?: MarkType) => {
     }
   }
 
-  // Reset currentIndex for forward scan
   for (let i = 0; i < $pos.parent.childCount; i++) {
     if ($pos.parent.child(i) === targetNode) {
       currentIndex = i;
@@ -167,7 +152,6 @@ const getMarkRange = ($pos?: ResolvedPos, type?: MarkType) => {
     }
   }
 
-  // Scan forward from the targetNode
   while (currentIndex < $pos.parent.childCount - 1) {
     const nextNode = $pos.parent.child(currentIndex + 1);
     if (nextNode.isText && mark.isInSet(nextNode.marks)) {
@@ -184,12 +168,11 @@ const getMarkRange = ($pos?: ResolvedPos, type?: MarkType) => {
     mark,
   };
 };
-// Helper function to find the complete range of a link
+
 const findLinkRange = (doc: ProseMirrorNode, pos: number, linkMark: Mark) => {
   let start = pos;
   let end = pos;
 
-  // Go backwards to find start of link
   while (start > 0) {
     const prevPos = doc.resolve(start - 1);
     const hasLink = prevPos
@@ -205,7 +188,6 @@ const findLinkRange = (doc: ProseMirrorNode, pos: number, linkMark: Mark) => {
     }
   }
 
-  // Go forwards to find end of link
   while (end < doc.content.size) {
     const nextPos = doc.resolve(end);
     const hasLink = nextPos
@@ -224,7 +206,6 @@ const findLinkRange = (doc: ProseMirrorNode, pos: number, linkMark: Mark) => {
   return { start, end };
 };
 
-// Types for link modal
 interface LinkRange {
   start: number;
   end: number;
@@ -238,7 +219,7 @@ interface LinkModalProps {
   position: { x: number; y: number };
 }
 
-// Link Edit Modal Component
+// Link Edit Modal Component with dark mode
 const LinkEditModal = ({
   isOpen,
   onClose,
@@ -265,29 +246,31 @@ const LinkEditModal = ({
 
   return (
     <div
-      className="fixed bg-white border border-gray-200 rounded-md shadow-lg p-3 z-50 min-w-80"
+      className="fixed bg-white dark:bg-mountain-800 border border-gray-200 dark:border-mountain-600 rounded-md shadow-lg p-3 z-50 min-w-80"
       style={{ left: `${position.x}px`, top: `${position.y}px` }}
     >
-      <div className="mb-2 text-sm font-medium text-gray-700">Edit Link</div>
+      <div className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+        Edit Link
+      </div>
       <input
         type="text"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Enter URL..."
-        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border border-gray-300 dark:border-mountain-600 rounded-md text-sm bg-white dark:bg-mountain-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
         autoFocus
       />
       <div className="mt-2 flex gap-2">
         <button
           onClick={handleSave}
-          className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+          className="px-3 py-1 bg-blue-500 dark:bg-blue-600 text-white text-sm rounded hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
         >
           Save
         </button>
         <button
           onClick={onClose}
-          className="px-3 py-1 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400"
+          className="px-3 py-1 bg-gray-300 dark:bg-mountain-600 text-gray-700 dark:text-gray-200 text-sm rounded hover:bg-gray-400 dark:hover:bg-mountain-500 transition-colors"
         >
           Cancel
         </button>
@@ -365,7 +348,7 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ onChange }, ref) => {
       ],
       editorProps: {
         attributes: {
-          class: `focus:outline-none print:border-0 bg-white border border-[#C7C7C7] flex flex-col min-h-full w-[816px] cursor-text reset-tailwind p-10`,
+          class: `focus:outline-none print:border-0 bg-white dark:bg-mountain-800 border border-[#C7C7C7] dark:border-mountain-600 flex flex-col min-h-full w-[816px] cursor-text reset-tailwind p-10 text-gray-900 dark:text-gray-100`,
           style: "all:revert;",
         },
         handleClick: (view, pos, event) => {
@@ -400,15 +383,20 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ onChange }, ref) => {
               event.preventDefault();
 
               const contextMenu = document.createElement("div");
-              contextMenu.className =
-                "fixed bg-white border border-gray-200 rounded-md shadow-lg p-1 z-50";
+              // Check if dark mode is active
+              const isDarkMode =
+                document.documentElement.classList.contains("dark");
+              contextMenu.className = isDarkMode
+                ? "fixed bg-mountain-800 border border-mountain-600 rounded-md shadow-lg p-1 z-50"
+                : "fixed bg-white border border-gray-200 rounded-md shadow-lg p-1 z-50";
               contextMenu.style.left = `${event.clientX}px`;
               contextMenu.style.top = `${event.clientY}px`;
 
               // Open Link option
               const openButton = document.createElement("button");
-              openButton.className =
-                "block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded";
+              openButton.className = isDarkMode
+                ? "block w-full text-left px-3 py-2 text-sm text-gray-200 hover:bg-mountain-700 rounded"
+                : "block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded";
               openButton.innerHTML = "🔗 Open Link";
               openButton.onclick = () => {
                 window.open(link.attrs.href, "_blank", "noopener,noreferrer");
@@ -417,8 +405,9 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ onChange }, ref) => {
 
               // Edit Link option
               const editButton = document.createElement("button");
-              editButton.className =
-                "block w-full text-left px-3 py-2 text-sm hover:bg-blue-50 text-blue-600 rounded";
+              editButton.className = isDarkMode
+                ? "block w-full text-left px-3 py-2 text-sm hover:bg-blue-800/30 text-blue-400 rounded"
+                : "block w-full text-left px-3 py-2 text-sm hover:bg-blue-50 text-blue-600 rounded";
               editButton.innerHTML = "✏️ Edit Link";
               editButton.onclick = () => {
                 const linkRange = findLinkRange(doc, pos.pos, link);
@@ -434,33 +423,29 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ onChange }, ref) => {
 
               // Remove Link option
               const unlinkButton = document.createElement("button");
-              unlinkButton.className =
-                "block w-full text-left px-3 py-2 text-sm hover:bg-red-50 text-red-600 rounded";
+              unlinkButton.className = isDarkMode
+                ? "block w-full text-left px-3 py-2 text-sm hover:bg-red-800/30 text-red-400 rounded"
+                : "block w-full text-left px-3 py-2 text-sm hover:bg-red-50 text-red-600 rounded";
               unlinkButton.innerHTML = "🔓 Remove Link";
               unlinkButton.onclick = () => {
-                const $pos = view.state.doc.resolve(pos.pos); // Resolve the cursor position
-                const markRange = getMarkRange($pos, schema.marks.link); // Use the MarkType
+                const $pos = view.state.doc.resolve(pos.pos);
+                const markRange = getMarkRange($pos, schema.marks.link);
 
                 if (markRange) {
                   const tr = view.state.tr.removeMark(
                     markRange.from,
                     markRange.to,
-                    schema.marks.link, // You can also use markRange.mark.type here
+                    schema.marks.link,
                   );
                   view.dispatch(tr);
                 } else {
-                  // Fallback or alternative if getMarkRange doesn't find it,
-                  // though it should if `link` was found initially.
-                  // For safety, you could try the original Tiptap command as a fallback:
                   view.dispatch(
                     view.state.tr.removeMark(
                       pos.pos,
                       pos.pos + 1,
                       schema.marks.link,
                     ),
-                  ); // Tries to remove at cursor
-                  // Or use the Tiptap command:
-                  // editor?.chain().focus().unsetLink().run(); // If editor instance is accessible
+                  );
                 }
 
                 document.body.removeChild(contextMenu);
@@ -471,7 +456,6 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ onChange }, ref) => {
               contextMenu.appendChild(unlinkButton);
               document.body.appendChild(contextMenu);
 
-              // Remove menu when clicking elsewhere
               const removeMenu = () => {
                 if (document.body.contains(contextMenu)) {
                   document.body.removeChild(contextMenu);
@@ -506,7 +490,6 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ onChange }, ref) => {
       const { view, linkRange } = linkModal;
       const { schema } = view.state;
 
-      // Remove old link and add new one
       const tr = view.state.tr
         .removeMark(linkRange.start, linkRange.end, schema.marks.link)
         .addMark(
@@ -559,7 +542,10 @@ const Editor = forwardRef<EditorHandle, EditorProps>(({ onChange }, ref) => {
 
   return (
     <>
-      <EditorContent editor={editor} className="max-w-full prose" />
+      <EditorContent
+        editor={editor}
+        className="max-w-full prose dark:prose-invert"
+      />
       <LinkEditModal
         isOpen={linkModal.isOpen}
         onClose={() => setLinkModal((prev) => ({ ...prev, isOpen: false }))}

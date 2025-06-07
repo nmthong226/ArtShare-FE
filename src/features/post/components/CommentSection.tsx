@@ -1009,8 +1009,8 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
               "sticky bottom-0  inset-x-0 bottom-0 flex items-center gap-2 bg-white dark:bg-mountain-950 p-4 border-t border-mountain-200 dark:border-mountain-700"
             : // top version, but if hideWrapper remove border & rounding
               hideWrapper
-              ? "flex items-center gap-2 bg-white dark:bg-mountain-1000 mb-4 px-4 mt-3" // blog comments
-              : "flex items-center gap-2 bg-white dark:bg-mountain-1000 p-4 border border-mountain-200 dark:border-mountain-700 rounded-lg mb-4"
+              ? "flex items-center gap-2 bg-white dark:bg-mountain-950 mb-4 px-4 mt-3" // blog comments
+              : "flex items-center gap-2 bg-white dark:bg-mountain-950 p-4 border border-mountain-200 dark:border-mountain-700 rounded-lg mb-4"
         }
       >
         {/* Avatar */}

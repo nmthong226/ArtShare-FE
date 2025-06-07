@@ -214,10 +214,12 @@ const WriteBlog = () => {
 
   if (isApiLoading) {
     return (
-      <div className="flex justify-center items-center w-full h-screen">
+      <div className="flex justify-center items-center w-full h-screen bg-white dark:bg-mountain-950">
         <div className="flex flex-col items-center space-y-2">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span>Loading editor data...</span>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 dark:border-blue-400"></div>
+          <span className="text-gray-700 dark:text-gray-300">
+            Loading editor data...
+          </span>
         </div>
       </div>
     );
@@ -276,10 +278,8 @@ const WriteBlog = () => {
   };
 
   return (
-    <div className={`flex flex-row w-full h-full`}>
-      <div
-        className={`flex flex-col flex-1 flex-shrink w-[calc(100vw-16rem)] h-full`}
-      >
+    <div className="flex flex-row w-full h-full bg-white dark:bg-mountain-950">
+      <div className="flex flex-col flex-1 flex-shrink w-[calc(100vw-16rem)] h-full">
         <TextEditorHeader
           handleExport={handleExportDocument}
           handleSaveBlog={handleSaveBlog}
@@ -291,11 +291,9 @@ const WriteBlog = () => {
             <AutoSaveStatus status={saveStatus} lastSaved={lastSaved} />
           }
         />
-        <div
-          className={`border-l-1 bg-mountain-50 border-l-mountain-100 dark:border-l-mountain-700 h-full w-full`}
-        >
+        <div className="border-l-1 bg-mountain-50 dark:bg-mountain-900 border-l-mountain-100 dark:border-l-mountain-700 h-full w-full">
           <Toolbar />
-          <div className="print:bg-white print:p-0 pb-20 w-full h-screen overflow-x-hidden sidebar fixed">
+          <div className="print:bg-white dark:print:bg-mountain-950 print:p-0 pb-20 w-full h-screen overflow-x-hidden sidebar fixed">
             {/* <div className="right-60 bottom-4 z-50 fixed flex justify-center items-center bg-gradient-to-b from-blue-400 to-purple-400 shadow-md rounded-full w-14 h-14 hover:scale-105 transition duration-300 ease-in-out hover:cursor-pointer">
               <LuPencilLine className="size-6 text-white" />
             </div> */}

@@ -37,29 +37,40 @@ import { useReport } from "../user-profile-public/hooks/useReport";
 import { ReportTargetType } from "../user-profile-public/api/report.api";
 
 import "./BlogDetails.css";
+interface BlogError {
+  message: string;
+  error?: string;
+  statusCode?: number;
+}
 
 const BlogDetails = () => {
   const { blogId } = useParams<{ blogId: string }>();
   const [showAuthorBadge, setShowAuthorBadge] = useState(false);
   const [likesDialogOpen, setLikesDialogOpen] = useState(false);
-  const [reportDialogOpen, setReportDialogOpen] = useState(false); // State for report dialog
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const { user } = useUser();
   const { showSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
   const requireAuth = useRequireAuth();
-
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const {
     data: blog,
     isLoading,
     error,
     refetch,
-  } = useQuery<Blog, Error>({
+  } = useQuery<Blog, AxiosError<BlogError>>({
     queryKey: ["blogDetails", blogId],
     queryFn: () => fetchBlogDetails(Number(blogId)),
     enabled: !!blogId,
+    retry: (failureCount, error) => {
+      // Don't retry on 403 or 404 errors
+      if (error?.response?.status === 403 || error?.response?.status === 404) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
-
   const navigate = useNavigate();
   const commentSectionRef = useRef<CommentSectionRef>(null);
 
@@ -155,11 +166,17 @@ const BlogDetails = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setShowAuthorBadge(scrollY > 150);
+      if (scrollContainerRef.current) {
+        const scrollY = scrollContainerRef.current.scrollTop; // scrollTop is correct for an element
+        setShowAuthorBadge(scrollY > 150);
+      }
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll, { passive: true });
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
   }, []);
 
   const handleOpenLikesDialog = () =>
@@ -196,7 +213,7 @@ const BlogDetails = () => {
     reportBlogContent(
       {
         targetId: blog.id,
-        targetType: ReportTargetType.BLOG, // Make sure TargetType.BLOG is defined in your constants
+        targetType: ReportTargetType.BLOG,
         reason: reason,
       },
       {
@@ -226,38 +243,183 @@ const BlogDetails = () => {
     queryClient.invalidateQueries({ queryKey: ["blogDetails", blogId] });
   };
 
-  if (isLoading || commentsLoading || !blog)
-    // Added !blog check here for early return
+  // Handle loading state
+  if (isLoading || commentsLoading)
     return (
-      <div className="flex justify-center items-center space-x-4 h-screen">
+      <div className="flex justify-center items-center space-x-4 h-screen bg-white dark:bg-mountain-950 text-black dark:text-white">
         <CircularProgress size={36} /> <p>Loading…</p>
       </div>
     );
-  if (error || commentsError)
+
+  // Handle error states with specific messages
+  if (error) {
+    const errorData = error.response?.data;
+    const statusCode = error.response?.status;
+
+    // Handle specific error cases
+    if (statusCode === 403) {
+      return (
+        <div className="flex flex-col items-center justify-center h-screen bg-white dark:bg-mountain-950 p-8">
+          <div className="text-center max-w-md">
+            <div className="mb-6">
+              <svg
+                className="mx-auto w-20 h-20 text-yellow-500 dark:text-yellow-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Access Restricted
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              {errorData?.message || "This blog is not accessible."}
+            </p>
+            <div className="space-y-3">
+              <Button
+                onClick={() => navigate("/blogs")}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Browse Other Blogs
+              </Button>
+              {user && (
+                <Button
+                  onClick={() => navigate("/docs/new")}
+                  variant="outlined"
+                  className="w-full"
+                >
+                  Create Your Own Blog
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (statusCode === 404) {
+      return (
+        <div className="flex flex-col items-center justify-center h-screen bg-white dark:bg-mountain-950 p-8">
+          <div className="text-center max-w-md">
+            <div className="mb-6">
+              <svg
+                className="mx-auto w-20 h-20 text-gray-400 dark:text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Blog Not Found
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              {errorData?.message ||
+                "The blog you're looking for doesn't exist."}
+            </p>
+            <Button
+              onClick={() => navigate("/blogs")}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Back to Blogs
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    const isPublished = blog?.is_published ?? true;
+
     return (
-      <div className="p-4 text-red-500">
-        {(error || commentsError)?.message}
+      <div className="flex flex-col items-center justify-center h-screen bg-white dark:bg-mountain-950 p-8">
+        <div className="text-center max-w-md">
+          <div className="mb-6">
+            <svg
+              className="mx-auto w-20 h-20 text-red-500 dark:text-red-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            Something went wrong
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            {errorData?.message || error.message || "Failed to load the blog."}
+          </p>
+          <div className="space-y-3">
+            <Button
+              onClick={() => refetch()}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Try Again
+            </Button>
+            <Button
+              onClick={() => navigate("/blogs")}
+              variant="outlined"
+              className="w-full"
+            >
+              Back to Blogs
+            </Button>
+          </div>
+        </div>
       </div>
     );
+  }
+  // Handle comments error
+  if (commentsError) {
+    console.error("Failed to load comments:", commentsError);
+    // Continue showing the blog even if comments fail to load
+  }
+
+  // If no blog data after loading
+  if (!blog) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-white dark:bg-mountain-950">
+        <p className="text-gray-600 dark:text-gray-400">
+          No blog data available.
+        </p>
+      </div>
+    );
+  }
 
   const readingTime = Math.ceil(blog.content.split(/\s+/).length / 200);
 
-  // Centralized Action Buttons Component (Optional but recommended for DRY)
+  // Centralized Action Buttons Component with improved visibility
   const ActionButtons = () => (
-    <div className="transition ease-in-out duration-300 flex items-center py-1 bg-white space-x-4 rounded-full h-full w-full">
+    <div className="transition ease-in-out duration-300 flex items-center p-2 bg-white dark:bg-mountain-900 border border-mountain-200 dark:border-mountain-700 space-x-3 rounded-full h-full w-full shadow-sm">
       <Tooltip title={isLiked ? "Unlike" : "Like"} placement="bottom" arrow>
         <div
-          className="flex justify-center items-center bg-blue-50 hover:bg-blue-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+          className="flex justify-center items-center bg-blue-100 dark:bg-blue-800/40 hover:bg-blue-200 dark:hover:bg-blue-700/60 shadow-md p-2 rounded-full w-14 h-14 font-medium text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 hover:cursor-pointer transition-all duration-200"
           onClick={handleToggleLike}
           aria-disabled={likeMutation.isPending || unlikeMutation.isPending}
         >
           {isLiked ? (
-            <AiFillLike className="size-5 text-blue-500" />
+            <AiFillLike className="size-5 text-blue-600 dark:text-blue-400" />
           ) : (
-            <AiOutlineLike className="size-5" />
+            <AiOutlineLike className="size-5 text-blue-600 dark:text-blue-400" />
           )}
           <p
-            className="ml-1 hover:underline"
+            className="ml-1 hover:underline text-blue-700 dark:text-blue-300 font-medium"
             onClick={(e) => {
               e.stopPropagation();
               handleOpenLikesDialog();
@@ -269,14 +431,16 @@ const BlogDetails = () => {
       </Tooltip>
       <Tooltip title="Comment" placement="bottom" arrow>
         <div
-          className="flex justify-center items-center bg-green-50 hover:bg-green-100 shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+          className="flex justify-center items-center bg-green-100 dark:bg-green-800/40 hover:bg-green-200 dark:hover:bg-green-700/60 shadow-md p-2 rounded-full w-14 h-14 font-medium text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-200 hover:cursor-pointer transition-all duration-200"
           onClick={() => commentSectionRef.current?.focusInput()}
         >
-          <BiComment className="mr-1 size-4" />
-          <span>{blog.comment_count}</span>
+          <BiComment className="mr-1 size-4 text-green-600 dark:text-green-400" />
+          <span className="text-green-700 dark:text-green-300 font-medium">
+            {blog.comment_count}
+          </span>
         </div>
       </Tooltip>
-      <div className="ml-auto flex items-center space-x-4">
+      <div className="ml-auto flex items-center space-x-3">
         <Tooltip title={copied ? "Link copied!" : "Copy link"} arrow>
           <IconButton
             onClick={() => {
@@ -284,7 +448,7 @@ const BlogDetails = () => {
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
-            className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+            className="flex justify-center items-center shadow-md p-2 rounded-full w-12 h-12 font-medium text-mountain-700 dark:text-mountain-200 hover:text-mountain-900 dark:hover:text-white hover:cursor-pointer bg-mountain-100 dark:bg-mountain-700 hover:bg-mountain-200 dark:hover:bg-mountain-600 transition-all duration-200"
           >
             <LuLink className="size-4" />
           </IconButton>
@@ -294,9 +458,9 @@ const BlogDetails = () => {
           <Tooltip title="Report this blog" arrow>
             <IconButton
               onClick={handleOpenReportDialog}
-              className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+              className="flex justify-center items-center shadow-md p-2 rounded-full w-12 h-12 font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:cursor-pointer bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-800/40 transition-all duration-200"
             >
-              <MdOutlineFlag className="size-4 text-red-500" />
+              <MdOutlineFlag className="size-4" />
             </IconButton>
           </Tooltip>
         )}
@@ -304,7 +468,7 @@ const BlogDetails = () => {
           <Tooltip title="Edit" arrow>
             <IconButton
               onClick={() => navigate(`/docs/${blog.id}`)}
-              className="flex justify-center items-center shadow p-1 rounded-full w-12 h-12 font-normal text-mountain-600 hover:text-mountain-950 hover:cursor-pointer"
+              className="flex justify-center items-center shadow-md p-2 rounded-full w-12 h-12 font-medium text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:cursor-pointer bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-800/40 transition-all duration-200"
             >
               <LuPencil className="size-4" />
             </IconButton>
@@ -315,21 +479,31 @@ const BlogDetails = () => {
   );
 
   return (
-    <div className="flex flex-col items-center py-12 w-full h-screen sidebar">
+    <div className="flex flex-col items-center py-12 w-full h-screen sidebar bg-white dark:bg-mountain-950">
       <div className="flex w-full h-full">
         <div className="relative flex flex-col w-[20%]">
           {/* Sidebar content if any */}
         </div>
-        <div className="group flex flex-col space-y-4 p-4 w-[60%]">
+        <div
+          ref={scrollContainerRef}
+          className="group flex flex-col space-y-4 p-4 w-[60%] overflow-y-auto h-full"
+        >
           <div className="flex space-x-2 w-full">
-            <Link to="/blogs" className="underline">
+            <Link
+              to="/blogs"
+              className="underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+            >
               Blogs
             </Link>
-            <span>/</span>
-            <span className="text-mountain-600 line-clamp-1">{blog.title}</span>
+            <span className="text-mountain-600 dark:text-mountain-400">/</span>
+            <span className="text-mountain-600 dark:text-mountain-400 line-clamp-1">
+              {blog.title}
+            </span>
           </div>
-          <h1 className="font-medium text-2xl">{blog.title}</h1>
-          <div className="flex items-center space-x-2 text-mountain-600 text-sm">
+          <h1 className="font-medium text-2xl text-black dark:text-white">
+            {blog.title}
+          </h1>
+          <div className="flex items-center space-x-2 text-mountain-600 dark:text-mountain-400 text-sm">
             <p>
               Published{" "}
               {formatDistanceToNow(new Date(blog.created_at), {
@@ -340,15 +514,16 @@ const BlogDetails = () => {
             <p>{readingTime}m reading</p>
           </div>
 
-          {/* Action Bar (conditionally visible based on scroll) */}
+          {/* Action Bar (New "Sticky" Version) */}
           <div
-            className={`${showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
+            className={`transition-all duration-300 ease-in-out w-full h-20 flex justify-center items-center mr-auto
+    ${showAuthorBadge ? "sticky bottom-4 z-10" : "opacity-100"}`}
           >
             <ActionButtons />
           </div>
 
           {/* Author Info Box */}
-          <div className="flex justify-between items-center bg-gradient-to-r from-indigo-100 to-purple-100 shadow-sm p-4 rounded-lg">
+          <div className="flex justify-between items-center bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 shadow-sm p-4 rounded-lg border border-transparent dark:border-mountain-700">
             <div className="flex items-center space-x-4">
               {blog.user.profile_picture_url ? (
                 <img
@@ -365,12 +540,12 @@ const BlogDetails = () => {
                 />
               )}
               <div className="flex flex-col">
-                <p className="font-medium text-gray-900 text-lg">
+                <p className="font-medium text-gray-900 dark:text-gray-100 text-lg">
                   {blog.user.full_name}
                 </p>
-                <div className="flex items-center space-x-3 text-gray-600 text-sm">
+                <div className="flex items-center space-x-3 text-gray-600 dark:text-gray-400 text-sm">
                   <span>@{blog.user.username}</span>
-                  <span className="text-gray-400">•</span>
+                  <span className="text-gray-400 dark:text-gray-500">•</span>
                   <span>
                     {blog.user.followers_count.toLocaleString()}{" "}
                     {blog.user.followers_count <= 1 ? "follower" : "followers"}
@@ -382,9 +557,9 @@ const BlogDetails = () => {
               <Button
                 onClick={toggleFollow}
                 disabled={followBtnLoading}
-                className="flex items-center bg-white shadow w-32 h-10 font-medium text-sm"
+                className="flex items-center bg-white dark:bg-mountain-800 hover:bg-mountain-50 dark:hover:bg-mountain-700 shadow w-32 h-10 font-medium text-sm text-black dark:text-white border border-mountain-200 dark:border-mountain-600"
               >
-                <IoPersonAddOutline className="mr-2 text-blue-500" />
+                <IoPersonAddOutline className="mr-2 text-blue-500 dark:text-blue-400" />
                 {isFollowing ? "Unfollow" : "Follow"}
               </Button>
             )}
@@ -392,19 +567,20 @@ const BlogDetails = () => {
 
           {/* Blog Content */}
           <div
-            className="p-2 rounded-md max-w-none prose lg:prose-xl reset-tailwind"
+            className="p-2 rounded-md max-w-none prose lg:prose-xl dark:prose-invert reset-tailwind bg-white dark:bg-mountain-950 text-black dark:text-white"
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
-          <hr className="flex border-mountain-200 border-t-1 w-full" />
+          <hr className="flex border-mountain-200 dark:border-mountain-700 border-t-1 w-full" />
 
+          {/* Action Bar (visible when scrolled past 150px) */}
           <div
-            className={`${!showAuthorBadge ? "opacity-0 pointer-events-none" : "opacity-100"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
+            className={`${showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
           >
             <ActionButtons />
           </div>
 
           <RelatedBlogs currentBlogId={Number(blogId)} />
-          <hr className="flex border-mountain-200 border-t-1 w-full" />
+          <hr className="flex border-mountain-200 dark:border-mountain-700 border-t-1 w-full" />
           <CommentSection
             ref={commentSectionRef}
             inputPosition="top"
@@ -426,14 +602,14 @@ const BlogDetails = () => {
         variant={TargetType.BLOG}
       />
       {/* Report Dialog Instance */}
-      {blog && ( // Ensure blog data is available
+      {blog && (
         <ReportDialog
           open={reportDialogOpen}
           onClose={handleCloseReportDialog}
-          onSubmit={handleReportSubmit} // This function will call the reportBlogContent hook
+          onSubmit={handleReportSubmit}
           submitting={isLoadingReport}
-          itemName={blog.title} // Pass the blog title
-          itemType="blog" // Specify the item type
+          itemName={blog.title}
+          itemType="blog"
         />
       )}
     </div>

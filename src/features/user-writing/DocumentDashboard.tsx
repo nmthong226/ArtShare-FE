@@ -194,41 +194,50 @@ const DocumentDashboard = () => {
 
   return (
     <div className="flex flex-col items-center h-screen overflow-auto sidebar">
-      <div className="flex justify-center border-mountain-50 border-b-1 w-full h-fit">
+      {/* Top Templates Section */}
+      <div className="flex justify-center border-mountain-50 dark:border-mountain-700 w-full h-fit">
         <div className="flex flex-col justify-center items-center space-y-2 p-4 w-fit h-full">
           <div className="flex space-x-4 h-full">
+            {/* Blank Document Template */}
             <div
               className="flex flex-col justify-center space-y-4 cursor-pointer"
               onClick={() => createNewDocument()}
             >
-              <div className="flex justify-center items-center bg-mountain-50 border-1 border-white hover:border-indigo-600 w-42 h-48">
-                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full w-16 h-16">
-                  <MdOutlineAdd className="size-10" />
+              <div className="flex justify-center items-center bg-mountain-50 dark:bg-mountain-800 border-1 border-white dark:border-mountain-600 hover:border-indigo-600 dark:hover:border-indigo-400 w-42 h-48 transition-colors">
+                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 to-purple-200 dark:from-indigo-700 dark:to-purple-700 rounded-full w-16 h-16">
+                  <MdOutlineAdd className="size-10 text-gray-800 dark:text-gray-200" />
                 </div>
               </div>
-              <p className="text-mountain-800 text-sm text-center">
+              <p className="text-mountain-800 dark:text-mountain-200 text-sm text-center">
                 Blank Document
               </p>
             </div>
+
+            {/* Tutorial Template */}
             <div
               className="flex flex-col justify-center space-y-4 cursor-pointer"
               onClick={() => createTutorialDocument()}
             >
-              <div className="flex justify-center items-center bg-mountain-50 border-1 border-white hover:border-indigo-600 w-42 h-48">
-                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 to-purple-200 rounded-full w-16 h-16">
-                  <IoBookOutline className="size-10" />
+              <div className="flex justify-center items-center bg-mountain-50 dark:bg-mountain-800 border-1 border-white dark:border-mountain-600 hover:border-indigo-600 dark:hover:border-indigo-400 w-42 h-48 transition-colors">
+                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 to-purple-200 dark:from-indigo-700 dark:to-purple-700 rounded-full w-16 h-16">
+                  <IoBookOutline className="size-10 text-gray-800 dark:text-gray-200" />
                 </div>
               </div>
-              <p className="text-mountain-800 text-sm text-center">
+              <p className="text-mountain-800 dark:text-mountain-200 text-sm text-center">
                 Tutorial Template
               </p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Documents Section */}
       <div className="flex flex-col space-y-6 w-full">
-        <div className="top-0 sticky flex justify-between items-center bg-white shadow-md px-4 rounded-t-3xl w-full h-fit">
-          <p className="font-medium text-lg">Recent projects</p>
+        {/* Header with Filter */}
+        <div className="top-0 sticky flex justify-between items-center bg-white dark:bg-mountain-800 shadow-md px-4 rounded-t-3xl w-full h-fit">
+          <p className="font-medium text-lg text-gray-900 dark:text-gray-100">
+            Recent projects
+          </p>
           <div className="flex items-center">
             <div className="flex">
               <FormControl sx={{ m: 1, minWidth: 120 }}>
@@ -239,43 +248,94 @@ const DocumentDashboard = () => {
                   inputProps={{ "aria-label": "Order By" }}
                   MenuProps={{
                     disableScrollLock: true,
+                    PaperProps: {
+                      sx: {
+                        backgroundColor: "var(--select-bg)",
+                        color: "var(--select-text)",
+                        "& .MuiMenuItem-root": {
+                          color: "var(--select-text)",
+                          "&:hover": {
+                            backgroundColor: "var(--select-hover)",
+                          },
+                          "&.Mui-selected": {
+                            backgroundColor: "var(--select-selected)",
+                          },
+                        },
+                      },
+                    },
                   }}
-                  className="relative pl-8 rounded-full w-36 h-10" // Adjust width if needed for new labels
+                  sx={{
+                    backgroundColor: "var(--select-bg)",
+                    color: "var(--select-text)",
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "var(--select-border)",
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "var(--select-border-hover)",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "var(--select-border-focus)",
+                    },
+                    "& .MuiSelect-icon": {
+                      color: "var(--select-text)",
+                    },
+                  }}
+                  className="relative pl-8 rounded-full w-36 h-10"
+                  style={
+                    {
+                      "--select-bg": "white",
+                      "--select-text": "#374151",
+                      "--select-border": "#d1d5db",
+                      "--select-border-hover": "#9ca3af",
+                      "--select-border-focus": "#6366f1",
+                      "--select-hover": "#f3f4f6",
+                      "--select-selected": "#e0e7ff",
+                    } as React.CSSProperties
+                  }
                 >
-                  {/* Updated MenuItems */}
                   <MenuItem value={"latest"}>Latest</MenuItem>
                   <MenuItem value={"oldest"}>Oldest</MenuItem>
                   <MenuItem value={"last7days"}>Last 7 days</MenuItem>
                   <MenuItem value={"last30days"}>Last 30 days</MenuItem>
                 </Select>
-                <IoFilter className="top-1/2 left-4 absolute -translate-y-1/2" />
+                <IoFilter className="top-1/2 left-4 absolute -translate-y-1/2 text-gray-600 dark:text-gray-400" />
               </FormControl>
             </div>
           </div>
         </div>
 
+        {/* Documents Grid */}
         <div className="items-start gap-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 p-6 pb-96 min-h-[calc(100vh-4rem)]">
           {isLoading ? (
             <div className="flex justify-center items-center col-span-full py-8">
-              <CircularProgress size={32} />
-              <span className="ml-2">Loading documents...</span>
+              <CircularProgress
+                size={32}
+                sx={{ color: "var(--loader-color)" }}
+                style={
+                  { "--loader-color": "rgb(79 70 229)" } as React.CSSProperties
+                }
+              />
+              <span className="ml-2 text-gray-700 dark:text-gray-300">
+                Loading documents...
+              </span>
             </div>
           ) : error ? (
-            <div className="flex justify-center items-center col-span-full py-8 text-red-500">
+            <div className="flex justify-center items-center col-span-full py-8 text-red-500 dark:text-red-400">
               <span>{error}</span>
             </div>
           ) : userBlogs.length === 0 ? (
-            <div className="flex justify-center items-center col-span-full py-8 text-gray-500">
+            <div className="flex justify-center items-center col-span-full py-8 text-gray-500 dark:text-gray-400">
               <span>No documents found for the selected criteria.</span>
             </div>
           ) : (
             userBlogs.map((blog) => (
               <div
                 key={blog.id}
-                className="flex flex-col justify-center items-center space-y-4 bg-white pb-2 border border-mountain-200 hover:border-indigo-600 rounded-lg cursor-pointer transition-colors duration-200"
+                className="flex flex-col justify-center items-center space-y-4 bg-white dark:bg-mountain-800 pb-2 border border-mountain-200 dark:border-mountain-600 hover:border-indigo-600 dark:hover:border-indigo-400 rounded-lg cursor-pointer transition-colors duration-200"
                 onClick={() => handleDocumentClick(blog.id)}
               >
-                <div className="flex justify-center items-center bg-mountain-50 border border-mountain-50 rounded-t-lg w-full aspect-square overflow-hidden">
+                {/* Document Thumbnail */}
+                <div className="flex justify-center items-center bg-mountain-50 dark:bg-mountain-700 border border-mountain-50 dark:border-mountain-600 rounded-t-lg w-full aspect-square overflow-hidden">
                   <img
                     src={getThumbnail(blog)}
                     alt={blog.title}
@@ -286,20 +346,22 @@ const DocumentDashboard = () => {
                     }}
                   />
                 </div>
+
+                {/* Document Info */}
                 <div className="flex flex-col justify-start items-start space-y-2 w-full">
                   <p
-                    className="bg-white px-2 w-full text-mountain-800 text-sm text-left line-clamp-1 select-none"
+                    className="bg-white dark:bg-mountain-800 px-2 w-full text-mountain-800 dark:text-mountain-200 text-sm text-left line-clamp-1 select-none"
                     title={blog.title}
                   >
                     {truncateTitle(blog.title)}
                   </p>
                   <div className="flex justify-between items-center w-full">
-                    <p className="bg-white px-2 w-full text-mountain-800 text-xs text-left truncate select-none">
+                    <p className="bg-white dark:bg-mountain-800 px-2 w-full text-mountain-800 dark:text-mountain-300 text-xs text-left truncate select-none">
                       {formatDate(blog.created_at)}
                     </p>
                     <IconButton
                       onClick={(event) => handleMenuClick(event, blog.id)}
-                      className="bg-white hover:bg-mountain-50 mr-2 w-6 h-6 text-mountain-600 cursor-pointer"
+                      className="bg-white dark:bg-mountain-800 hover:bg-mountain-50 dark:hover:bg-mountain-700 mr-2 w-6 h-6 text-mountain-600 dark:text-mountain-400 cursor-pointer"
                       size="small"
                     >
                       <IoMdMore className="size-5" />
@@ -312,6 +374,27 @@ const DocumentDashboard = () => {
                       }
                       onClose={handleMenuClose}
                       onClick={(e) => e.stopPropagation()}
+                      PaperProps={{
+                        sx: {
+                          backgroundColor: "var(--menu-bg)",
+                          color: "var(--menu-text)",
+                          border: "1px solid var(--menu-border)",
+                          "& .MuiMenuItem-root": {
+                            color: "var(--menu-text)",
+                            "&:hover": {
+                              backgroundColor: "var(--menu-hover)",
+                            },
+                          },
+                        },
+                      }}
+                      style={
+                        {
+                          "--menu-bg": "white",
+                          "--menu-text": "#374151",
+                          "--menu-border": "#d1d5db",
+                          "--menu-hover": "#f3f4f6",
+                        } as React.CSSProperties
+                      }
                     >
                       <MenuItem onClick={() => onEditMenuClick(blog.id)}>
                         Edit
@@ -327,6 +410,30 @@ const DocumentDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Dark mode styles for MUI components */}
+      <style jsx global>{`
+        .dark [style*="--select-bg"] {
+          --select-bg: rgb(41 37 36) !important;
+          --select-text: rgb(229 231 235) !important;
+          --select-border: rgb(87 83 78) !important;
+          --select-border-hover: rgb(120 113 108) !important;
+          --select-border-focus: rgb(129 140 248) !important;
+          --select-hover: rgb(68 64 60) !important;
+          --select-selected: rgb(67 56 202) !important;
+        }
+
+        .dark [style*="--menu-bg"] {
+          --menu-bg: rgb(41 37 36) !important;
+          --menu-text: rgb(229 231 235) !important;
+          --menu-border: rgb(87 83 78) !important;
+          --menu-hover: rgb(68 64 60) !important;
+        }
+
+        .dark [style*="--loader-color"] {
+          --loader-color: rgb(129 140 248) !important;
+        }
+      `}</style>
     </div>
   );
 };
