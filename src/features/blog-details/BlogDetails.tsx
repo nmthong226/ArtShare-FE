@@ -148,6 +148,7 @@ const BlogDetails = () => {
 
   const isOwnBlog = user?.id === blog?.user.id;
   const isFollowing = blog?.user.is_following;
+  const isPublished = blog?.is_published ?? true;
 
   const toggleFollow = () =>
     requireAuth("follow/unfollow users", () =>
@@ -340,7 +341,6 @@ const BlogDetails = () => {
         </div>
       );
     }
-    const isPublished = blog?.is_published ?? true;
 
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-white dark:bg-mountain-950 p-8">
@@ -500,27 +500,92 @@ const BlogDetails = () => {
               {blog.title}
             </span>
           </div>
-          <h1 className="font-medium text-2xl text-black dark:text-white">
-            {blog.title}
-          </h1>
-          <div className="flex items-center space-x-2 text-mountain-600 dark:text-mountain-400 text-sm">
-            <p>
-              Published{" "}
-              {formatDistanceToNow(new Date(blog.created_at), {
-                addSuffix: true,
-              })}
-            </p>
-            <span>•</span>
-            <p>{readingTime}m reading</p>
+
+          <div className="flex items-center gap-3">
+            <h1 className="font-medium text-2xl text-black dark:text-white">
+              {blog.title}
+            </h1>
+            {/* Show draft badge if not published and user is the owner */}
+            {!isPublished && isOwnBlog && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800">
+                Draft
+              </span>
+            )}
           </div>
 
-          {/* Action Bar (New "Sticky" Version) */}
-          <div
-            className={`transition-all duration-300 ease-in-out w-full h-20 flex justify-center items-center mr-auto
-    ${showAuthorBadge ? "sticky bottom-4 z-10" : "opacity-100"}`}
-          >
-            <ActionButtons />
+          <div className="flex items-center space-x-2 text-mountain-600 dark:text-mountain-400 text-sm">
+            {isPublished ? (
+              <>
+                <p>
+                  Published{" "}
+                  {formatDistanceToNow(new Date(blog.created_at), {
+                    addSuffix: true,
+                  })}
+                </p>
+                <span>•</span>
+                <p>{readingTime}m reading</p>
+              </>
+            ) : (
+              <>
+                <p className="text-yellow-600 dark:text-yellow-400">
+                  Not published yet
+                </p>
+                <span>•</span>
+                <p>
+                  Created{" "}
+                  {formatDistanceToNow(new Date(blog.created_at), {
+                    addSuffix: true,
+                  })}
+                </p>
+                <span>•</span>
+                <p>{readingTime}m reading</p>
+              </>
+            )}
           </div>
+
+          {/* Show a banner for unpublished content if owner */}
+          {!isPublished && isOwnBlog && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-4">
+              <div className="flex items-start">
+                <svg
+                  className="flex-shrink-0 w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                    This blog is not published yet
+                  </p>
+                  <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-400">
+                    Only you can see this content. Click the "Publish" button in
+                    the editor to make it public.
+                  </p>
+                  <Button
+                    onClick={() => navigate(`/docs/${blog.id}`)}
+                    className="mt-3 bg-yellow-600 hover:bg-yellow-700 text-white text-sm"
+                  >
+                    Continue Editing
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* For unpublished blogs, hide or disable certain actions */}
+          {isPublished && (
+            <div
+              className={`transition-all duration-300 ease-in-out w-full h-20 flex justify-center items-center mr-auto
+                ${showAuthorBadge ? "sticky bottom-4 z-10" : "opacity-100"}`}
+            >
+              <ActionButtons />
+            </div>
+          )}
 
           {/* Author Info Box */}
           <div className="flex justify-between items-center bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 shadow-sm p-4 rounded-lg border border-transparent dark:border-mountain-700">
@@ -570,39 +635,73 @@ const BlogDetails = () => {
             className="p-2 rounded-md max-w-none prose lg:prose-xl dark:prose-invert reset-tailwind bg-white dark:bg-mountain-950 text-black dark:text-white"
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
+
           <hr className="flex border-mountain-200 dark:border-mountain-700 border-t-1 w-full" />
 
-          {/* Action Bar (visible when scrolled past 150px) */}
-          <div
-            className={`${showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
-          >
-            <ActionButtons />
-          </div>
+          {/* Only show action bar and interactions for published blogs */}
+          {isPublished ? (
+            <>
+              <div
+                className={`${showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"} transition ease-in-out duration-300 flex justify-center items-center mr-auto rounded-full w-full h-20`}
+              >
+                <ActionButtons />
+              </div>
 
-          <RelatedBlogs currentBlogId={Number(blogId)} />
-          <hr className="flex border-mountain-200 dark:border-mountain-700 border-t-1 w-full" />
-          <CommentSection
-            ref={commentSectionRef}
-            inputPosition="top"
-            comments={comments}
-            targetId={Number(blogId)}
-            targetType={TargetType.BLOG}
-            onCommentAdded={handleCommentAdded}
-            onCommentDeleted={handleCommentDeleted}
-            hideWrapper
-          />
+              <RelatedBlogs currentBlogId={Number(blogId)} />
+              <hr className="flex border-mountain-200 dark:border-mountain-700 border-t-1 w-full" />
+
+              <CommentSection
+                ref={commentSectionRef}
+                inputPosition="top"
+                comments={comments}
+                targetId={Number(blogId)}
+                targetType={TargetType.BLOG}
+                onCommentAdded={handleCommentAdded}
+                onCommentDeleted={handleCommentDeleted}
+                hideWrapper
+              />
+            </>
+          ) : (
+            <div className="py-12 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
+                <svg
+                  className="w-8 h-8 text-gray-400 dark:text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+              </div>
+              <p className="text-gray-500 dark:text-gray-400 text-lg font-medium mb-2">
+                Comments are disabled for drafts
+              </p>
+              <p className="text-gray-400 dark:text-gray-500">
+                Publish your blog to enable comments and interactions.
+              </p>
+            </div>
+          )}
         </div>
         <div className="relative flex flex-col w-[20%]" />
       </div>
 
-      <LikesDialog
-        contentId={Number(blogId)}
-        open={likesDialogOpen}
-        onClose={handleCloseLikesDialog}
-        variant={TargetType.BLOG}
-      />
-      {/* Report Dialog Instance */}
-      {blog && (
+      {/* Only show likes dialog for published blogs */}
+      {isPublished && (
+        <LikesDialog
+          contentId={Number(blogId)}
+          open={likesDialogOpen}
+          onClose={handleCloseLikesDialog}
+          variant={TargetType.BLOG}
+        />
+      )}
+
+      {/* Report Dialog - only for published blogs */}
+      {blog && isPublished && (
         <ReportDialog
           open={reportDialogOpen}
           onClose={handleCloseReportDialog}

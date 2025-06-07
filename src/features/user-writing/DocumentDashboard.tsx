@@ -113,7 +113,7 @@ const DocumentDashboard = () => {
       const newBlogPayload: CreateBlogPayload = {
         title: "Untitled Document",
         is_published: false,
-        content: "Untitled Document",
+        content: "<p></p>",
       };
       const createdBlog = await createNewBlog(newBlogPayload);
       navigate(`/docs/${createdBlog.id}`);
@@ -412,7 +412,7 @@ const DocumentDashboard = () => {
       </div>
 
       {/* Dark mode styles for MUI components */}
-      <style jsx global>{`
+      <style>{`
         .dark [style*="--select-bg"] {
           --select-bg: rgb(41 37 36) !important;
           --select-text: rgb(229 231 235) !important;
