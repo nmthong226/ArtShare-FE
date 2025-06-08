@@ -1,23 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useSnackbar } from "@/contexts/SnackbarProvider";
-import { createPost } from "./api/create-post";
 
 import { useLocation, useNavigate } from "react-router-dom";
 import { fetchImageFileFromUrl } from "@/utils/fetch-media.utils";
 import { PostMedia } from "./types/post-media";
-import {
-  createFormData,
-  getImageFilesFromPostMedias,
-  getVideoFileFromPostMedias,
-} from "./helpers/upload-post.helper";
 import { MEDIA_TYPE } from "@/utils/constants";
-import { usePostMediaUploader } from "./hooks/use-post-medias-uploader";
 import PostForm from "./PostForm";
 import { FormikHelpers } from "formik";
 import {
   defaultPostFormValues,
   PostFormValues,
 } from "./types/post-form-values.type";
+import { useCreatePost } from "./hooks/useCreatePost";
 
 const UploadPost: React.FC = () => {
   const navigate = useNavigate();
@@ -33,7 +27,15 @@ const UploadPost: React.FC = () => {
     null,
   );
 
-  const { handleUploadVideo, handleUploadImageFile } = usePostMediaUploader();
+  const { mutate: createPost } = useCreatePost({
+    onSuccess: (createdPost) => {
+      navigate(`/posts/${createdPost.id}`);
+      showSnackbar("Post successfully created!", "success");
+    },
+    onError: (errorMessage) => {
+      showSnackbar(errorMessage, "error");
+    },
+  });
 
   const handleSubmitForCreate = async (
     values: PostFormValues,
@@ -41,74 +43,39 @@ const UploadPost: React.FC = () => {
   ) => {
     if (postMedias.length === 0) {
       showSnackbar("At least one image or video is required.", "error");
+      formikActions.setSubmitting(false);
       return;
     }
-    try {
-      if (!thumbnail || !originalThumbnail) {
-        showSnackbar("Thumbnail is required.", "error");
-        return;
-      }
-
-      if (hasArtNovaImages && !promptId) {
-        showSnackbar("something went wrong, please try again.", "error");
-        console.error(
-          "AI generated images are selected but no prompt ID is provided.",
-        );
-        return;
-      }
-
-      const videoFile = getVideoFileFromPostMedias(postMedias);
-
-      const [videoUrl, initialThumbnailUrl, thumbnailUrl] = await Promise.all([
-        videoFile && handleUploadVideo(videoFile),
-        handleUploadImageFile(originalThumbnail.file, "original_thumbnail"),
-        handleUploadImageFile(thumbnail.file, "thumbnail"),
-      ] as Promise<string | undefined>[]);
-
-      await handleCreatePost(
-        values,
-        thumbnailUrl!,
-        initialThumbnailUrl!,
-        videoUrl,
-        promptId,
-      );
-      navigate("/explore");
-    } catch (error) {
-      console.error("Error during creating post:", error);
-      showSnackbar("Failed to create post or upload video.", "error");
-    } finally {
+    if (!thumbnail || !originalThumbnail) {
+      showSnackbar("Thumbnail is required.", "error");
       formikActions.setSubmitting(false);
+      return;
     }
-  };
 
-  const handleCreatePost = async (
-    values: PostFormValues,
-    thumbnailUrl: string,
-    initialThumbnailUrl: string,
-    videoUrl?: string,
-    promptId?: number | null,
-  ): Promise<void> => {
-    const formData = createFormData({
-      title: values.title,
-      thumbnailUrl: thumbnailUrl,
-      thumbnailCropMeta: JSON.stringify(values.thumbnailMeta),
-      description: values.description,
-      imageFiles: getImageFilesFromPostMedias(postMedias),
-      videoUrl,
-      initialThumbnailUrl,
-      isMature: values.isMature,
-      aiCreated: hasArtNovaImages,
-      cate_ids: values.cate_ids,
-      prompt_id: promptId ?? undefined,
-    });
-    try {
-      const response = await createPost(formData);
-      console.log("Post created:", response);
-    } catch (error) {
-      console.error("Error creating post:", error);
-      showSnackbar("Failed to create post.", "error");
-      throw error;
+    if (hasArtNovaImages && !promptId) {
+      showSnackbar("something went wrong, please try again.", "error");
+      console.error(
+        "AI generated images are selected but no prompt ID is provided.",
+      );
+      formikActions.setSubmitting(false);
+      return;
     }
+
+    createPost(
+      {
+        values,
+        postMedias,
+        thumbnail,
+        originalThumbnail,
+        promptId,
+        hasArtNovaImages,
+      },
+      {
+        onSettled: () => {
+          formikActions.setSubmitting(false);
+        },
+      },
+    );
   };
 
   useEffect(() => {

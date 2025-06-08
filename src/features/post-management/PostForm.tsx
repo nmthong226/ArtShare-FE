@@ -154,7 +154,7 @@ const PostForm: React.FC<PostFormProps> = ({
 
         return (
           <Form className="dark:bg-mountain-950 w-full h-full">
-            {(isPageLoading || isSubmitting) && <Loading />}
+            {isPageLoading && <Loading />}
 
             <Box
               className="flex gap-3 p-4 w-full h-[calc(100vh-4rem)]"

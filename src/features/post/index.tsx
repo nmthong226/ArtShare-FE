@@ -2,15 +2,14 @@ import PostInfo from "./components/PostInfo";
 import PostAssets from "./components/PostAssets";
 import PostArtist from "./components/PostArtist";
 import CommentSection from "./components/CommentSection.tsx";
-import { fetchPost } from "./api/post.api";
 import { fetchComments } from "./api/comment.api.ts";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
-import { mappedCategoryPost } from "@/lib/utils";
 import { CircularProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { TargetType } from "@/utils/constants.ts";
 import MatureContentWarning from "./components/MatureContentWarning.tsx";
+import { useGetPostDetails } from "./hooks/useGetPostDetails.tsx";
 
 const Post: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -36,24 +35,7 @@ const Post: React.FC = () => {
     isLoading: isPostLoading,
     error: postError,
     refetch: refetchPostData,
-  } = useQuery({
-    queryKey: ["postData", numericPostId],
-    queryFn: async () => {
-      if (isNaN(numericPostId)) {
-        throw new Error("Invalid Post ID format");
-      }
-      const response = await fetchPost(numericPostId);
-      if (!response || !response.data) {
-        throw new Error("Failed to fetch post or post data is empty");
-      }
-      const formattedData = mappedCategoryPost(response.data);
-      if (!formattedData) {
-        throw new Error("Post data formatting failed");
-      }
-      return formattedData;
-    },
-    enabled: !!postId && !isNaN(numericPostId),
-  });
+  } = useGetPostDetails(numericPostId);
 
   const {
     data: comments,
