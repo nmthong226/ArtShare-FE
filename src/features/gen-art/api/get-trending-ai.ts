@@ -1,8 +1,5 @@
 import api from "@/api/baseApi";
 // Assets (example thumbnail — remove if no longer needed)
-const example_1 =
-  "https://res.cloudinary.com/dqxtf297o/image/upload/f_auto,q_auto/v1/Models-Mock/Model-1/dzu0q9a2zxvtu3w1r29a";
-
 // =====================================================
 // Types
 // =====================================================

@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import api from "@/api/baseApi";
 
 // UI Components
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -98,7 +97,7 @@ const TrendingPrompt: React.FC<TrendingPromptProps> = ({
           next = Math.min(Math.max(next, 0), trending.length - 1);
 
           // update translateY for smooth scroll
-          setTranslateY((prevY) => {
+          setTranslateY(() => {
             if (next <= 5) return 10; // keep the first six items in view
             const offsetPerItem = 64 + 8; // 64px thumbnail + 8px gap
             const itemsAbove = next - 5;
