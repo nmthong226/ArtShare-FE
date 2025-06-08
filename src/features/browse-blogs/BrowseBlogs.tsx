@@ -1,4 +1,3 @@
-/* src/features/browse-blogs/BrowseBlogs.tsx */
 import React, { useEffect, useState } from "react";
 import {
   Button,
@@ -107,52 +106,59 @@ const BrowseBlogs: React.FC = () => {
   /* ───────── loading / error ───────── */
   if (isLoading)
     return (
-      <div className="flex justify-center items-center space-x-4 h-screen">
+      <div className="flex justify-center items-center space-x-4 h-screen bg-white dark:bg-mountain-950">
         <CircularProgress size={36} />
-        <p>Loading...</p>
+        <p className="text-gray-700 dark:text-gray-300">Loading...</p>
       </div>
     );
 
   if (isError)
     return (
-      <div className="flex justify-center items-center h-screen text-red-600">
+      <div className="flex justify-center items-center h-screen text-red-600 dark:text-red-400 bg-white dark:bg-mountain-950">
         `{isError} Fail to load message`
       </div>
     );
   /* ───────── JSX ───────── */
   return (
-    <div className="flex rounded-t-3xl h-screen overflow-hidden">
+    <div className="flex rounded-t-3xl h-screen overflow-hidden bg-white dark:bg-mountain-950">
       <div className="flex flex-col w-[75%] min-h-screen">
-        <div className="top-0 z-60 sticky bg-white shadow-sm p-4 border-mountain-200 border-b-1">
+        <div className="top-0 z-60 sticky bg-white dark:bg-mountain-900 shadow-sm p-4 border-mountain-200 dark:border-mountain-700 border-b-1">
           <div className="flex items-center space-x-4">
-            <Paper className="bg-mountain-50 shadow-none rounded-full">
+            <Paper className="bg-mountain-50 dark:bg-mountain-800 shadow-none rounded-full">
               <ToggleButtonGroup
                 size="small"
                 exclusive
                 value={tab}
                 onChange={handleTabChange}
+                className="dark:text-white"
               >
-                <ToggleButton value="trending" className="rounded-full">
-                  <AiFillFire className="mr-1 size-4 text-mountain-400 capitalize" />
+                <ToggleButton
+                  value="trending"
+                  className="rounded-full dark:text-gray-300 dark:hover:bg-mountain-700"
+                >
+                  <AiFillFire className="mr-1 size-4 text-mountain-400 dark:text-mountain-300 capitalize" />
                   Trending
                 </ToggleButton>
-                <ToggleButton value="following" className="rounded-full">
-                  <IoHeartCircleOutline className="mr-1 size-4 text-mountain-400" />
+                <ToggleButton
+                  value="following"
+                  className="rounded-full dark:text-gray-300 dark:hover:bg-mountain-700"
+                >
+                  <IoHeartCircleOutline className="mr-1 size-4 text-mountain-400 dark:text-mountain-300" />
                   Following
                 </ToggleButton>
               </ToggleButtonGroup>
             </Paper>
             <div className="relative flex flex-1 items-center">
-              <FiSearch className="left-2 absolute w-5 h-5" />
+              <FiSearch className="left-2 absolute w-5 h-5 text-gray-500 dark:text-gray-400" />
               <Input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && submitSearch()}
                 placeholder="Search"
-                className="shadow-inner pr-8 pl-8 rounded-2xl w-full"
+                className="shadow-inner pr-8 pl-8 rounded-2xl w-full bg-white dark:bg-mountain-800 border-gray-200 dark:border-mountain-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
               />
               <TiDeleteOutline
-                className={`absolute right-2 w-5 h-5 text-mountain-600 ${
+                className={`absolute right-2 w-5 h-5 text-mountain-600 dark:text-mountain-400 cursor-pointer hover:text-mountain-700 dark:hover:text-mountain-300 ${
                   searchInput ? "block" : "hidden"
                 }`}
                 onClick={() => {
@@ -163,9 +169,11 @@ const BrowseBlogs: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-4 space-y-8 p-4 pb-48 min-h-screen overflow-auto sidebar">
+        <div className="flex flex-col gap-4 space-y-8 p-4 pb-48 min-h-screen overflow-auto sidebar bg-white dark:bg-mountain-950">
           {(blogs ?? []).length === 0 ? (
-            <p className="text-mountain-500 text-center">No blogs found.</p>
+            <p className="text-mountain-500 dark:text-mountain-400 text-center">
+              No blogs found.
+            </p>
           ) : (
             (blogs ?? []).map((b) => (
               <BlogItem
@@ -184,7 +192,7 @@ const BrowseBlogs: React.FC = () => {
                 }}
                 category={b.categories?.[0]?.name ?? ""}
                 timeReading={`${Math.ceil((b.content ? b.content.split(/\s+/).length : 0) / 200)}m reading`}
-                dateCreated={new Date(b.created_at).toLocaleDateString()}
+                dateCreated={b.created_at}
                 like_count={b.like_count}
                 comment_count={b.comment_count}
                 view_count={b.view_count}
@@ -198,11 +206,11 @@ const BrowseBlogs: React.FC = () => {
           </div> */}
         </div>
       </div>
-      <div className="z-10 shadow-sm p-4 w-[25%]">
+      <div className="z-10 shadow-sm p-4 w-[25%] bg-gray-50 dark:bg-mountain-900 border-l border-gray-200 dark:border-mountain-700">
         <div className="flex space-x-4">
           <Button
             variant="contained"
-            className="dark:bg-mountain-900 w-12 min-w-0 h-12"
+            className="dark:bg-mountain-800 dark:hover:bg-mountain-700 w-12 min-w-0 h-12"
             onClick={(e) => {
               setAnchorPop(e.currentTarget);
               setOpenPop((o) => !o);
@@ -222,7 +230,7 @@ const BrowseBlogs: React.FC = () => {
           />
           <Button
             variant={selectedCategories.length ? "outlined" : "contained"}
-            className="flex items-center gap-2 p-2 rounded-lg"
+            className="flex items-center gap-2 p-2 rounded-lg dark:bg-mountain-800 dark:hover:bg-mountain-700 dark:text-white dark:border-mountain-600"
             onClick={clearCategories}
           >
             <LoaderPinwheel size={16} />
@@ -236,8 +244,10 @@ const BrowseBlogs: React.FC = () => {
               <div
                 key={c.name}
                 onClick={() => toggleCategory(c.name)}
-                className={`px-6 py-2 rounded-2xl cursor-pointer bg-white shadow hover:scale-105 duration-300 ease-in-out border ${
-                  active ? "border-blue-500 shadow" : "border-gray-200"
+                className={`px-6 py-2 rounded-2xl cursor-pointer bg-white dark:bg-mountain-800 shadow hover:scale-105 duration-300 ease-in-out border transition-colors ${
+                  active
+                    ? "border-blue-500 dark:border-blue-400 shadow text-blue-600 dark:text-blue-400"
+                    : "border-gray-200 dark:border-mountain-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-mountain-600"
                 }`}
               >
                 {c.name}

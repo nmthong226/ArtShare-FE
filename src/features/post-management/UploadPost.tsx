@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 
 import { useLocation, useNavigate } from "react-router-dom";
 import { fetchImageFileFromUrl } from "@/utils/fetch-media.utils";

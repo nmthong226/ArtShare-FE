@@ -7,7 +7,7 @@ import { useUser } from "@/contexts/UserProvider";
 // Icons
 import { MdDarkMode, MdMoreVert } from "react-icons/md";
 import { MdLightMode } from "react-icons/md";
-import { useTheme } from "@/contexts/ThemeProvider";
+import { useTheme } from "@/hooks/useTheme";
 // Components
 import {
   Popover,

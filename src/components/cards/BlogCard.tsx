@@ -1,162 +1,169 @@
-import React, { useEffect, useState } from "react";
-
-//Libs
-// import { useInfiniteQuery } from "@tanstack/react-query";
-import { Button, Tooltip } from "@mui/material";
-
-//Icons
-import { AiOutlineLike } from "react-icons/ai";
-import { IoTrashBinOutline } from "react-icons/io5";
-
-//Components
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BiComment, BiDotsVertical } from "react-icons/bi";
-import { MdBookmarkBorder } from "react-icons/md";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { IoPersonRemoveOutline } from "react-icons/io5";
-
-//Style
-import { formatDate } from "@/lib/utils";
-import Share from "../dialogs/Share";
+import { Button, Tooltip, IconButton } from "@mui/material";
+import { AiOutlineLike } from "react-icons/ai";
+import { BiComment } from "react-icons/bi";
+import { LuLink } from "react-icons/lu";
+import Avatar from "boring-avatars";
+// import { MdBookmarkBorder } from "react-icons/md";
+// Remove the Share import since we're replacing it
+// import Share from "../dialogs/Share";
+import ReactTimeAgo from "react-time-ago";
 
 type Author = {
-  username: string,
-  avatar: string
-}
+  username: string;
+  avatar: string;
+};
 
 type BlogCardProps = {
-  blogId: string,
-  author: Author,
-  title: string,
-  dateCreated: string,
-  timeReading: string,
-  category: string,
-  thumbnail: string,
-  like_count: number,
-  comment_count: number,
-  view_count: number
-}
+  blogId: string;
+  author: Author;
+  title: string;
+  content: string;
+  dateCreated: string;
+  timeReading: string;
+  category: string;
+  thumbnail: string;
+  like_count: number;
+  comment_count: number;
+  view_count: number;
+  className?: string;
+};
 
 const BlogCard: React.FC<BlogCardProps> = ({
   blogId,
   author,
   title,
+  content,
   dateCreated,
   timeReading,
   category,
   thumbnail,
   like_count,
   comment_count,
+  className = "",
 }) => {
   const navigate = useNavigate();
+  const [copied, setCopied] = useState(false);
 
   const handleCardClick = () => {
     navigate(`/blogs/${blogId}`);
   };
 
-  const [open, setOpen] = useState(false);
-  const handleClickMoreButton = (e: React.MouseEvent<HTMLElement>) => {
+  const handleCopyLink = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setOpen(true);
+    try {
+      await navigator.clipboard.writeText(
+        `http://localhost:5173/blogs/${blogId}`,
+      );
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy link:", err);
+    }
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setOpen(false);
-    };
-
-    if (open) {
-      window.addEventListener("scroll", handleScroll, { passive: true });
-    }
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [open]);
-
   return (
-    <div key={blogId} onClick={handleCardClick} className="group bg-white shadow-md border border-mountain-200 hover:border-indigo-400 rounded-lg w-full hover:cursor-pointer">
-      <div className="relative flex justify-between items-center p-2 w-full">
-        <div className="flex items-center space-x-2">
-          <img src={author.avatar} className="rounded-full w-10 h-10" />
-          <p className="text-sm">{author.username}</p>
-        </div>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger
-            onClick={(e) => {
-              handleClickMoreButton(e)
-            }}
-            className="top-1/2 right-1 absolute flex justify-center items-center hover:bg-mountain-100 rounded-full w-8 h-8 -translate-y-1/2">
-            <BiDotsVertical className="size-5 shrink-0" />
-          </PopoverTrigger>
-          <PopoverContent className="p-0 border-mountain-200 w-36 text-xs">
-            <div className="flex items-center hover:bg-mountain-50 px-3 py-2 border-mountain-200 border-b-1 rounded-t-lg hover:cursor-pointer">
-              <IoPersonRemoveOutline className="mr-2" />
-              <p>Block User</p>
-            </div>
-            <div className="flex items-center hover:bg-mountain-50 px-3 py-2 border-mountain-200 border-b-1 rounded-t-lg hover:cursor-pointer">
-              <IoTrashBinOutline className="mr-2" />
-              <p>Remove From List</p>
-            </div>
-          </PopoverContent>
-        </Popover>
+    <div
+      className={`flex flex-col bg-white dark:bg-mountain-900 border border-mountain-200 dark:border-mountain-700 rounded-lg overflow-hidden hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors duration-200 cursor-pointer w-full h-[420px] ${className}`}
+      onClick={handleCardClick}
+    >
+      {/* Reduced height thumbnail container */}
+      <div className="relative w-full h-40 bg-gray-100 dark:bg-mountain-800 overflow-hidden">
+        <img
+          src={thumbnail}
+          alt={title}
+          className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out"
+        />
       </div>
-      <div className="flex justify-start items-start p-2 w-full h-16">
-        <p className="line-clamp-2">{title}</p>
-      </div>
-      <hr className="flex border-mountain-200 border-t-0.5 w-full" />
-      <div className="flex flex-col space-y-1 p-2">
-        <div className="flex justify-between text-mountain-600 text-sm">
-          <div className="flex items-center space-x-2">
-            <p>{formatDate(dateCreated)}</p>
+
+      {/* Content container with reduced padding */}
+      <div className="flex flex-col flex-1 p-4">
+        {/* Header section with reduced margin */}
+        <div className="flex justify-between items-start mb-1.5">
+          <div className="flex items-center space-x-2 text-sm text-mountain-600 dark:text-mountain-400">
+            <p className="capitalize">{category}</p>
             <span>•</span>
-            <p>{timeReading} reading</p>
+            <p>{timeReading}</p>
           </div>
-          <p>{category}</p>
+          <div
+            className="flex items-center space-x-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Tooltip title={copied ? "Link copied!" : "Copy link"} arrow>
+              <IconButton
+                onClick={handleCopyLink}
+                className="text-mountain-400 dark:text-mountain-500 hover:text-mountain-950 dark:hover:text-mountain-100 transition-colors"
+                size="small"
+              >
+                <LuLink className="size-4" />
+              </IconButton>
+            </Tooltip>
+          </div>
         </div>
-        <div className="flex bg-black w-full h-fit overflow-hidden">
-          <img
-            src={thumbnail}
-            className="w-full h-full object-cover group-hover:scale-120 transition-transform duration-300 ease-in-out transform"
-          />
-        </div>
-      </div>
-      <hr className="flex border-mountain-200 border-t-0.5 w-full" />
-      <div className="flex justify-between items-center gap-x-2 p-2 w-full">
-        <div className="flex items-center space-x-1 p-1 border border-mountain-200 rounded-lg w-1/2 h-8">
-          <Tooltip title="Like">
-            <Button className="w-1/2 h-full font-normal text-mountain-600 hover:text-mountain-950">
-              <AiOutlineLike className="mr-1 size-5" />
-              <p>{like_count}</p>
-            </Button>
-          </Tooltip>
-          <Tooltip title="Comment">
-            <Button className="w-1/2 h-full font-normal text-mountain-600 hover:text-mountain-950">
-              <BiComment className="mr-1 size-5" />
-              <p>{comment_count}</p>
-            </Button>
-          </Tooltip>
-        </div>
-        <div className="flex items-center space-x-1 p-1 rounded-lg w-1/2 h-8">
-          <Tooltip title="Bookmark">
-            <Button className="w-1/2 h-full font-normal text-mountain-600 hover:text-mountain-950">
-              <MdBookmarkBorder className="mr-1 size-5" />
-            </Button>
-          </Tooltip>
-          <Share
-            className="flex justify-center hover:bg-mountain-50 p-0.5 rounded-md w-1/2 h-full font-normal text-mountain-600 hover:text-mountain-950"
-            iconClassName="mr-1 size-5"
-            link={`http://localhost:5173/blogs/${blogId}`}
-            tooltipDirection="bottom"
-          />
+
+        {/* Title - reduced height */}
+        <h3 className="font-medium text-lg text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 line-clamp-2 mb-1.5 min-h-[3rem]">
+          {title}
+        </h3>
+
+        {/* Content preview - reduced to 2 lines */}
+        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3 flex-1">
+          {content}
+        </p>
+
+        {/* Footer section - always at bottom with reduced spacing */}
+        <div className="mt-auto">
+          {/* Author info with reduced margin */}
+          <div className="flex items-center space-x-2 mb-2">
+            {author.avatar ? (
+              <img
+                src={author.avatar}
+                alt={author.username}
+                className="w-7 h-7 rounded-full border border-gray-200 dark:border-mountain-700"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <Avatar
+                size={28}
+                name={author.username || "Unknown"}
+                variant="beam"
+                colors={["#84bfc3", "#fff5d6", "#ffb870", "#d96153", "#000511"]}
+              />
+            )}
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+              {author.username}
+            </p>
+            <span className="text-gray-500 dark:text-gray-500">•</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              <ReactTimeAgo date={new Date(dateCreated)} locale="en-US" />
+            </span>
+          </div>
+
+          {/* Actions */}
+          <div
+            className="flex justify-between items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center space-x-1">
+              <Tooltip title="Like">
+                <Button className="min-w-0 p-1 text-mountain-400 dark:text-mountain-500 hover:text-mountain-950 dark:hover:text-mountain-100">
+                  <AiOutlineLike className="size-4 mr-1" />
+                  <span className="text-sm">{like_count}</span>
+                </Button>
+              </Tooltip>
+              <Tooltip title="Comment">
+                <Button className="min-w-0 p-1 text-mountain-400 dark:text-mountain-500 hover:text-mountain-950 dark:hover:text-mountain-100">
+                  <BiComment className="size-4 mr-1" />
+                  <span className="text-sm">{comment_count}</span>
+                </Button>
+              </Tooltip>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default BlogCard
+export default BlogCard;

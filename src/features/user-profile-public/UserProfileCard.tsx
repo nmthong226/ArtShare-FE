@@ -15,7 +15,7 @@ import { getUserProfileByUsername, UserProfile } from "./api/user-profile.api";
 import { useUser } from "@/contexts/UserProvider";
 import { followUser, unfollowUser } from "./api/follow.api";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { AxiosError } from "axios";
 import { MouseEvent, useEffect, useState } from "react";
 import { useReportUser } from "./hooks/useReportUser";
@@ -39,6 +39,7 @@ export const UserProfileCard = () => {
     queryFn: () => getUserProfileByUsername(username),
     enabled: !!username,
   });
+
 
   useEffect(() => {
     // Once the profile refetch shows isFollowing === false, drop the flag

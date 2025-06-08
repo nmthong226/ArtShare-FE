@@ -2,7 +2,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { Box, Backdrop, CircularProgress, IconButton } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import { getPresignedUrl, uploadFile } from "@/api/storage";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { nanoid } from "nanoid";
 import { updateUserProfile } from "../api/user-profile.api";
 import { Edit2 } from "lucide-react";

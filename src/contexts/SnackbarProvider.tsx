@@ -1,24 +1,11 @@
-// components/SnackbarProvider.tsx
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Snackbar, Alert } from "@mui/material";
+import React, { useState, ReactNode } from "react";
+import { Snackbar, Alert, SnackbarOrigin } from "@mui/material";
+import { SnackbarContext } from "@/hooks/useSnackbar";
 
-type SnackbarContextType = {
-  showSnackbar: (
-    message: string,
-    severity?: "success" | "info" | "warning" | "error",
-    action?: ReactNode,
-  ) => void;
-};
-
-const SnackbarContext = createContext<SnackbarContextType | undefined>(
-  undefined,
-);
-
-export const useSnackbar = () => {
-  const context = useContext(SnackbarContext);
-  if (!context)
-    throw new Error("useSnackbar must be used within SnackbarProvider");
-  return context;
+// Define a default anchor origin
+const DEFAULT_ANCHOR_ORIGIN: SnackbarOrigin = {
+  vertical: "bottom",
+  horizontal: "center",
 };
 
 export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -30,16 +17,29 @@ export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({
     "success" | "info" | "warning" | "error"
   >("info");
   const [actionNode, setActionNode] = useState<ReactNode>(null);
+  // State to hold the anchorOrigin for the current snackbar
+  const [currentAnchorOrigin, setCurrentAnchorOrigin] =
+    useState<SnackbarOrigin>(DEFAULT_ANCHOR_ORIGIN);
 
   const showSnackbar = (
     msg: string,
     sev: "success" | "info" | "warning" | "error" = "info",
     action?: ReactNode,
+    anchor?: SnackbarOrigin, // Receive anchorOrigin
   ) => {
     setMessage(msg);
     setSeverity(sev);
     setActionNode(action ?? null);
+    // Use provided anchorOrigin or default
+    setCurrentAnchorOrigin(anchor || DEFAULT_ANCHOR_ORIGIN);
     setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    // Optionally reset anchorOrigin to default when snackbar closes,
+    // though it will be set again on next `showSnackbar` call.
+    // setCurrentAnchorOrigin(DEFAULT_ANCHOR_ORIGIN);
   };
 
   return (
@@ -48,13 +48,13 @@ export const SnackbarProvider: React.FC<{ children: React.ReactNode }> = ({
       <Snackbar
         open={open}
         autoHideDuration={4000}
-        onClose={() => setOpen(false)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        onClose={handleClose}
+        anchorOrigin={currentAnchorOrigin} // Use the state for anchorOrigin
       >
         <Alert
-          onClose={() => setOpen(false)}
+          onClose={handleClose}
           severity={severity}
-          variant="filled"
+          variant="standard"
           action={actionNode}
           sx={{ width: "100%" }}
         >

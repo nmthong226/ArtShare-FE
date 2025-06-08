@@ -4,7 +4,7 @@ import { Box, Typography, TextareaAutosize } from "@mui/material"; // Removed Bu
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button"; // Using shadcn/ui Button
 import { Loader2 } from "lucide-react";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { updateUserProfile } from "../api/user-profile.api";
 import axios from "axios";
 import { UserProfile } from "@/features/user-profile-public/api/user-profile.api";

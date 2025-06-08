@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Box } from "@mui/material";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { useNavigate, useParams } from "react-router-dom";
 import { PostMedia } from "./types/post-media";
 import PostForm from "./PostForm";
