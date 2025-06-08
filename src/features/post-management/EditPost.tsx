@@ -1,27 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Box } from "@mui/material";
 import { useSnackbar } from "@/hooks/useSnackbar";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-
-import { fetchPost } from "../post/api/post.api";
-import { updatePost } from "./api/update-post";
-import { mappedCategoryPost } from "@/lib/utils";
-import { Post } from "@/types";
+import { useNavigate, useParams } from "react-router-dom";
 import { PostMedia } from "./types/post-media";
-import { usePostMediaUploader } from "./hooks/use-post-medias-uploader";
-import {
-  createFormDataForEdit,
-  getImageUrlsToRetain,
-  getNewImageFiles,
-  getNewlyUploadedRequiredFile,
-  getNewVideoFile,
-} from "./helpers/edit-post.helper";
 import PostForm from "./PostForm";
 import Loading from "@/pages/Loading";
 import { FormikHelpers } from "formik";
 import { MEDIA_TYPE } from "@/utils/constants";
 import { PostFormValues } from "./types/post-form-values.type";
+import { useUpdatePost } from "./hooks/useUpdatePost";
+import { useGetPostDetails } from "../post/hooks/useGetPostDetails";
 
 /**
  * EditPostPage – fully‑screen page that reuses UploadPost components
@@ -30,22 +18,11 @@ import { PostFormValues } from "./types/post-form-values.type";
 const EditPost: React.FC = () => {
   /** ──────────────────── fetch post data ─────────────────── */
   const { postId } = useParams<{ postId: string }>();
-  const location = useLocation();
-  const passedPostData = location.state?.postData as Post | undefined;
   const {
     data: fetchedPost,
     isLoading: isPostLoading,
     error: postError,
-  } = useQuery({
-    queryKey: ["postData", postId],
-    enabled: !!postId,
-    queryFn: async () => {
-      if (passedPostData) return passedPostData;
-      const res = await fetchPost(parseInt(postId!));
-      return mappedCategoryPost(res.data);
-    },
-    initialData: passedPostData,
-  });
+  } = useGetPostDetails(postId);
 
   /** ─────────────────── internal UI state (mirrors UploadPost) ─────────────────── */
   const navigate = useNavigate();
@@ -57,7 +34,6 @@ const EditPost: React.FC = () => {
     null,
   );
   const [hasArtNovaImages, setHasArtNovaImages] = useState(false);
-  const { handleUploadVideo, handleUploadImageFile } = usePostMediaUploader();
 
   /** ─────────────────── preload fetched post into state ─────────────────── */
 
@@ -107,65 +83,48 @@ const EditPost: React.FC = () => {
   }, [fetchedPost]);
 
   /** ─────────────────── submit ─────────────────── */
+
+  const { mutate: updatePost } = useUpdatePost({
+    onSuccess: (updatedPost) => {
+      navigate(`/posts/${updatedPost.id}`);
+    },
+    onError: (errorMessage) => {
+      showSnackbar(errorMessage, "error");
+    },
+  });
+
   const handleSubmit = async (
     values: PostFormValues,
     formikActions: FormikHelpers<PostFormValues>,
   ) => {
     if (postMedias.length === 0) {
       showSnackbar("At least one image or video is required.", "error");
+      formikActions.setSubmitting(false);
       return;
     }
 
     if (!thumbnail || !originalThumbnail) {
       showSnackbar("Thumbnail is required.", "error");
+      formikActions.setSubmitting(false);
       return;
     }
 
-    try {
-      const videoMedia = postMedias.find((media) => media.type === "video");
-      const newVideoFile = getNewVideoFile(videoMedia);
-      const newThumbnailFile = getNewlyUploadedRequiredFile(thumbnail);
-      const newOriginalThumbnailFile =
-        getNewlyUploadedRequiredFile(originalThumbnail);
-
-      const [newVideoUrl, newInitialThumbnailUrl, newThumbnailUrl] =
-        await Promise.all([
-          newVideoFile && handleUploadVideo(newVideoFile),
-          newOriginalThumbnailFile &&
-            handleUploadImageFile(
-              newOriginalThumbnailFile,
-              "original_thumbnail",
-            ),
-          newThumbnailFile &&
-            handleUploadImageFile(newThumbnailFile, "thumbnail"),
-        ] as Promise<string | undefined>[]);
-
-      const imageMedias = postMedias.filter((media) => media.type === "image");
-
-      const body = createFormDataForEdit({
-        title: values.title,
-        imageUrlsToRetain: getImageUrlsToRetain(imageMedias),
-        newImageFiles: getNewImageFiles(imageMedias),
-        cate_ids: values.cate_ids,
-        thumbnailCropMeta: JSON.stringify(values.thumbnailMeta),
-        description: values.description,
-        videoUrl: newVideoUrl !== undefined ? newVideoUrl : videoMedia?.url,
-        initialThumbnail:
-          newInitialThumbnailUrl ??
-          fetchedPost!.thumbnail_crop_meta.initialThumbnail,
-        thumbnailUrl: newThumbnailUrl,
-        isMature: values.isMature,
-        aiCreated: hasArtNovaImages,
-      });
-
-      await updatePost(parseInt(postId!), body);
-      navigate(`/posts/${postId}`);
-    } catch (err) {
-      console.error("Error during editing post", err);
-      showSnackbar("Failed to update post", "error");
-    } finally {
-      formikActions.setSubmitting(false);
-    }
+    updatePost(
+      {
+        postId: parseInt(postId!),
+        values,
+        postMedias,
+        thumbnail,
+        originalThumbnail,
+        hasArtNovaImages,
+        fetchedPost: fetchedPost!,
+      },
+      {
+        onSettled: () => {
+          formikActions.setSubmitting(false);
+        },
+      },
+    );
   };
 
   /** ─────────────────── render ─────────────────── */

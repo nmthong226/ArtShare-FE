@@ -6,20 +6,13 @@ import { useSnackbar } from "@/hooks/useSnackbar";
 
 import MediaSelection from "./components/MediaSelectionPanel";
 import { FaMagic } from "react-icons/fa";
-import { generatePostContent } from "./api/generate-post-content.api";
 import { PostMedia } from "./types/post-media";
-import axios, { AxiosError } from "axios";
-import {
-  BackendErrorResponse,
-  DEFAULT_ERROR_MSG,
-} from "@/api/types/error-response.type";
-import { useQueryClient } from "@tanstack/react-query";
 import { useSubscriptionInfo } from "@/hooks/useSubscription";
-import Loading from "@/pages/Loading";
 import { ThumbnailMeta } from "./types/crop-meta.type";
 import { MEDIA_TYPE } from "@/utils/constants";
 import * as Yup from "yup";
 import { PostFormValues } from "./types/post-form-values.type";
+import { useGeneratePostContent } from "./hooks/useGeneratePostContent";
 
 export interface PostFormProps {
   initialFormValues: PostFormValues;
@@ -52,12 +45,16 @@ const PostForm: React.FC<PostFormProps> = ({
   setHasArtNovaImages,
 }) => {
   const { showSnackbar } = useSnackbar();
-  const queryClient = useQueryClient();
   const { data: subscriptionInfo } = useSubscriptionInfo();
-  const [isPageLoading, setIsPageLoading] = useState(false);
   const [isMatureAutoDetected, setIsMatureAutoDetected] = useState(false);
 
   const isUploadMediaValid = postMedias.length > 0;
+
+  const { mutate: generateContent } = useGeneratePostContent({
+    onError: (errorMessage: string) => {
+      showSnackbar(errorMessage, "error");
+    },
+  });
 
   const handleGenerateContent = async (
     setFieldValue: FormikHelpers<PostFormValues>["setFieldValue"],
@@ -75,31 +72,20 @@ const PostForm: React.FC<PostFormProps> = ({
       return;
     }
 
-    try {
-      setIsPageLoading(true);
+    const formData = new FormData();
+    postMedias.forEach(({ file }) => formData.append("images", file));
 
-      const formData = new FormData();
-      postMedias.forEach(({ file }) => formData.append("images", file));
-      const response = await generatePostContent(formData);
-      const { title, description, categories } = response;
-
-      setFieldValue("title", title);
-      setFieldValue("description", description);
-      setFieldValue(
-        "cate_ids",
-        categories.map((cate) => cate.id),
-      );
-    } catch (e) {
-      const msg = axios.isAxiosError(e)
-        ? ((e as AxiosError<BackendErrorResponse>).response?.data?.message ??
-          DEFAULT_ERROR_MSG)
-        : DEFAULT_ERROR_MSG;
-      showSnackbar(msg, "error");
-      console.error("Error generating content:", e);
-    } finally {
-      setIsPageLoading(false);
-      queryClient.invalidateQueries({ queryKey: ["subscriptionInfo"] });
-    }
+    generateContent(formData, {
+      onSuccess: (data) => {
+        const { title, description, categories } = data;
+        setFieldValue("title", title);
+        setFieldValue("description", description);
+        setFieldValue(
+          "cate_ids",
+          categories.map((cate) => cate.id),
+        );
+      },
+    });
   };
 
   const handleThumbnailAddedOrRemoved = (
@@ -154,8 +140,6 @@ const PostForm: React.FC<PostFormProps> = ({
 
         return (
           <Form className="dark:bg-mountain-950 w-full h-full">
-            {(isPageLoading || isSubmitting) && <Loading />}
-
             <Box
               className="flex gap-3 p-4 w-full h-[calc(100vh-4rem)]"
               style={{ overflow: "hidden" }}

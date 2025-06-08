@@ -8,19 +8,25 @@ import Loading from "./components/loading/Loading";
 import { LanguageProvider } from "@/contexts/LanguageProvider";
 import { UserProvider } from "@/contexts/UserProvider";
 import { GlobalSearchProvider } from "@/contexts/SearchProvider";
+import { LoadingProvider } from "./contexts/Loading/LoadingProvider";
+import { ComposeProviders } from "./contexts/ComposeProviders";
 
 const App: React.FC = () => {
+  // The order here is the same as the nesting order (outermost first)
+  const providers = [
+    LoadingProvider,
+    UserProvider,
+    LanguageProvider,
+    GlobalSearchProvider,
+  ];
+
   return (
     <BrowserRouter>
-      <UserProvider>
-        <LanguageProvider>
-          <GlobalSearchProvider>
-            <Suspense fallback={<Loading />}>
-              <AppRoutes />
-            </Suspense>
-          </GlobalSearchProvider>
-        </LanguageProvider>
-      </UserProvider>
+      <ComposeProviders providers={providers}>
+        <Suspense fallback={<Loading />}>
+          <AppRoutes />
+        </Suspense>
+      </ComposeProviders>
     </BrowserRouter>
   );
 };
