@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePostMediaUploader } from "./use-post-medias-uploader";
+import { useUploadPostMedias } from "./useUploadPostMedias";
 
 import {
   createFormDataForEdit,
@@ -34,7 +34,7 @@ interface UseUpdatePostOptions {
 export const useUpdatePost = (options: UseUpdatePostOptions) => {
   const queryClient = useQueryClient();
   const { showLoading, hideLoading } = useLoading();
-  const { handleUploadVideo, handleUploadImageFile } = usePostMediaUploader();
+  const { handleUploadVideo, handleUploadImageFile } = useUploadPostMedias();
 
   const updatePostMutationFn = async (
     variables: UpdatePostVariables,

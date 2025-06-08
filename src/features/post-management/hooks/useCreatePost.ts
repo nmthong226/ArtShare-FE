@@ -12,8 +12,8 @@ import {
 import { createPost } from "../api/create-post";
 import { useLoading } from "@/contexts/Loading/useLoading";
 import { extractApiErrorMessage } from "@/utils/error.util";
-import { usePostMediaUploader } from "./use-post-medias-uploader";
 import { postKeys } from "@/lib/react-query/query-keys";
+import { useUploadPostMedias } from "./useUploadPostMedias";
 
 interface CreatePostVariables {
   values: PostFormValues;
@@ -33,7 +33,7 @@ interface UseCreatePostOptions {
 export const useCreatePost = (options: UseCreatePostOptions) => {
   const queryClient = useQueryClient();
   const { showLoading, hideLoading } = useLoading();
-  const { handleUploadVideo, handleUploadImageFile } = usePostMediaUploader();
+  const { handleUploadVideo, handleUploadImageFile } = useUploadPostMedias();
 
   return useMutation<Post, Error, CreatePostVariables>({
     mutationFn: async (variables: CreatePostVariables): Promise<Post> => {

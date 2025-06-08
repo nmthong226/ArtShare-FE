@@ -7,12 +7,10 @@ import { useSnackbar } from "@/contexts/SnackbarProvider";
 import { nanoid } from "nanoid";
 const POSTS_STORAGE_DIRECTORY = "posts";
 
-export function usePostMediaUploader() {
+export function useUploadPostMedias() {
   const { showSnackbar } = useSnackbar();
 
-  const handleUploadVideo = async (
-    videoFile: File,
-  ): Promise<string> => {
+  const handleUploadVideo = async (videoFile: File): Promise<string> => {
     try {
       const presignedUrlResponse: GetPresignedUrlResponse =
         await getPresignedUrl(
@@ -31,7 +29,7 @@ export function usePostMediaUploader() {
 
   const handleUploadImageFile = async (
     imageFile: File,
-    filenNamePrefix: string
+    filenNamePrefix: string,
   ): Promise<string> => {
     try {
       const presigned: GetPresignedUrlResponse = await getPresignedUrl(
