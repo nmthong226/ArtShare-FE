@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, memo } from "react";
 
 //Libs
 import { useInfiniteQuery, UseQueryResult } from "@tanstack/react-query";
@@ -86,6 +86,7 @@ const Explore: React.FC = () => {
   } = useInfiniteQuery({
     queryKey: ["posts", tab, query, selectedCategories, selectedMediums],
     retry: 2,
+    staleTime: 1000 * 60 * 5, // 5 minutes
     queryFn: async ({ pageParam = 1 }): Promise<GalleryPhoto[]> => {
       const categoriesToFetch: string[] = [];
       if (selectedCategories) {
@@ -351,4 +352,4 @@ const Explore: React.FC = () => {
   );
 };
 
-export default Explore;
+export default memo(Explore);
