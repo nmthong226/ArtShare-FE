@@ -27,7 +27,6 @@ interface CreatePostVariables {
 interface UseCreatePostOptions {
   onSuccess?: (createdPost: Post) => void;
   onError?: (errorMessage: string) => void;
-  onSettled?: () => void;
 }
 
 export const useCreatePost = (options: UseCreatePostOptions) => {
@@ -75,11 +74,7 @@ export const useCreatePost = (options: UseCreatePostOptions) => {
     },
 
     onMutate: () => showLoading("Creating your post..."),
-    onSettled: () => {
-      hideLoading();
-
-      options.onSettled?.();
-    },
+    onSettled: () => hideLoading(),
 
     onSuccess: (createdPost) => {
       queryClient.invalidateQueries({ queryKey: postKeys.all });
