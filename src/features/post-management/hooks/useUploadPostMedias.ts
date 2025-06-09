@@ -7,7 +7,7 @@ import { useSnackbar } from "@/hooks/useSnackbar";
 import { nanoid } from "nanoid";
 const POSTS_STORAGE_DIRECTORY = "posts";
 
-export function usePostMediaUploader() {
+export function useUploadPostMedias() {
   const { showSnackbar } = useSnackbar();
 
   const handleUploadVideo = async (videoFile: File): Promise<string> => {
