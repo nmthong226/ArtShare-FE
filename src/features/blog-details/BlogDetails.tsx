@@ -577,8 +577,8 @@ const BlogDetails = () => {
           {/* For unpublished blogs, hide or disable certain actions */}
           {isPublished && (
             <div
-              className={`transition-all duration-300 ease-in-out w-full h-20 flex justify-center items-center
-                ${showAuthorBadge ? "sticky bottom-4 z-10" : "opacity-100"}`}
+              className={`w-full h-20 flex justify-center items-center
+                ${!showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"}`}
             >
               <ActionButtons />
             </div>
@@ -639,7 +639,11 @@ const BlogDetails = () => {
           {isPublished ? (
             <>
               <div
-                className={`${showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"} transition ease-in-out duration-300 flex justify-center items-center rounded-full w-full h-20`}
+                className={`${
+                  showAuthorBadge
+                    ? "opacity-100 h-20 sticky bottom-4 z-10"
+                    : "opacity-0 pointer-events-none h-0"
+                } flex justify-center items-center rounded-full w-full overflow-hidden`}
               >
                 <ActionButtons />
               </div>
