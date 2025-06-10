@@ -1,49 +1,175 @@
-import { MdOutlineAddBox } from "react-icons/md"
-import ProjectTable from "./components/ProjectTable"
-import { FaCalendarCheck, FaCalendarDays } from "react-icons/fa6"
-import { FaCalendarTimes } from "react-icons/fa"
-import { useNavigate } from "react-router-dom"
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 
-const AutomationProject = () => {
-    const navigate = useNavigate();
-    const navigateToCreateProject = () => {
-        navigate("/auto/my-projects/new");
-    }
+import { MdOutlineAddBox } from "react-icons/md";
+import { FaCalendarCheck, FaCalendarTimes } from "react-icons/fa";
+import { FaCalendarDays } from "react-icons/fa6";
+import ProjectTable from "./components/ProjectTable";
+import api from "@/api/baseApi";
+import {
+  AutoProject,
+  SortableKeys,
+  ProjectSummaryStats,
+  Order,
+} from "./types/automation-project";
 
-    return (
-        <div className="flex flex-col space-y-4 p-4 w-full h-screen">
-            <div className='flex gap-x-12 w-full'>
-                <div onClick={navigateToCreateProject} className='flex justify-center items-center space-x-2 bg-mountain-50 hover:bg-mountain-50/80 shadow-md p-4 rounded-3xl w-1/3 h-28 cursor-pointer'>
-                    <MdOutlineAddBox className="size-8" />
-                    <p className="font-medium text-lg">Create New Project</p>
-                </div>
-                <div className='flex justify-center items-center space-x-2 w-2/3 h-28'>
-                    <div className="flex justify-between items-center bg-teal-100 p-4 rounded-3xl w-1/3 h-full">
-                        <div className="flex flex-col space-y-1">
-                            <p className="text-mountain-800 text-xs">Active Workflow</p>
-                            <p className="font-medium text-2xl capitalize">12 projects</p>
-                        </div>
-                        <FaCalendarCheck className="size-10 text-teal-600" />
-                    </div>
-                    <div className="flex justify-between items-center bg-amber-100 p-4 rounded-3xl w-1/3 h-full">
-                        <div className="flex flex-col space-y-1">
-                            <p className="text-mountain-800 text-xs">Scheduled Workflows</p>
-                            <p className="font-medium text-2xl capitalize">04 projects</p>
-                        </div>
-                        <FaCalendarDays className="size-10 text-amber-600" />
-                    </div>
-                    <div className="flex justify-between items-center bg-rose-100 p-4 rounded-3xl w-1/3 h-full">
-                        <div className="flex flex-col space-y-1">
-                            <p className="text-mountain-800 text-xs">Draft / Paused Workflows</p>
-                            <p className="font-medium text-2xl capitalize">01 project</p>
-                        </div>
-                        <FaCalendarTimes className="size-10 text-rose-600" />
-                    </div>
-                </div>
-            </div>
-            <ProjectTable />
-        </div>
-    )
+interface ProjectsResponse {
+  projects: AutoProject[];
+  total: number;
 }
 
-export default AutomationProject
+const AutomationProject = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const [order, setOrder] = useState<Order>("desc");
+  const [orderBy, setOrderBy] = useState<SortableKeys>("nextPostAt");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [selected, setSelected] = useState<readonly number[]>([]);
+
+  const {
+    data,
+    isLoading: isFetchingProjects,
+    error: fetchError,
+  } = useQuery<ProjectsResponse, Error>({
+    queryKey: ["auto-projects", { page, rowsPerPage, orderBy, order }],
+    queryFn: async () => {
+      const response = await api.get("/auto-project", {
+        params: {
+          page: page + 1,
+          page_size: rowsPerPage,
+          sort_by: orderBy,
+          sort_order: order,
+        },
+      });
+      return response.data;
+    },
+    placeholderData: keepPreviousData,
+  });
+
+  const projects = useMemo(() => data?.projects ?? [], [data]);
+  const totalProjects = data?.total ?? 0;
+
+  const {
+    mutate: deleteProjects,
+    isPending: isDeleting,
+    error: deleteError,
+  } = useMutation({
+    mutationFn: (projectIds: readonly number[]) =>
+      Promise.all(projectIds.map((id) => api.delete(`/auto-project/${id}`))),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["auto-projects"] });
+      setSelected([]);
+    },
+    onError: (err) => {
+      console.error("Failed to delete project(s).", err);
+    },
+  });
+
+  const handleDeleteProjects = (projectIds: readonly number[]) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${projectIds.length} project(s)?`,
+      )
+    ) {
+      return;
+    }
+    deleteProjects(projectIds);
+  };
+
+  const summaryStats: ProjectSummaryStats = useMemo(() => {
+    return projects.reduce(
+      (acc, project) => {
+        if (project.status === "ACTIVE") acc.active++;
+        if (project.status === "COMPLETED") acc.completed++;
+        if (project.status === "CANCELLED" || project.status === "FAILED")
+          acc.cancelledOrFailed++;
+        return acc;
+      },
+      { active: 0, completed: 0, cancelledOrFailed: 0 },
+    );
+  }, [projects]);
+
+  const navigateToCreateProject = () => {
+    navigate("/auto/my-projects/new");
+  };
+
+  const combinedError = fetchError || deleteError;
+
+  return (
+    <div className="flex flex-col w-full h-screen p-4 space-y-4">
+      <div className="flex w-full gap-x-12">
+        {/* ... rest of the JSX is unchanged ... */}
+        <div
+          onClick={navigateToCreateProject}
+          className="flex items-center justify-center w-1/3 p-4 space-x-2 shadow-md cursor-pointer bg-mountain-50 hover:bg-mountain-50/80 rounded-3xl h-28"
+        >
+          <MdOutlineAddBox className="size-8" />
+          <p className="text-lg font-medium">Create New Project</p>
+        </div>
+        <div className="flex items-center justify-center w-2/3 space-x-2 h-28">
+          <div className="flex items-center justify-between w-1/3 h-full p-4 bg-teal-100 rounded-3xl">
+            <div className="flex flex-col space-y-1">
+              <p className="text-xs text-mountain-800">Active Projects</p>
+              <p className="text-2xl font-medium capitalize">
+                {summaryStats.active} projects
+              </p>
+            </div>
+            <FaCalendarCheck className="text-teal-600 size-10" />
+          </div>
+          <div className="flex items-center justify-between w-1/3 h-full p-4 bg-amber-100 rounded-3xl">
+            <div className="flex flex-col space-y-1">
+              <p className="text-xs text-mountain-800">Completed</p>
+              <p className="text-2xl font-medium capitalize">
+                {summaryStats.completed} projects
+              </p>
+            </div>
+            <FaCalendarDays className="size-10 text-amber-600" />
+          </div>
+          <div className="flex items-center justify-between w-1/3 h-full p-4 bg-rose-100 rounded-3xl">
+            <div className="flex flex-col space-y-1">
+              <p className="text-xs text-mountain-800">Cancelled / Failed</p>
+              <p className="text-2xl font-medium capitalize">
+                {summaryStats.cancelledOrFailed} project
+              </p>
+            </div>
+            <FaCalendarTimes className="size-10 text-rose-600" />
+          </div>
+        </div>
+      </div>
+
+      {combinedError && (
+        <div className="p-3 text-red-500 bg-red-100 rounded-md">
+          {combinedError.message || "An unexpected error occurred."}
+        </div>
+      )}
+
+      <ProjectTable
+        projects={projects}
+        totalProjects={totalProjects}
+        isLoading={isFetchingProjects || isDeleting}
+        order={order}
+        setOrder={setOrder}
+        orderBy={orderBy}
+        setOrderBy={setOrderBy}
+        page={page}
+        setPage={setPage}
+        rowsPerPage={rowsPerPage}
+        setRowsPerPage={setRowsPerPage}
+        onDelete={handleDeleteProjects}
+        selected={selected}
+        setSelected={setSelected}
+      />
+    </div>
+  );
+};
+
+export default AutomationProject;
