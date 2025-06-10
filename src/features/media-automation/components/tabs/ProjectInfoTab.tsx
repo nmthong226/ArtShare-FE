@@ -96,10 +96,10 @@ const ProjectInfoForm: React.FC<ProjectInfoProp> = ({ handleStepChange }) => {
             onSubmit={handleSubmit}
             className="relative flex flex-col items-center bg-white p-2 w-full h-full"
         >
-            <div className="flex gap-6">
-                <div className="flex flex-col space-y-4">
+            <div className="flex gap-6 w-full h-full">
+                <div className="flex flex-col space-y-4 w-1/2">
                     <h2 className="font-semibold text-lg capitalize">🧠 General Info</h2>
-                    <div className="flex flex-col items-center space-y-4 w-xl">
+                    <div className="flex flex-col items-center space-y-4 w-full">
                         <label htmlFor="projectName" className="flex mb-1 w-full font-medium text-left">
                             Project Name
                             <span className="text-red-600">*</span>
@@ -139,9 +139,9 @@ const ProjectInfoForm: React.FC<ProjectInfoProp> = ({ handleStepChange }) => {
                     </div>
                 </div>
                 <div className="flex bg-mountain-200 w-0.5 h-full" />
-                <div className="flex flex-col space-y-4">
+                <div className="flex flex-col space-y-4 w-1/2">
                     <h2 className="font-semibold text-lg capitalize">🌐 Platform Integration</h2>
-                    <div className="flex flex-col w-xl">
+                    <div className="flex flex-col w-full">
                         <label className="block mb-1 font-medium">
                             Select Platform
                             <span className="text-red-600">*</span>
@@ -165,7 +165,7 @@ const ProjectInfoForm: React.FC<ProjectInfoProp> = ({ handleStepChange }) => {
                         </label>
                         {selectedPlatformType ? (
                             <>
-                                <div className="gap-4 grid grid-cols-2 sm:grid-cols-3">
+                                <div className="gap-4 grid grid-cols-2 xl:grid-cols-3">
                                     {filteredAccounts.map((platform) => (
                                         <button
                                             type="button"
@@ -208,21 +208,6 @@ const ProjectInfoForm: React.FC<ProjectInfoProp> = ({ handleStepChange }) => {
                         ) : <p className="text-mountain-600 text-sm">Choose your project platform to continue.</p>}
                     </div>
                 </div>
-            </div>
-            <div className="bottom-0 left-1/2 absolute flex space-x-4 -translate-x-1/2">
-                <button
-                    type="submit"
-                    disabled
-                    className="flex justify-center items-center bg-mountain-200 hover:bg-mountain-300/80 disabled:bg-mountain-100 mt-4 px-2 py-2 rounded-md w-48 text-mountain-950 disabled:text-mountain-600 transition cursor-default"
-                >
-                    Previous Step
-                </button>
-                <button
-                    type="submit"
-                    className="flex justify-center items-center bg-indigo-200 hover:bg-indigo-300/80 mt-4 px-6 py-2 rounded-md w-48 text-mountain-950 transition cursor-pointer"
-                >
-                    Next Step
-                </button>
             </div>
         </form>
     );

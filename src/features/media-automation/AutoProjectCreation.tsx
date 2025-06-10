@@ -1,19 +1,22 @@
 import { useState } from "react";
 import { Tabs, TabsList, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import ProjectInfoForm from "./components/ProjectInfoTab";
-import ProjectPostCreateForm from "./components/ProjectEditPostsTab";
-import ProjectGenPostsTab from "./components/ProjectGenPostsTab";
+import ProjectInfoForm from "./components/tabs/ProjectInfoTab";
+import ProjectPostCreateForm from "./components/tabs/ProjectEditPostsTab";
+import ProjectGenPostsTab from "./components/tabs/ProjectGenPostsTab";
+import { FaInfoCircle, FaSave } from "react-icons/fa";
+import { FaCalendar, FaChevronLeft, FaChevronRight, FaPenFancy } from "react-icons/fa6";
 
 const AutoProjectCreation = () => {
     const steps = [
-        { id: 1, key: "project-info", label: "Project Info" },
-        { id: 2, key: "generate-posts", label: "Generate Posts" },
-        { id: 3, key: "edit-posts", label: "Edit Posts" },
-        { id: 4, key: "review", label: "Review & Confirm" },
+        { id: 1, key: "project-info", label: "Project Info", icon: FaInfoCircle },
+        { id: 2, key: "build-posts", label: "Build Posts", icon: FaPenFancy },
+        { id: 3, key: "scheduling", label: "Scheduling", icon: FaCalendar },
     ];
 
     const [step, setStep] = useState(steps[0]);
+
+    //Project Info
     const [projectName, setProjectName] = useState("");
     const [platforms, setPlatforms] = useState<Platform[]>([]);
 
@@ -27,39 +30,83 @@ const AutoProjectCreation = () => {
         if (data?.selectedPlatform) setPlatforms(data.selectedPlatform);
     };
 
-    const progress = ((step.id - 1) / (steps.length - 1)) * 100;
+    const goToNextStep = () => {
+        const currentIndex = steps.findIndex((s) => s.key === step.key);
+        const nextStep = steps[currentIndex + 1];
+        if (nextStep) setStep(nextStep);
+    };
+
+    const goToPreviousStep = () => {
+        const currentIndex = steps.findIndex((s) => s.key === step.key);
+        const prevStep = steps[currentIndex - 1];
+        if (prevStep) setStep(prevStep);
+    };
 
     return (
-        <div className="flex flex-col space-y-4 p-4 w-full h-[calc(100vh-4rem)]">
+        <div className="flex flex-col w-full h-[calc(100vh)]">
             {/* Step Progress Bar */}
-            <div className="relative flex justify-between items-start bg-mountain-50 shadow-sm p-3 rounded-lg w-full">
-                <div className="top-[18px] right-16 left-14 z-0 absolute bg-mountain-200 h-0.5">
-                    <div
-                        className={cn("h-full transition-all", "bg-indigo-400")}
-                        style={{ width: `calc(${progress}% - 1rem)` }}
-                    />
+            <div className="flex justify-center items-center space-x-2 px-4 h-[8%]">
+                <button
+                    onClick={goToPreviousStep}
+                    disabled={step.id === 1}
+                    className="flex justify-center items-center space-x-2 bg-white disabled:opacity-50 shadow-sm hover:brightness-105 border border-mountain-200 rounded-full w-48 h-10 text-mountain-950 duration-300 ease-in-out cursor-pointer disabled:cursor-default transform">
+                    <FaChevronLeft className="size-5" />
+                    <p className="">
+                        Previous
+                    </p>
+                </button>
+                <button
+                    onClick={goToNextStep}
+                    disabled={step.id === steps.length}
+                    className="flex justify-center items-center space-x-2 bg-indigo-50 disabled:opacity-50 shadow-sm hover:brightness-105 border border-mountain-200 rounded-full w-48 h-10 text-mountain-950 duration-300 ease-in-out cursor-pointer disabled:cursor-default transform">
+                    <p className="">
+                        Next
+                    </p>
+                    <FaChevronRight className="size-5" />
+                </button>
+                <div className="relative flex justify-between items-center shadow-sm rounded-full w-full">
+                    {steps.map((s, index) => {
+                        const isFirst = index === 0;
+                        const isLast = index === steps.length - 1;
+                        const Icon = s.icon;
+                        return (
+                            <div
+                                key={s.id}
+                                className={cn(
+                                    "z-10 relative flex items-center bg-mountain-50 shadow-md space-x-2 h-10 px-2 w-1/3",
+                                    isFirst && "rounded-l-full",
+                                    isLast && "rounded-r-full"
+                                )}
+                            >
+                                <div
+                                    className={cn(
+                                        "w-6 h-6 flex items-center justify-center rounded-full",
+                                        step.key === s.key ? "bg-indigo-600 text-white" : "bg-gray-300 text-gray-600"
+                                    )}
+                                >
+                                    <Icon className="text-xs" />
+                                </div>
+                                <span
+                                    className={cn(
+                                        "text-center capitalize font-thin",
+                                        step.key === s.key ? "text-indigo-600" : "text-muted-foreground"
+                                    )}
+                                >
+                                    {s.label}
+                                </span>
+                            </div>
+                        );
+                    })}
                 </div>
-                {steps.map((s) => (
-                    <div key={s.id} className="z-10 relative flex flex-col items-center min-w-[80px]">
-                        <div
-                            className={cn(
-                                "w-4 h-4 rounded-full mb-1",
-                                step.key === s.key ? "bg-indigo-600" : "bg-gray-300"
-                            )}
-                        />
-                        <span
-                            className={cn(
-                                "text-center capitalize font-thin",
-                                step.key === s.key ? "text-indigo-600" : "text-muted-foreground"
-                            )}
-                        >
-                            {s.label}
-                        </span>
-                    </div>
-                ))}
+                <div className="flex justify-center items-center space-x-2 bg-white hover:bg-mountain-50 bg-gradient-to-b from-white via-mountain-50 to-indigo-50 shadow-sm hover:brightness-105 border border-mountain-200 rounded-md w-48 h-10 duration-300 ease-in-out cursor-pointer shrink-0 transform">
+                    <FaSave className="size-5 text-indigo-600" />
+                    <p className="inline-block bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-400 font-medium text-transparent">
+                        Save Project
+                    </p>
+                </div>
             </div>
             {/* Form Tabs */}
-            <Tabs value={step.key} onValueChange={(key) => handleStepChange(key)} className="flex w-full h-full">
+            <Tabs value={step.key} onValueChange={(key) => handleStepChange(key)} className="flex w-full h-[87%]">
                 <TabsList className="hidden" />
                 <TabsContent value="project-info" className="flex justify-center items-center w-full">
                     <ProjectInfoForm
@@ -68,18 +115,11 @@ const AutoProjectCreation = () => {
                         }
                     />
                 </TabsContent>
-                <TabsContent value="generate-posts">
-                    <ProjectGenPostsTab handleStepChange={handleStepChange}/>
+                <TabsContent value="build-posts">
+                    <ProjectGenPostsTab handleStepChange={handleStepChange} />
                 </TabsContent>
                 <TabsContent value="edit-posts">
-                    <ProjectPostCreateForm handleStepChange={handleStepChange}/>
-                    {/* <div className="bg-white shadow p-6 rounded-md h-full">
-                        <h2 className="mb-2 font-semibold text-lg">Create & Schedule Posts</h2>
-                        <div className="flex justify-between mt-4">
-                            <button className="btn" onClick={() => handleStepChange("project-info")}>Back</button>
-                            <button className="btn" onClick={() => handleStepChange("review")}>Next</button>
-                        </div>
-                    </div> */}
+                    <ProjectPostCreateForm handleStepChange={handleStepChange} />
                 </TabsContent>
                 <TabsContent value="review">
                     <div className="bg-white shadow p-6 rounded-md h-full">

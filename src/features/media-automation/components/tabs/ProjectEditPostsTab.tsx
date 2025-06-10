@@ -4,7 +4,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from "@tiptap/extension-underline";
 import CharacterCount from "@tiptap/extension-character-count";
 import Placeholder from '@tiptap/extension-placeholder'
-import '../styles/text-editor.scss';
+import '../../styles/text-editor.scss';
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
@@ -14,7 +14,7 @@ interface ProjectPostCreateProp {
 
 const MAX_CHARACTERS = 280; // max caption length
 
-const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = ({ handleStepChange }) => {
+const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = ({ }) => {
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,20 +204,6 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = ({ handleStepChange
                     </div>
                 </div>
             </form>
-            <div className="bottom-0 left-1/2 absolute flex space-x-4 -translate-x-1/2">
-                <button
-                    onClick={() => handleStepChange("generate-posts")}
-                    className="flex justify-center items-center bg-indigo-200 hover:bg-indigo-300/80 mt-4 px-6 py-2 rounded-md w-48 text-mountain-950 transition cursor-pointer"
-                >
-                    Previous Step
-                </button>
-                <button
-                    type="submit"
-                    className="flex justify-center items-center bg-mountain-200 hover:bg-mountain-300/80 mt-4 px-6 py-2 rounded-md w-48 text-mountain-950 transition cursor-pointer btn"
-                >
-                    Next Step
-                </button>
-            </div>
             <div className="right-0 bottom-0 absolute flex">
                 <button
                     type="submit"

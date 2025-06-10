@@ -87,4 +87,6 @@ interface GenPostContent {
     id: number;
     title: string;
     content: string;
+    images?: string[];
+    hashtags?: string[];
 }
