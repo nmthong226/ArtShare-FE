@@ -22,7 +22,7 @@ const UserButton: React.FC<{
 }> = ({ user, loading }) => {
   const location = useLocation();
 
-  const { notifications, markAllAsRead } = useNotifications(
+  const { notifications, markAllAsRead, markAsRead } = useNotifications(
     user?.id ?? ""
   );
 
@@ -124,7 +124,7 @@ const UserButton: React.FC<{
                   {/* Right side: if unread, show “Mark as read” */}
                   {!notif.isRead && (
                     <button
-                      // onClick={() => markAsRead(notif.id)}
+                      onClick={() => markAsRead(notif.id)}
                       className="self-start text-xs text-blue-600 hover:underline ml-2 cursor-pointer"
                     >
                       Mark read
