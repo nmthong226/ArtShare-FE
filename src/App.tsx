@@ -9,6 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageProvider";
 import { UserProvider } from "@/contexts/UserProvider";
 import { GlobalSearchProvider } from "@/contexts/SearchProvider";
 import { LoadingProvider } from "./contexts/Loading/LoadingProvider";
+import { NotificationsProvider } from "@/contexts/NotificationsProvider";
 import { ComposeProviders } from "./contexts/ComposeProviders";
 
 const App: React.FC = () => {
@@ -16,6 +17,7 @@ const App: React.FC = () => {
   const providers = [
     LoadingProvider,
     UserProvider,
+    NotificationsProvider,
     LanguageProvider,
     GlobalSearchProvider,
   ];

@@ -67,9 +67,7 @@ const Post: React.FC = () => {
   }, [postData]);
 
   const handleCommentAdded = () => {
-    console.log("Comment added. Previous count:", commentCount);
     setCommentCount((prev) => prev + 1); // Increment comment count when a comment is added
-    console.log("Updated comment count:", commentCount + 1);
     if (postData) {
       // Directly update postData.comment_count
       postData.comment_count += 1;

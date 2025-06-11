@@ -27,14 +27,15 @@ import {
   unfollowUser,
 } from "../user-profile-public/api/follow.api";
 import { AxiosError } from "axios";
+import { extractReportErrorMessage } from "@/utils/error.util";
 import { createLike, removeLike } from "./api/like-blog";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { TargetType } from "@/utils/constants";
 
 // Import your ReportDialog and the reporting hook
 import ReportDialog from "../user-profile-public/components/ReportDialog";
-import { useReport } from "../user-profile-public/hooks/useReport";
 import { ReportTargetType } from "../user-profile-public/api/report.api";
+import { useReport } from "../user-profile-public/hooks/useReport";
 
 import "./BlogDetails.css";
 interface BlogError {
@@ -226,10 +227,11 @@ const BlogDetails = () => {
           );
         },
         onError: (err: Error) => {
-          showSnackbar(
-            `Failed to report blog: ${err.message || "Unknown error"}`,
-            "error",
+          const displayMessage = extractReportErrorMessage(
+            err,
+            ReportTargetType.BLOG,
           );
+          showSnackbar(displayMessage, "error");
         },
       },
     );
