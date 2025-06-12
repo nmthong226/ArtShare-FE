@@ -21,8 +21,10 @@ import CharacterCount from "@tiptap/extension-character-count";
 import Text from '@tiptap/extension-text'
 import Placeholder from '@tiptap/extension-placeholder'
 import '../../styles/text-editor.scss';
-import { PostImage } from "../ImageCard/PostImage";
-
+import { RiImageCircleAiFill } from "react-icons/ri";
+import PostScheduler from "../posts/PostScheduling";
+import { Link, Element } from 'react-scroll';
+ 
 interface ProjectGenPostsProp {
     handleStepChange: (step: string, data?: { projectName?: string; selectedPlatform?: Platform[] }) => void;
 }
@@ -128,63 +130,6 @@ const ProjectGenPostsTab: React.FC<ProjectGenPostsProp> = ({ }) => {
         setImagePreviews(prev => [...prev, ...newPreviews]);
     };
 
-    const renderImageLayout = () => {
-        const count = imagePreviews.length;
-        if (count === 1) {
-            return (
-                <div className="gap-2 grid grid-cols-1">
-                    <PostImage src={imagePreviews[0]} index={0} />
-                </div>
-            );
-        }
-        if (count === 2) {
-            return (
-                <div className="gap-2 grid grid-cols-2">
-                    {imagePreviews.map((src, i) => (
-                        <PostImage key={i} src={src} index={i} />
-                    ))}
-                </div>
-            );
-        }
-
-        if (count === 3) {
-            return (
-                <div className="gap-2 grid grid-cols-2 grid-rows-[auto_1fr]">
-                    <div className="col-span-2">
-                        <PostImage src={imagePreviews[0]} index={0} />
-                    </div>
-                    <PostImage src={imagePreviews[1]} index={1} />
-                    <PostImage src={imagePreviews[2]} index={2} />
-                </div>
-            );
-        }
-
-        if (count === 4) {
-            return (
-                <div className="gap-2 grid grid-cols-2">
-                    {imagePreviews.slice(0, 4).map((src, i) => (
-                        <PostImage key={i} src={src} index={i} />
-                    ))}
-                </div>
-            );
-        }
-
-        return (
-            <div className="relative gap-2 grid grid-cols-2">
-                {imagePreviews.slice(0, 4).map((src, i) => (
-                    <div key={i} className="relative">
-                        <PostImage src={src} index={i} />
-                        {i === 3 && imagePreviews.length > 4 && (
-                            <div className="absolute inset-0 flex justify-center items-center bg-black/60 rounded-md font-bold text-white text-lg">
-                                +{imagePreviews.length - 4}
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
-        );
-    };
-
     return (
         <form
             onSubmit={handleSubmit}
@@ -261,7 +206,7 @@ const ProjectGenPostsTab: React.FC<ProjectGenPostsProp> = ({ }) => {
                                 disabled={isLoading}
                                 className="flex justify-center items-center bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md rounded-md w-30 h-10 text-white transition shrink-0"
                             >
-                                {isLoading ? "Generating" : "Generate Post"}
+                                {isLoading ? "Writing..." : "Start Writing"}
                             </button>
                             <Popover open={open} onOpenChange={setOpen}>
                                 <PopoverTrigger asChild>
@@ -359,16 +304,16 @@ const ProjectGenPostsTab: React.FC<ProjectGenPostsProp> = ({ }) => {
                                     <p className="font-medium text-lg">Post {selectedPostIndex! + 1}</p>
                                 </div>
                                 <div className="flex bg-mountain-200 w-0.5 h-12" />
-                                <div className="flex items-center space-x-2 p-2 border border-mountain-200 rounded-lg">
+                                <div className="flex items-center space-x-2 hover:bg-mountain-50/60 p-2 border border-mountain-200 rounded-lg cursor-pointer">
                                     <LuScanEye />
                                     <div>Preview</div>
                                 </div>
-                                <div className="flex items-center space-x-2 p-2 border border-mountain-200 rounded-lg">
+                                <div className="flex items-center space-x-2 hover:bg-mountain-50/60 p-2 border border-mountain-200 rounded-lg cursor-pointer">
                                     <Image className="size-4" />
-                                    <div>Images: 0</div>
+                                    <div>Images: {imagePreviews.length}</div>
                                 </div>
                                 <Tooltip title="This post is scheduled" arrow placement="bottom">
-                                    <div className="flex items-center space-x-2 bg-blue-100 px-4 py-2 rounded-full w-fit font-medium text-blue-800">
+                                    <div className="flex items-center space-x-2 bg-blue-100 hover:bg-blue-100/60 px-4 py-2 rounded-full w-fit font-medium text-blue-800 cursor-pointer">
                                         <LuCalendarClock className="size-4 shrink-0" />
                                         <div className="flex bg-blue-800 w-0.5 h-8" />
                                         <p>12/06/2025</p>
@@ -395,7 +340,10 @@ const ProjectGenPostsTab: React.FC<ProjectGenPostsProp> = ({ }) => {
                 {(postContent && postContent.length > 0 && !generateMode) ? (
                     <div className="flex flex-col h-[calc(100vh-13.5rem)] overflow-y-auto sidebar">
                         <div className="space-y-2 ml-4 h-full overflow-y-auto sidebar">
-                            <p>Post Content</p>
+                            <div className="flex items-center space-x-2 py-2 border-mountain-200 border-b-1 text-indigo-900">
+                                <p>🖊️</p>
+                                <p>Post Content</p>
+                            </div>
                             <div className="relative flex flex-col bg-white shadow-md border border-mountain-200 w-xl h-[520px]">
                                 <div className="flex items-center gap-2 bg-white px-2 border-mountain-200 border-b rounded-t-md h-12 shrink-0">
                                     {editor && (
@@ -439,27 +387,63 @@ const ProjectGenPostsTab: React.FC<ProjectGenPostsProp> = ({ }) => {
                                     <p>Loading editor...</p>
                                 )}
                             </div>
-                            <p>Post Images</p>
-                            <div className="flex flex-col space-y-4 bg-white border border-mountain-200 rounded-lg w-xl h-full">
-                                <div className="flex flex-wrap items-center gap-2 bg-white px-2 border-mountain-200 border-b rounded-t-md h-12 text-mountain-800">
-                                    <Image className="size-4" />
-                                    <span>Post Image</span>
+                            <div className="flex items-center space-x-2 py-2 border-mountain-200 border-b-1 text-indigo-900">
+                                <p>🖼️</p>
+                                <p>Post Images</p>
+                            </div>
+                            <div className="flex flex-col bg-white border border-mountain-200 rounded-lg w-xl h-fit">
+                                <div className="flex justify-between items-center gap-2 bg-white px-2 border-mountain-200 border-b rounded-t-md h-12 text-mountain-800">
+                                    <div className="flex items-center space-x-2">
+                                        <span>Number of Image: {imagePreviews.length}</span>
+                                    </div>
+                                    <span className="text-mountain-600 text-sm italic">Up to 4 images</span>
+                                </div>
+                                <div className="flex flex-wrap justify-center">
+                                    {imagePreviews.map((src, index) => (
+                                        <div key={index} className="group relative bg-white p-2 w-full aspect-video overflow-hidden">
+                                            <img
+                                                src={src}
+                                                alt={`Preview ${index}`}
+                                                className="rounded-md w-full h-full object-cover"
+                                            />
+                                            <div className="hidden top-2 right-2 absolute group-hover:flex bg-white p-2 rounded-full cursor-pointer">
+                                                <Edit className="size-4" />
+                                            </div>
+                                            <div className="hidden right-2 bottom-2 absolute group-hover:flex bg-white p-2 rounded-full cursor-pointer">
+                                                <Trash2 className="size-4" />
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                                 {imagePreviews.length === 0 ? (
-                                    <div className="flex justify-center w-full">
+                                    <div className="flex justify-center p-2 w-full">
                                         <label
                                             htmlFor="imageUpload"
-                                            className="flex flex-col items-center space-y-2 bg-white shadow-sm mx-2 px-4 py-2 rounded-md w-48 font-medium text-mountain-950 text-sm text-center cursor-pointer"
+                                            className="flex flex-col items-center space-y-2 bg-white shadow-sm mx-2 px-4 py-2 border border-mountain-200 rounded-md w-48 font-medium text-mountain-950 text-sm text-center cursor-pointer"
                                         >
                                             <Upload />
-                                            <p>Choose Image</p>
+                                            <p>Upload From Device</p>
                                         </label>
-                                    </div>
-                                ) : (
-                                    <div className="hidden group-hover:flex justify-center rounded-full w-full">
                                         <label
                                             htmlFor="imageUpload"
-                                            className="flex items-center gap-2 bg-white shadow-sm mx-2 px-4 py-2 rounded-md font-medium text-mountain-950 text-sm text-center cursor-pointer"
+                                            className="flex flex-col items-center space-y-2 bg-white shadow-sm mx-2 px-4 py-2 border border-mountain-200 rounded-md w-48 font-medium text-mountain-950 text-sm text-center cursor-pointer"
+                                        >
+                                            <RiImageCircleAiFill className="size-6" />
+                                            <p>Browse Your Stock</p>
+                                        </label>
+                                    </div>
+                                ) : imagePreviews.length < 4 && (
+                                    <div className="flex justify-center pb-2 rounded-full w-full">
+                                        <label
+                                            onClick={() => {}}
+                                            className="flex justify-center items-center gap-2 bg-white shadow-sm mx-2 px-4 py-2 border border-mountain-200 rounded-md w-1/4 font-medium text-mountain-950 text-sm text-center cursor-pointer"
+                                        >
+                                            <Trash2 />
+                                            <span>Clear All</span>
+                                        </label>
+                                        <label
+                                            htmlFor="imageUpload"
+                                            className="flex justify-center items-center gap-2 bg-white shadow-sm mx-2 px-4 py-2 border border-mountain-200 rounded-md w-3/4 font-medium text-mountain-950 text-sm text-center cursor-pointer"
                                         >
                                             <Upload />
                                             <span>Add More</span>
@@ -473,35 +457,13 @@ const ProjectGenPostsTab: React.FC<ProjectGenPostsProp> = ({ }) => {
                                     onChange={handleFileChange}
                                     className="hidden"
                                 />
-                                <div className="flex flex-wrap justify-center gap-2 px-2">
-                                    {imagePreviews.map((src, index) => (
-                                        <div key={index} className="group relative bg-white rounded-md w-full aspect-video overflow-hidden">
-                                            <img
-                                                src={src}
-                                                alt={`Preview ${index}`}
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="hidden top-2 right-2 absolute group-hover:flex bg-white p-2 rounded-full cursor-pointer">
-                                                <Edit className="size-4" />
-                                            </div>
-                                            <div className="hidden right-2 bottom-2 absolute group-hover:flex bg-white p-2 rounded-full cursor-pointer">
-                                                <Trash2 className="size-4" />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
-                            <div className="relative flex flex-col w-xl h-full">
-                                <p>Post Scheduling Date</p>
-                                <div className="flex w-full">
-                                    <label
-                                        htmlFor="imageUpload"
-                                        className="flex flex-col items-center space-y-2 bg-white shadow-sm px-4 py-2 rounded-md w-48 font-medium text-mountain-950 text-sm text-center cursor-pointer"
-                                    >
-                                        <Upload />
-                                        <p>Choose Image</p>
-                                    </label>
-                                </div>
+                            <div className="flex items-center space-x-2 py-2 border-mountain-200 border-b font-medium text-indigo-900">
+                                <span>📅</span>
+                                <p>Post Scheduling</p>
+                            </div>
+                            <div className="max-w-xl h-full">
+                                <PostScheduler />
                             </div>
                         </div>
                     </div>
