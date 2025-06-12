@@ -16,11 +16,11 @@ export interface Post {
   thumbnail_url: string;
   is_mature: boolean;
   ai_created: boolean;
-  thumbnail_crop_meta: string;
   user: User;
   description?: string;
   updated_at?: Date;
   group_id?: number;
   medias: MediaDto[];
   categories?: Category[];
+  thumbnail_crop_meta: ThumbnailMeta;
 }

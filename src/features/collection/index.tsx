@@ -458,7 +458,7 @@ const CollectionPage: React.FC = () => {
   const displayError = collectionsError || photosError || actionError;
 
   return (
-    <Container maxWidth="xl" className="h-screen" sx={{ py: 4 }}>
+    <Container maxWidth="xl" className="h-screen py-3">
       {/* Header */}
       <Stack
         direction={{ xs: "column", md: "row" }}

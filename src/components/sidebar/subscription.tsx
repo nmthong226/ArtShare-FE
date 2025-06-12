@@ -16,59 +16,60 @@ import {
 //Icons
 import { BsChevronExpand } from "react-icons/bs";
 import { TbChessQueenFilled } from "react-icons/tb";
-// import { getDisplayPlanName, useSubscriptionInfo } from '@/hooks/useSubscription';
-// import AsyncWrapper from '../AsyncWrapper';
 
-type UserPlan = {
+type UserPlanProps = {
   expand: boolean;
 };
 
-const UserPlan: React.FC<UserPlan> = ({ expand }) => {
-  // const {
-  //     data: subscriptionInfo,
-  //     isLoading: loadingSubscriptionInfo,
-  //     isError: isSubscriptionError,
-  // } = useSubscriptionInfo();
-
+const UserPlan: React.FC<UserPlanProps> = ({ expand }) => {
   return (
     <DropdownMenu modal={false}>
-      <DropdownMenuTrigger className="flex justify-center items-center mt-4 w-full h-12 hover:cursor-pointer">
+      <DropdownMenuTrigger className="flex justify-center items-center mt-4 w-full h-12 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg">
+        {/* Expanded View Trigger */}
         <div
-          className={`${!expand ? "hidden" : "px-4"} duration-500 ease-in-out flex items-center justify-between bg-indigo-50 rounded-lg h-full w-full`}
+          className={`${!expand ? "hidden" : "px-4"} duration-500 ease-in-out flex items-center justify-between bg-indigo-50 dark:bg-slate-800 rounded-lg h-full w-full`}
         >
           <div className={`flex items-center space-x-2`}>
-            <TbChessQueenFilled className="flex-none shrink-0" />
+            <TbChessQueenFilled className="flex-none shrink-0 text-indigo-600 dark:text-indigo-400" />
             <p
-              className={`transition-all duration-300 font-normal flex items-center space-x-4 origin-left ${expand ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0"} line-clamp-1 text-sm`}
+              className={`transition-all duration-300 font-normal origin-left ${expand ? "opacity-100 scale-x-100" : "opacity-0 scale-x-0"} line-clamp-1 text-sm text-slate-700 dark:text-slate-200`}
             >
-              User Help
-              {/* <AsyncWrapper loading={loadingSubscriptionInfo} error={isSubscriptionError}>
-                                <span className='text-mountain-400'> - {subscriptionInfo && getDisplayPlanName(subscriptionInfo.plan)}</span>
-                            </AsyncWrapper> */}
+              User Plan
+              <span className="text-mountain-400 dark:text-indigo-300">
+                {" "}
+                - Free
+              </span>
             </p>
           </div>
-          <BsChevronExpand />
+          <BsChevronExpand className="text-slate-500 dark:text-slate-400" />
         </div>
+        {/* Collapsed View Trigger ("Plan" button) */}
         <p
-          className={`${expand ? "opacity-0 w-0" : "opacity-100 w-fit"} px-2 py-2 border text-white from-indigo-600 to-purple-600  bg-gradient-to-br border-mountain-100 rounded-lg shadow-sm text-sm`}
+          className={`${expand ? "opacity-0 w-0" : "opacity-100 w-fit"} shadow px-2 py-2 border bg-indigo-50 dark:bg-slate-700 border-mountain-100 dark:border-slate-600 rounded-lg text-mountain-600 dark:text-slate-300 text-sm`}
         >
           Plan
         </p>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent
-        className="mb-2 ml-2 border-mountain-100 w-56"
+        className="mb-2 ml-2 border-mountain-100 dark:border-slate-700 w-56 bg-white dark:bg-slate-800" // Added bg for explicit control, shadcn might do this via its own classes too
         side="right"
       >
         <DropdownMenuLabel className="flex flex-col space-y-1">
-          <p>ArtShare - Beta</p>
-          <p className="font-normal text-moutain-600 text-xs">v1.4.0</p>
+          {/* Assuming default text color for this from shadcn is fine, or add dark:text-slate-100 */}
+          <p className="text-slate-800 dark:text-slate-100">ArtShare - Beta</p>
+          <p className="font-normal text-moutain-600 dark:text-slate-400 text-xs">
+            v1.4.0
+          </p>{" "}
+          {/* Corrected typo moutain -> mountain if intended */}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-700" />{" "}
+        {/* Optional: Style separator explicitly */}
         <DropdownMenuGroup>
-          <DropdownMenuItem className="text-mountain-600 hover:text-mountain-950 duration-200 transform">
+          <DropdownMenuItem className="text-mountain-600 dark:text-slate-300 hover:text-mountain-950 dark:hover:text-slate-100 focus:bg-slate-100 dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-slate-100 duration-200 transform">
             <span className="line-clamp-1">29/04/25 - Rework Layout</span>
           </DropdownMenuItem>
-          <DropdownMenuItem className="text-mountain-600 hover:text-mountain-950 duration-200 transform">
+          <DropdownMenuItem className="text-mountain-600 dark:text-slate-300 hover:text-mountain-950 dark:hover:text-slate-100 focus:bg-slate-100 dark:focus:bg-slate-700 focus:text-slate-900 dark:focus:text-slate-100 duration-200 transform">
             <span className="line-clamp-1">28/04/25 - Image Editor</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>

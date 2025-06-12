@@ -16,7 +16,9 @@ const MatureContentWarning: React.FC<MatureContentWarningProps> = ({
         This content is for mature audiences only.
       </p>
       <p className="mb-4 text-gray-700">User discretion advised.</p>
-      <Button variant="contained" onClick={onShow}>Show me the artwork</Button>
+      <Button variant="contained" onClick={onShow}>
+        Show me the artwork
+      </Button>
     </div>
   );
 };

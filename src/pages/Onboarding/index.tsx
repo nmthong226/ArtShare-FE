@@ -92,9 +92,12 @@ const OnboardingProfile: React.FC = () => {
       // mark them onboarded in context so guards will let them through
       setUser!({ ...(user as User), is_onboard: true });
       reset(raw);
-      navigate("/explore");
-      // Successful update
+      // Close the dialog first so that the useEffect cleans up the body styles
       setOpen(false);
+      // Navigate after a short delay to allow the cleanup to run
+      setTimeout(() => {
+        navigate("/explore");
+      }, 0);
     } catch (err: unknown) {
       // ──── 1. Axios error? ───────────────────────────────────────
       if (axios.isAxiosError(err)) {
@@ -124,21 +127,6 @@ const OnboardingProfile: React.FC = () => {
       showDialog(false, "Failed to update profile");
     }
   };
-
-  // Prevent interaction with the rest of the page when dialog is open
-  React.useEffect(() => {
-    if (open) {
-      document.body.style.pointerEvents = "none"; // Disable interactions outside the dialog
-      document.body.style.overflow = "hidden"; // Prevent scrolling
-    } else {
-      document.body.style.pointerEvents = "";
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.pointerEvents = "";
-      document.body.style.overflow = "";
-    };
-  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

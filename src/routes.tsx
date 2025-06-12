@@ -195,9 +195,8 @@ const routeConfig: RouteObject[] = [
           </RequireOnboard>
         ),
         children: [
-          { path: "/docs/new", element: <MyWriting /> },
-          { path: "/docs/:id/edit", element: <MyWriting /> },
-        ],
+          { path: "/docs/:blogId", element: <MyWriting /> },
+        ]
       },
       // Catch-all -> redirect
       { path: "*", element: <Navigate to="/" replace /> },

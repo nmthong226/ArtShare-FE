@@ -1,4 +1,5 @@
 import api from "@/api/baseApi";
+import { Post } from "@/types";
 
 /**
  * PATCH /posts/:post_id
@@ -8,7 +9,7 @@ import api from "@/api/baseApi";
  */
 export const updatePost = async (postId: number, formData: FormData) => {
   try {
-    const response = await api.patch(`/posts/${postId}`, formData, {
+    const response = await api.patch<Post>(`/posts/${postId}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

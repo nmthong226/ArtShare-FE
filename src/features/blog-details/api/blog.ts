@@ -1,8 +1,12 @@
 import api from "@/api/baseApi";
-import { Blog } from "@/types/blog";
+import {
+  Blog,
+  mapSimpleBlogResponseToBlog,
+  SimpleBlogResponseDto,
+} from "@/types/blog";
+
 /**
  * Fetch details for a single blog by ID.
- * GET /blogs/:id
  */
 export const fetchBlogDetails = async (blogId: number): Promise<Blog> => {
   const response = await api.get<Blog>(`/blogs/${blogId}`);
@@ -18,9 +22,9 @@ export const fetchBlogs = async (params?: {
   skip?: number;
   search?: string;
 }): Promise<Blog[]> => {
-  const response = await api.get<Blog[]>("/blogs", { params });
-  console.log("!", response);
-  return response.data;
+  const response = await api.get<SimpleBlogResponseDto[]>("/blogs", { params });
+  // Use the simpler mapping function that matches the actual response structure
+  return response.data.map(mapSimpleBlogResponseToBlog);
 };
 
 /**
@@ -32,8 +36,11 @@ export const fetchTrendingBlogs = async (params?: {
   skip?: number;
   categories?: string[];
 }): Promise<Blog[]> => {
-  const response = await api.get<Blog[]>("/blogs/trending", { params });
-  return response.data;
+  // Use SimpleBlogResponseDto since trending endpoint returns same structure as /blogs
+  const response = await api.get<SimpleBlogResponseDto[]>("/blogs/trending", {
+    params,
+  });
+  return response.data.map(mapSimpleBlogResponseToBlog);
 };
 
 /**
@@ -45,8 +52,11 @@ export const fetchFollowingBlogs = async (params?: {
   skip?: number;
   categories?: string[];
 }): Promise<Blog[]> => {
-  const response = await api.get<Blog[]>("/blogs/following", { params });
-  return response.data;
+  // Use SimpleBlogResponseDto since following endpoint likely returns same structure
+  const response = await api.get<SimpleBlogResponseDto[]>("/blogs/following", {
+    params,
+  });
+  return response.data.map(mapSimpleBlogResponseToBlog);
 };
 
 /**
@@ -58,14 +68,14 @@ export const searchBlogs = async (params: {
   skip?: number;
   search?: string;
 }): Promise<Blog[]> => {
-  const response = await api.get<Blog[]>("/blogs/search", { params });
-  return response.data;
+  // Use SimpleBlogResponseDto since search endpoint likely returns same structure
+  const response = await api.get<SimpleBlogResponseDto[]>("/blogs/search", {
+    params,
+  });
+  return response.data.map(mapSimpleBlogResponseToBlog);
 };
 
-/**
- * Toggle bookmark status for a blog.
- * POST /blogs/:id/bookmark
- */
+// ... (toggleBookmark, protectBlog, rateBlog - these likely don't return Blog objects, so no mapping needed for them)
 export const toggleBookmark = async (
   blogId: number,
 ): Promise<{ message: string; isBookmarked: boolean }> => {
@@ -75,10 +85,6 @@ export const toggleBookmark = async (
   return response.data;
 };
 
-/**
- * Protect a blog.
- * POST /blogs/:id/protect
- */
 export const protectBlog = async (
   blogId: number,
 ): Promise<{ message: string; isProtected: boolean }> => {
@@ -88,10 +94,6 @@ export const protectBlog = async (
   return response.data;
 };
 
-/**
- * Rate a blog.
- * POST /blogs/:id/rate
- */
 export const rateBlog = async (
   blogId: number,
   rating: number,
@@ -111,8 +113,12 @@ export const fetchBlogsByUsername = async (
   username: string,
   params?: { take?: number; skip?: number },
 ): Promise<Blog[]> => {
-  const response = await api.get<Blog[]>(`/blogs/user/${username}`, { params });
-  return response.data;
+  // Only use BackendBlogListItemDto if this endpoint actually returns that structure
+  const response = await api.get<SimpleBlogResponseDto[]>(
+    `/blogs/user/${username}`,
+    { params },
+  );
+  return response.data.map(mapSimpleBlogResponseToBlog);
 };
 
 /**
@@ -123,10 +129,14 @@ export const fetchRelevantBlogs = async (
   blogId: number,
   params?: { take?: number; skip?: number },
 ): Promise<Blog[]> => {
-  const response = await api.get<Blog[]>(`/blogs/${blogId}/relevant`, {
-    params,
-  });
-  return response.data;
+  // Only use BackendBlogListItemDto if this endpoint actually returns that structure
+  const response = await api.get<SimpleBlogResponseDto[]>(
+    `/blogs/${blogId}/relevant`,
+    {
+      params,
+    },
+  );
+  return response.data.map(mapSimpleBlogResponseToBlog);
 };
 
 /**
@@ -134,14 +144,26 @@ export const fetchRelevantBlogs = async (
  * GET /blogs/:id/likes
  */
 export const fetchBlogLikes = async (
+  // This returns likers, not Blog objects
   blogId: number,
   params?: { skip?: number; take?: number },
 ): Promise<{
-  items: { id: number; username: string; avatar?: string }[];
+  items: {
+    id: string;
+    username: string;
+    profile_picture_url?: string | null;
+    full_name?: string | null;
+  }[]; // Matched LikingUserResponseDto closer
   total: number;
 }> => {
+  // Make sure the DTO matches your backend exactly for this endpoint
   const response = await api.get<{
-    items: { id: number; username: string; avatar?: string }[];
+    items: {
+      id: string;
+      username: string;
+      profile_picture_url?: string | null;
+      full_name?: string | null;
+    }[];
     total: number;
   }>(`/blogs/${blogId}/likes`, { params });
   return response.data;

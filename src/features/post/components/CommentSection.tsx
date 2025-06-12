@@ -37,7 +37,7 @@ import { useUser } from "@/contexts/UserProvider";
 import { User } from "@/types";
 import { Link as RouterLink } from "react-router-dom";
 import MuiLink from "@mui/material/Link";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { useContext } from "react";
 import { FreshRepliesCtx } from "./FreshReplies";
@@ -311,7 +311,7 @@ const CommentRow = ({
           <div className="flex items-center gap-2 text-sm">
             <span className="font-bold">@{comment.user.username}</span>
             <span
-              className="text-xs text-neutral-500"
+              className="text-neutral-500 dark:text-neutral-400 text-xs"
               title={
                 new Date(comment.updated_at).getTime() !==
                 new Date(comment.created_at).getTime()
@@ -448,13 +448,16 @@ const CommentRow = ({
 
       {/* ▶️  INLINE REPLY INPUT  */}
       {showThread && depth < MAX_REPLY_DEPTH && (
-        <div className="flex flex-col gap-1" style={{ marginLeft: INDENT }}>
+        <div
+          className="flex flex-col gap-1 mb-3"
+          style={{ marginLeft: INDENT }}
+        >
           {/* A.  View / Hide button (only for true older replies) */}
           {showToggle && (
             <button
               onClick={toggleReplies}
               disabled={loading && !showReplies}
-              className="flex items-center gap-1 text-xs text-blue-600 disabled:text-neutral-400"
+              className="flex items-center gap-1 text-xs text-blue-600 disabled:text-neutral-400 dark:text-blue-200"
             >
               {loading && !showReplies ? (
                 <CircularProgress size={14} />
@@ -1002,12 +1005,12 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
       <div
         className={
           inputPosition === "bottom"
-            ? // bottom-fixed version stays the same
-              "absolute inset-x-0 bottom-0 flex items-center gap-2 bg-white p-4 border-t border-mountain-200"
+            ? // Fixed bottom: absolute positioning, ensure dark mode
+              "sticky bottom-0  inset-x-0 bottom-0 flex items-center gap-2 bg-white dark:bg-mountain-950 p-4 border-t border-mountain-200 dark:border-mountain-700"
             : // top version, but if hideWrapper remove border & rounding
               hideWrapper
-              ? "flex items-center gap-2 bg-white mb-4"
-              : "flex items-center gap-2 bg-white p-4 border border-mountain-200 rounded-lg mb-4"
+              ? "flex items-center gap-2 bg-white dark:bg-mountain-950 mb-4 px-4 mt-3" // blog comments
+              : "flex items-center gap-2 bg-white dark:bg-mountain-950 p-4 border border-mountain-200 dark:border-mountain-700 rounded-lg mb-4"
         }
       >
         {/* Avatar */}
@@ -1037,7 +1040,7 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
                   : "Add a comment"
                 : "Login to add a comment"
             }
-            className="w-full p-3 border rounded-lg resize-none border-neutral-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full p-3 border rounded-lg resize-none border-neutral-300 dark:border-neutral-600 bg-white dark:bg-mountain-900 text-neutral-800 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             disabled={isPosting || !user}
@@ -1061,23 +1064,31 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
       </div>
     );
 
-    const wrapperClass = [
-      "relative flex flex-col gap-4 w-full pb-28",
-      !hideWrapper && "bg-white rounded-2xl",
-    ]
-      .filter(Boolean)
-      .join(" ");
+    const baseWrapperClasses = "relative flex flex-col w-full";
+    const responsiveGrowClass = "md:flex-grow";
+    const conditionalAppearanceClasses = !hideWrapper
+      ? "bg-white dark:bg-mountain-950 rounded-2xl"
+      : "";
+
+    const wrapperClass =
+      `${baseWrapperClasses} ${responsiveGrowClass} ${conditionalAppearanceClasses}`
+        .trim()
+        .replace(/\s+/g, " ");
 
     return (
       <div className={wrapperClass}>
-        <span className="font-bold text-md">Comments</span>
+        <span className="px-4 pt-4 font-bold text-md dark:text-white">
+          Comments
+        </span>
         {inputPosition === "top" && InputBar}
         <FreshRepliesCtx.Provider
           value={{ map: newRepliesMap, clear: clearFresh }}
         >
           <div
             ref={listRef}
-            className="flex flex-col overflow-x-hidden overflow-y-auto divide-y divide-neutral-100"
+            className={`flex-grow px-4 overflow-x-hidden overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-700 ${
+              inputPosition === "bottom" ? "pb-28" : "pb-4"
+            }`}
           >
             {comments.length === 0 ? (
               <p className="py-4 text-sm text-center text-mountain-500">
