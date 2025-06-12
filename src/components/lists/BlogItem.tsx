@@ -53,6 +53,11 @@ const BlogItem: React.FC<BlogItemProps> = ({
     navigate(`/blogs/${blogId}`);
   };
   const [open, setOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+
+  const handleAvatarError = () => {
+    setAvatarError(true);
+  };
 
   // const handleClickMoreButton = (e: React.MouseEvent<HTMLElement>) => {
   //     e.stopPropagation();
@@ -121,11 +126,12 @@ const BlogItem: React.FC<BlogItemProps> = ({
           </p>
           <div className="flex justify-between w-full">
             <div className="flex items-center space-x-2">
-              {author.avatar ? (
+              {author.avatar && !avatarError ? (
                 <img
                   src={author.avatar}
                   className="rounded-full w-12 h-12 border border-gray-200 dark:border-mountain-700"
                   alt={author.username}
+                  onError={handleAvatarError}
                 />
               ) : (
                 <Avatar

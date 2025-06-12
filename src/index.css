@@ -156,7 +156,7 @@ body {
   scrollbar-gutter: "stable";
   background-color: var(--background);
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: auto;
 }
 
 .bounce-item {
