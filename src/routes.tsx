@@ -124,6 +124,10 @@ const routeConfig: RouteObject[] = [
           { path: "/blogs", element: <BrowseBlogs /> },
           { path: "/blogs/:blogId", element: <BlogDetails /> },
           { path: "/search", element: <Search /> },
+          { path: "/auto/link-social", element: <LinkSocial /> },
+          { path: "/auto/my-projects", element: <AutomationProject /> },
+          { path: "/auto/my-projects/new", element: <AutoProjectCreation /> },
+          { path: "/auto/:slug/details", element: <AutomationProjectDetails /> },
         ],
       },
       // In-App Private
@@ -143,10 +147,10 @@ const routeConfig: RouteObject[] = [
           { path: "/posts/new", element: <UploadPost /> },
           { path: "/collections", element: <Collection /> },
           { path: "/docs", element: <DocumentDashboard /> },
-          { path: "/auto/link-social", element: <LinkSocial /> },
-          { path: "/auto/my-projects", element: <AutomationProject /> },
-          { path: "/auto/my-projects/new", element: <AutoProjectCreation /> },
-          { path: "/auto/:slug/details", element: <AutomationProjectDetails /> },
+          // { path: "/auto/link-social", element: <LinkSocial /> },
+          // { path: "/auto/my-projects", element: <AutomationProject /> },
+          // { path: "/auto/my-projects/new", element: <AutoProjectCreation /> },
+          // { path: "/auto/:slug/details", element: <AutomationProjectDetails /> },
           { path: "/:username", element: <UserProfile /> }, // <== last
         ]
       },

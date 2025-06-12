@@ -91,9 +91,11 @@ interface HeadCellItemTable {
 }
 
 interface GenPostContent {
-  id: number;
-  title: string;
-  content: string;
+    id: number;
+    title: string;
+    content: string;
+    images?: string[];
+    hashtags?: string[];
 }
 
 export interface AutoPostMeta {

@@ -191,3 +191,56 @@ export const ProjectData = [
         },
     ]),
 ];
+
+export const examples = [{
+    id: 0,
+    title: "Phong Vu Summer Tech Festival Campaign",
+    content: `<h2>🔥 Phong Vũ Summer Tech Festival – Unmissable Deals!</h2>
+    <p>Ready to upgrade your gear? <strong>Phong Vũ</strong> is turning up the heat this June with massive discounts on top tech!</p>
+    <h3>🌟 What's Hot This Month:</h3>
+    <ul>
+    <li><strong>Laptops:</strong> Up to 30% OFF on ASUS, Dell, HP, and more</li>
+    <li><strong>PC Components:</strong> GPUs, SSDs, RAM – all on sale</li>
+    <li><strong>Gaming Gear:</strong> Save on keyboards, mice, headsets & chairs</li>
+    <li><strong>Smart Devices:</strong> Tablets, smartwatches, and earbuds</li>
+    <li><strong>Home Appliances:</strong> Purifiers, fans, and more</li>
+    </ul>
+    <h3>🎁 Extra Bonuses:</h3>
+    <ul>
+    <li>💳 0% installment for 12 months</li>
+    <li>🎫 Online vouchers up to <strong>1,000,000 VND</strong></li>
+    <li>🚛 <strong>Free delivery</strong> on selected items</li>
+    </ul>
+    <p><strong>🗓️ June 5 – June 30</strong></p>
+    <p>Shop online or in-store: <a href="https://phongvu.vn" target="_blank">https://phongvu.vn</a></p>
+    <p><em>Don't miss out – follow us on Facebook for flash sales & lucky draws!</em></p>
+    `
+},
+{
+    id: 1,
+    title: `🔥 Tech Deals You Can't Miss – Only at Phong Vũ!`,
+    content: `
+        <h2>🔥 Tech Deals You Can't Miss – Only at Phong Vũ!</h2>
+        <p>
+        Whether you're looking for a sleek laptop for work or a powerful PC to dominate your games, <strong>Phong Vũ</strong> has unbeatable offers for all your tech needs!
+        </p>
+        <ul>
+        <li>💻 Up to <strong>20% OFF</strong> on laptops for work & play</li>
+        <li>🖥️ Save up to <strong>3,000,000 VND</strong> on PCs and components</li>
+        <li>🎧 Tech accessories from just <strong>99,000 VND</strong></li>
+        </ul>
+        <p>
+        ✅ <strong>Free nationwide delivery</strong><br>
+        ✅ <strong>0% interest installment plans</strong> – fast & easy approval!
+        </p>
+        <p>
+        <a href="https://www.phongvu.vn" target="_blank" rel="noopener noreferrer" style="color: #3182ce; text-decoration: underline;">
+            👉 Shop Now at Phong Vũ
+        </a>
+        </p>
+        <p style="color: gray; font-size: 0.9em;">
+        *Offers valid while supplies last. Don't miss out!
+        </p>
+    `,
+}
+];
