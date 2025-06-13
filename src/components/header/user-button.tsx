@@ -117,7 +117,7 @@ const UserButton: React.FC<{
                       {notif?.payload?.message}
                     </span>
                     <small className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      {new Date(notif.payload.resolvedAt).toLocaleString()}
+                      {new Date(notif.payload?.resolvedAt ?? notif.payload.createdAt).toLocaleString()}
                     </small>
                   </div>
 
