@@ -15,7 +15,7 @@ import { getUserProfileByUsername, UserProfile } from "./api/user-profile.api";
 import { useUser } from "@/contexts/UserProvider";
 import { followUser, unfollowUser } from "./api/follow.api";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSnackbar } from "@/contexts/SnackbarProvider";
+import { useSnackbar } from "@/hooks/useSnackbar";
 import { AxiosError } from "axios";
 import { MouseEvent, useEffect, useState } from "react";
 import { useReportUser } from "./hooks/useReportUser";
@@ -110,7 +110,8 @@ export const UserProfileCard = () => {
 
   // Report section
   const [dialogOpen, setDialogOpen] = useState(false);
-  const {mutate: reportUser, isPending: isLoadingReportUser } = useReportUser();
+  const { mutate: reportUser, isPending: isLoadingReportUser } =
+    useReportUser();
 
   const handleReport = (reason: string) => {
     reportUser(
@@ -118,12 +119,15 @@ export const UserProfileCard = () => {
       {
         onSuccess: () => {
           setDialogOpen(false);
-          showSnackbar('Your report will be reviewed soon! Thanks for your report', 'success');
+          showSnackbar(
+            "Your report will be reviewed soon! Thanks for your report",
+            "success",
+          );
         },
         onError: (err) => {
-          showSnackbar(err.message, 'error');
+          showSnackbar(err.message, "error");
         },
-      }
+      },
     );
   };
 
@@ -280,7 +284,9 @@ export const UserProfileCard = () => {
                 <MenuItem onClick={handleEdit}>Edit Profile</MenuItem>
               )}
               {!isOwnProfile && (
-                <MenuItem onClick={() => setDialogOpen(true)}>Report User</MenuItem>
+                <MenuItem onClick={() => setDialogOpen(true)}>
+                  Report User
+                </MenuItem>
               )}
             </Menu>
           </Box>

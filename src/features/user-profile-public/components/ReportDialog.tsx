@@ -1,5 +1,5 @@
 // src/components/ReportDialog.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -7,13 +7,15 @@ import {
   DialogActions,
   TextField,
   Button,
-} from '@mui/material';
+} from "@mui/material";
 
 interface ReportDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (reason: string) => void;
   submitting?: boolean;
+  itemName?: string;
+  itemType?: string;
 }
 
 const ReportDialog: React.FC<ReportDialogProps> = ({
@@ -21,20 +23,22 @@ const ReportDialog: React.FC<ReportDialogProps> = ({
   onClose,
   onSubmit,
   submitting = false,
+  itemName,
+  itemType,
 }) => {
-  const [reason, setReason] = useState('');
-  const [error, setError] = useState('');
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (open) {
-      setReason('');
-      setError('');
+      setReason("");
+      setError("");
     }
   }, [open]);
 
   const handleConfirm = () => {
     if (!reason.trim()) {
-      setError('Please enter a reason.');
+      setError("Please enter a reason.");
       return;
     }
     onSubmit(reason.trim());
@@ -42,7 +46,13 @@ const ReportDialog: React.FC<ReportDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>Report</DialogTitle>
+      <DialogTitle>
+        Report{" "}
+        {itemType
+          ? itemType.charAt(0).toUpperCase() + itemType.slice(1)
+          : "Content"}
+        {itemName && `: "${itemName}"`}
+      </DialogTitle>
       <DialogContent dividers>
         <TextField
           autoFocus
@@ -54,7 +64,7 @@ const ReportDialog: React.FC<ReportDialogProps> = ({
           value={reason}
           onChange={(e) => {
             setReason(e.target.value);
-            if (error) setError('');
+            if (error) setError("");
           }}
           disabled={submitting}
           error={!!error}
@@ -71,7 +81,7 @@ const ReportDialog: React.FC<ReportDialogProps> = ({
           onClick={handleConfirm}
           disabled={submitting}
         >
-          {submitting ? 'Reporting…' : 'Report'}
+          {submitting ? "Reporting…" : "Report"}
         </Button>
       </DialogActions>
     </Dialog>

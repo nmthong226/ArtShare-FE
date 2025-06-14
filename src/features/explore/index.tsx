@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, memo } from "react";
 
 //Libs
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, UseQueryResult } from "@tanstack/react-query";
 import { Button, Paper, ToggleButton, ToggleButtonGroup } from "@mui/material";
 
 //Icons
@@ -20,8 +20,8 @@ import { fetchPosts } from "./api/get-post";
 
 //Contexts
 import { useSearch } from "@/contexts/SearchProvider";
-import { categoryService } from "@/components/carousels/categories/api/categories.api";
 import { CategoryTypeValues } from "@/constants";
+import { useCategories } from "@/hooks/useCategories";
 
 const getMediaDimensions = (
   url: string,
@@ -59,11 +59,7 @@ const Explore: React.FC = () => {
     data: allCategories,
     isLoading: isLoadingAllCategories,
     isError: isErrorAllCategories,
-  } = useQuery<Category[], Error>({
-    queryKey: ["allCategories"],
-    queryFn: () => categoryService.getAllCategories(1, 200),
-    staleTime: 1000 * 60 * 5,
-  });
+  }: UseQueryResult<Category[]> = useCategories({ page: 1, pageSize: 200 });
 
   const attributeCategories = useMemo(() => {
     if (!allCategories) return [];
@@ -90,6 +86,7 @@ const Explore: React.FC = () => {
   } = useInfiniteQuery({
     queryKey: ["posts", tab, query, selectedCategories, selectedMediums],
     retry: 2,
+    staleTime: 1000 * 60 * 5, // 5 minutes
     queryFn: async ({ pageParam = 1 }): Promise<GalleryPhoto[]> => {
       const categoriesToFetch: string[] = [];
       if (selectedCategories) {
@@ -227,8 +224,8 @@ const Explore: React.FC = () => {
 
   return (
     <div className="relative flex flex-col h-screen overflow-hidden">
-      <div className="sticky z-10 flex flex-col gap-4 p-4 bg-gradient-to-t dark:bg-gradient-to-t from-white dark:from-mountain-1000 to-mountain-50 dark:to-mountain-950 rounded-t-3xl">
-        <div className="flex items-center w-full gap-6 overflow-x-hidden categories-bar">
+      <div className="pt-3 z-10 sticky flex flex-col gap-4 bg-gradient-to-t dark:bg-gradient-to-t from-white dark:from-mountain-1000 to-mountain-50 dark:to-mountain-950 px-4 py-1 rounded-t-3xl">
+        <div className="flex items-center gap-6 w-full overflow-x-hidden categories-bar">
           <Button
             className="flex flex-shrink-0 gap-2 dark:bg-mountain-900 shadow-none p-2 rounded-lg min-w-auto aspect-[1/1] font-normal dark:text-mountain-50 normal-case all-channels-btn"
             variant="contained"
@@ -355,4 +352,4 @@ const Explore: React.FC = () => {
   );
 };
 
-export default Explore;
+export default memo(Explore);

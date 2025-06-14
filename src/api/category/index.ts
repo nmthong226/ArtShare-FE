@@ -1,28 +1,31 @@
-// src/api/categories.ts (or similar)
 import api from "@/api/baseApi";
 import qs from "qs";
 import type { Category } from "@/types/category"; // This will now use the updated Category type
 
-export const getCategories = async (): Promise<Category[]> => {
+export interface GetCategoriesParams {
+  page?: number;
+  pageSize?: number;
+}
+
+export const getCategories = async ({
+  page = 1,
+  pageSize = 25,
+}: GetCategoriesParams): Promise<Category[]> => {
   try {
     const queryParams = {
-      // Adjust if your backend needs specific population or other params
-      // For now, assuming a simple GET /categories
+      page,
+      page_size: pageSize,
     };
 
     const queryString =
       Object.keys(queryParams).length > 0
         ? qs.stringify(queryParams, {
-            addQueryPrefix: true,
-            arrayFormat: "brackets",
-          })
+          addQueryPrefix: true,
+          arrayFormat: "brackets",
+        })
         : "";
 
-    const endpoint = `/categories${queryString}`;
-    console.log(`Fetching categories from: ${endpoint}`);
-
-    // This response.data is now expected to conform to the updated Category[] type
-    const response = await api.get<Category[]>(endpoint);
+    const response = await api.get<Category[]>(`/categories${queryString}`);
 
     // Parse dates from string to Date objects
     return response.data.map((cat) => ({

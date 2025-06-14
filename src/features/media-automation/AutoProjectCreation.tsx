@@ -1,10 +1,19 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Tabs, TabsList, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import ProjectInfoForm from "./components/tabs/ProjectInfoTab";
+
+import ProjectInfoForm, {
+  ProjectInfoFormRef,
+} from "./components/tabs/ProjectInfoTab";
 import ProjectPostCreateForm from "./components/tabs/ProjectEditPostsTab";
 import ProjectGenPostsTab from "./components/tabs/ProjectGenPostsTab";
 import { FaInfoCircle, FaSave } from "react-icons/fa";
+import {
+  FaCalendar,
+  FaChevronLeft,
+  FaChevronRight,
+  FaPenFancy,
+} from "react-icons/fa6";
 import {
   FaCalendar,
   FaChevronLeft,
@@ -18,24 +27,35 @@ const AutoProjectCreation = () => {
     { id: 2, key: "build-posts", label: "Build Posts", icon: FaPenFancy },
     { id: 3, key: "scheduling", label: "Scheduling", icon: FaCalendar },
   ];
+  const steps = [
+    { id: 1, key: "project-info", label: "Project Info", icon: FaInfoCircle },
+    { id: 2, key: "build-posts", label: "Build Posts", icon: FaPenFancy },
+    { id: 3, key: "scheduling", label: "Scheduling", icon: FaCalendar },
+  ];
 
   const [step, setStep] = useState(steps[0]);
-
-  //Project Info
   const [projectName, setProjectName] = useState("");
-  const [platforms, setPlatforms] = useState<Platform[]>([]);
+  const [platform, setPlatform] = useState<Platform | null>(null);
+
+  const projectInfoFormRef = useRef<ProjectInfoFormRef>(null);
 
   const handleStepChange = (
     stepKey: string,
-    data?: { projectName?: string; selectedPlatform?: Platform[] },
+    data?: { projectName?: string; selectedPlatform?: Platform },
   ) => {
     const newStep = steps.find((s) => s.key === stepKey);
     if (newStep) setStep(newStep);
     if (data?.projectName) setProjectName(data.projectName);
-    if (data?.selectedPlatform) setPlatforms(data.selectedPlatform);
+    if (data?.selectedPlatform) setPlatform(data.selectedPlatform);
   };
 
   const goToNextStep = () => {
+    if (step.key === "project-info") {
+      projectInfoFormRef.current?.submitForm();
+
+      return;
+    }
+
     const currentIndex = steps.findIndex((s) => s.key === step.key);
     const nextStep = steps[currentIndex + 1];
     if (nextStep) setStep(nextStep);
@@ -105,7 +125,7 @@ const AutoProjectCreation = () => {
             );
           })}
         </div>
-        <div className="flex justify-center items-center space-x-2 bg-white hover:bg-mountain-50 bg-gradient-to-b from-white via-mountain-50 to-indigo-50 shadow-sm hover:brightness-105 border border-mountain-200 rounded-md w-48 h-10 duration-300 ease-in-out cursor-pointer shrink-0 transform">
+        <div className="flex justify-center items-center space-x-2 bg-white hover:bg-mountain-50 bg-gradient-to-b from-white via-mountain-50 to-indigo-50 shadow-sm hover:brightness-105 border border-mountain-200 rounded-md w-48 h-10 duration-300 ease-in-out cursor-pointer transform shrink-0">
           <FaSave className="size-5 text-indigo-600" />
           <p className="inline-block bg-clip-text bg-gradient-to-r from-indigo-600 to-indigo-400 font-medium text-transparent">
             Save Project
@@ -124,10 +144,11 @@ const AutoProjectCreation = () => {
           className="flex justify-center items-center w-full"
         >
           <ProjectInfoForm
+            ref={projectInfoFormRef}
             handleStepChange={(
               _step: string,
-              data?: { projectName?: string; selectedPlatform?: Platform[] },
-            ) => handleStepChange("generate-posts", data)}
+              data?: { projectName?: string; selectedPlatform?: Platform },
+            ) => handleStepChange("build-posts", data)}
           />
         </TabsContent>
         <TabsContent value="build-posts">
@@ -141,7 +162,7 @@ const AutoProjectCreation = () => {
             <h2 className="mb-2 font-semibold text-lg">Review & Confirm</h2>
             <p className="mb-4 text-muted-foreground text-sm">
               <strong>Project:</strong> {projectName} <br />
-              <strong>Platforms:</strong> {platforms.join(", ")}
+              <strong>Platform:</strong> {platform?.name}
             </p>
             <div className="flex justify-between mt-4">
               <button
@@ -163,9 +184,9 @@ const AutoProjectCreation = () => {
           <div className="bg-white shadow p-6 rounded-md h-full">
             <h2 className="mb-2 font-semibold text-lg">Launch Workflow</h2>
             <p className="text-muted-foreground text-sm">
-              Project <strong>{projectName}</strong> is ready to launch on:{" "}
+              Project <strong>{projectName}</strong> is ready to launch on:
               <br />
-              {platforms.join(", ")}
+              {platform?.name}
             </p>
             <button
               className="mt-6 btn"

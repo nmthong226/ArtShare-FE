@@ -160,7 +160,7 @@ body {
 }
 
 .bounce-item {
-  @apply transition-transform hover:-translate-y-1 duration-500 transform;
+  @apply transition-transform duration-500 transform hover:-translate-y-1;
 }
 
 .sidebar {
@@ -168,7 +168,6 @@ body {
   overflow-x: hidden;
   scrollbar-width: thin;
   background: transparent;
-
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -182,16 +181,18 @@ body {
     background: transparent;
   }
 
-  mask-image: linear-gradient(to top, transparent, black),
-  linear-gradient(to left, transparent 17px, black 17px);
+  mask-image:
+    linear-gradient(to top, transparent, black),
+    linear-gradient(to left, transparent 17px, black 17px);
   mask-size: 100% 20000px;
   mask-position: left bottom;
   -webkit-mask-image: linear-gradient(to top, transparent, black),
   linear-gradient(to left, transparent 17px, black 17px);
   -webkit-mask-size: 100% 20000px;
   -webkit-mask-position: left bottom;
-  transition: mask-position 0.3s,
-  -webkit-mask-position 0.3s;
+  transition:
+    mask-position 0.3s,
+    -webkit-mask-position 0.3s;
 }
 
 .sidebar:hover {
@@ -217,6 +218,12 @@ body {
   .dark input[type="date"]::-moz-calendar-picker-indicator {
     filter: invert(1) brightness(0.8);
     cursor: pointer;
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent; /* no white bar when thumb absent */
   }
 }
 

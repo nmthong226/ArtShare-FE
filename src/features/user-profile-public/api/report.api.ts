@@ -1,8 +1,9 @@
 import api from "@/api/baseApi";
+import { TargetType } from "@/utils/constants";
 
 export enum ReportTargetType {
-  POST = "POST",
-  BLOG = "BLOG",
+  POST = TargetType.POST,
+  BLOG = TargetType.BLOG,
   COMMENT = "COMMENT",
   USER = "USER",
 }

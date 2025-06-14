@@ -4,9 +4,9 @@ import { AvatarSection } from "./components/AvatarSection";
 import {
   getUserProfile,
   UserProfile,
-} from "../user-profile-public/api/user-profile.api";
+} from "../user-profile-public/api/user-profile.api"; // Make sure this path is correct
 import { useQuery } from "@tanstack/react-query";
-import EditProfileForm from "./components/EditProfileForm";
+import EditProfileForm from "./components/EditProfileForm"; // Already has dark mode considerations
 
 export default function EditUser() {
   const { data: profileData, isLoading: loadingProfile } = useQuery<
@@ -17,51 +17,26 @@ export default function EditUser() {
     queryFn: () => getUserProfile(),
   });
 
+  // formData is used for AvatarSection's immediate display and updates
+  const [formData, setFormData] = useState<UserProfile | null>(null);
+
   useEffect(() => {
     if (profileData) {
       setFormData(profileData);
     }
   }, [profileData]);
 
-  // const { mutate: saveProfile } = useMutation<
-  //   UserProfile,
-  //   Error,
-  //   UpdateUserDTO
-  // >({
-  //   mutationFn: async (payload: UpdateUserDTO) => {
-  //     const response = await updateUserProfile(payload);
-  //     return response.data;
-  //   },
-  //   onSuccess: (updated) => {
-  //     queryClient.setQueryData(["userProfile"], updated);
-  //     showSnackbar("Profile updated successfully.", "success");
-  //   },
-  //   onError: (err) => {
-  //     showSnackbar(err.message ?? "Failed to update profile.", "error");
-  //   },
-  // });
-
-  const [formData, setFormData] = useState<UserProfile | null>({
-    id: profileData?.id ?? "",
-    username: profileData?.username ?? "",
-    email: profileData?.email ?? "",
-    full_name: profileData?.full_name ?? "",
-    bio: profileData?.bio ?? "",
-    profile_picture_url: profileData?.profile_picture_url ?? "",
-    followings_count: profileData?.followings_count ?? 0,
-    followers_count: profileData?.followers_count ?? 0,
-    isFollowing: profileData?.isFollowing ?? false,
-    birthday: profileData?.birthday ?? "",
-  });
-
   if (loadingProfile || !formData) {
-    return <div className="m-4 text-center">Loading....</div>;
+    return (
+      <div className="m-4 text-center text-slate-700 dark:text-slate-200">
+        {/* Adjusted text color for light and dark modes */}
+        Loading....
+      </div>
+    );
   }
 
   return (
-    <Container disableGutters className="px-15 pt-6 rounded-t-3xl h-screen">
-      {/* <ProfileHeader /> */}
-
+    <Container disableGutters className={"px-15 pt-6 h-full  min-h-screen"}>
       <Box>
         <AvatarSection
           profilePictureUrl={formData.profile_picture_url}
@@ -71,27 +46,18 @@ export default function EditUser() {
               prev ? { ...prev, profile_picture_url: newUrl } : prev,
             )
           }
+          // AvatarSection itself might need internal dark mode styling for its elements
         />
       </Box>
 
-      {/* <ProfileForm
-          formData={formData}
-          handleChange={handleChange}
-          onSubmit={handleSave}
-          isSubmitting={saving}
-        /> */}
+      {/* 
+        EditProfileForm receives `profileData` (the last fetched state from backend).
+        If `AvatarSection` updates the avatar, `formData` changes, but `EditProfileForm`'s 
+        `initialData` won't reflect this specific avatar change until `profileData` itself is refetched.
+        This component (EditProfileForm) was already styled for dark mode in the previous step,
+        including its own background (e.g., dark:bg-mountain-900) and white input fields.
+      */}
       {profileData && <EditProfileForm initialData={profileData} />}
-
-      {/* <Box className="p-6 pt-3">
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-blue-500 hover:bg-blue-600 text-white"
-        >
-          {saving ? "Saving…" : "Save"}
-        </Button>
-      </Box> */}
     </Container>
   );
 }

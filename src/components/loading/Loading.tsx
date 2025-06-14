@@ -1,5 +1,5 @@
 import Lottie, { LottieRefCurrentProps } from "lottie-react";
-import loading_anim from "../../../public/loading_anim.json";
+import loading_anim from "../../../src/loading_anim.json";
 import { useEffect, useRef } from "react";
 
 const Loading = () => {

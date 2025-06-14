@@ -17,21 +17,38 @@ export const getNewVideoFile = (videoMedia?: PostMedia): File | undefined => {
   return videoMedia.file.size > 0 ? videoMedia.file : undefined;
 };
 
-export const createFormDataForEdit = (
-  // TODO: uncomment this
-  // data: typeof postData,
-  title: string,
-  imageUrlsToRetain: string[],
-  newImageFiles: File[],
-  cate_ids: number[],
-  thumbnailCropMeta: string,
-  description?: string,
-  videoUrl?: string,
-  initialThumbnail?: string,
-  thumbnailUrl?: string,
-  isMature?: boolean,
-  aiCreated?: boolean,
-) => {
+export const getNewlyUploadedRequiredFile = (thumbnail: PostMedia): File | undefined => {
+  return thumbnail.file.size > 0 ? thumbnail.file : undefined;
+};
+
+interface EditFormDataParams {
+  title: string;
+  imageUrlsToRetain: string[];
+  newImageFiles: File[];
+  cate_ids: number[];
+  thumbnailCropMeta: string;
+  description?: string;
+  videoUrl?: string;
+  initialThumbnail?: string;
+  thumbnailUrl?: string;
+  isMature?: boolean;
+  aiCreated?: boolean;
+}
+
+export const createFormDataForEdit = ({
+  title,
+  imageUrlsToRetain,
+  newImageFiles,
+  cate_ids,
+  thumbnailCropMeta,
+  description,
+  videoUrl,
+  initialThumbnail,
+  thumbnailUrl,
+  isMature,
+  aiCreated,
+}: EditFormDataParams) => {
+
   const formData = new FormData();
   formData.append("title", title);
   if (description) formData.append("description", description);
