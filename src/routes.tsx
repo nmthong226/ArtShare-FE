@@ -16,6 +16,12 @@ import OnboardingProfile from "./pages/Onboarding";
 import Dashboard from "./features/app-dashboard/Dashboard";
 import OnboardingRoute from "./components/ProtectedItems/OnboardingRoute";
 import RequireOnboard from "./components/ProtectedItems/RequireOnboard";
+import LinkSocial from "./features/media-automation/LinkSocial";
+import AutomationProject from "./features/media-automation/AutomationProject";
+import AutoPostCreation from "./features/media-automation/AutoPostCreation";
+import AutomationLayout from "./layouts/featLayouts/AutomationLayout";
+import AutoProjectCreation from "./features/media-automation/AutoProjectCreation";
+import AutomationProjectDetails from "./features/media-automation/AutomationProjectDetails";
 
 // Lazy imports for pages/features
 const LandingPage = lazy(() => import("@/pages/Home"));
@@ -46,9 +52,6 @@ const MyWriting = lazy(() => import("@/features/user-writing/MyWriting"));
 const ArtGeneration = lazy(() => import("@/features/gen-art/ArtGenAI"));
 const ImageEditor = lazy(() => import("@/features/edit-image/EditImage"));
 
-/**
- * Flat route tree using useRoutes
- */
 const routeConfig: RouteObject[] = [
   {
     element: (
@@ -121,14 +124,16 @@ const routeConfig: RouteObject[] = [
           { path: "/blogs", element: <BrowseBlogs /> },
           { path: "/blogs/:blogId", element: <BlogDetails /> },
           { path: "/search", element: <Search /> },
+          { path: "/auto/link-social", element: <LinkSocial /> },
+          { path: "/auto/my-projects", element: <AutomationProject /> },
+          { path: "/auto/my-projects/new", element: <AutoProjectCreation /> },
+          { path: "/auto/:slug/details", element: <AutomationProjectDetails /> },
         ],
       },
       // In-App Private
       {
         element: (
           <RequireOnboard>
-            {" "}
-            {/* ⬅️ block until onboarding done */}
             <ProtectedInAppRoute>
               <InAppLayout>
                 <Outlet />
@@ -137,34 +142,57 @@ const routeConfig: RouteObject[] = [
           </RequireOnboard>
         ),
         children: [
-          { path: "/:username", element: <UserProfile /> },
           { path: "/edit-user", element: <EditUser /> },
           { path: "/post/:postId/edit", element: <EditPost /> },
           { path: "/posts/new", element: <UploadPost /> },
           { path: "/collections", element: <Collection /> },
           { path: "/docs", element: <DocumentDashboard /> },
-        ],
+          // { path: "/auto/link-social", element: <LinkSocial /> },
+          // { path: "/auto/my-projects", element: <AutomationProject /> },
+          // { path: "/auto/my-projects/new", element: <AutoProjectCreation /> },
+          // { path: "/auto/:slug/details", element: <AutomationProjectDetails /> },
+          { path: "/:username", element: <UserProfile /> }, // <== last
+        ]
       },
       // In-App AI Private
       {
         element: (
-          <ProtectedInAppRoute>
-            <AILayout>
-              <Outlet />
-            </AILayout>
-          </ProtectedInAppRoute>
+          <RequireOnboard>
+            <ProtectedInAppRoute>
+              <AILayout>
+                <Outlet />
+              </AILayout>
+            </ProtectedInAppRoute>
+          </RequireOnboard>
         ),
         children: [
           { path: "/image/tool/editor", element: <ImageEditor /> },
           { path: "/image/tool/text-to-image", element: <ArtGeneration /> },
         ],
       },
-      // In-App Text Editor Private
       {
         element: (
-          <ProtectedInAppRoute>
-            <Outlet />
-          </ProtectedInAppRoute>
+          <RequireOnboard>
+            <ProtectedInAppRoute>
+              <AutomationLayout>
+                <Outlet />
+              </AutomationLayout>
+            </ProtectedInAppRoute>
+          </RequireOnboard>
+        ),
+        children: [
+          { path: "/auto/:slug/posts/new", element: <AutoPostCreation /> },
+          { path: "/auto/:slug/posts/:id", element: <AutoPostCreation /> }
+        ],
+      },
+      // No layout routes
+      {
+        element: (
+          <RequireOnboard>
+            <ProtectedInAppRoute>
+              <Outlet />
+            </ProtectedInAppRoute>
+          </RequireOnboard>
         ),
         children: [
           { path: "/docs/:blogId", element: <MyWriting /> },
@@ -176,9 +204,6 @@ const routeConfig: RouteObject[] = [
   },
 ];
 
-/**
- * Hook to render the routes
- */
 export function AppRoutes() {
   return useRoutes(routeConfig);
 }

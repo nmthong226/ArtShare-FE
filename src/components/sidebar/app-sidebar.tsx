@@ -16,8 +16,6 @@ import { RiImageAiLine } from "react-icons/ri";
 import { LuBookOpenText } from "react-icons/lu";
 import { IoReorderThreeOutline } from "react-icons/io5";
 import { ChevronRight, Home } from "lucide-react";
-import { LuStarOff } from "react-icons/lu";
-import { LuImageUpscale } from "react-icons/lu";
 import { GoSidebarExpand } from "react-icons/go";
 import { BiEdit } from "react-icons/bi";
 
@@ -78,11 +76,11 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
     >
       <div className="flex flex-col space-y-6">
         {/* Sidebar Header */}
-        <div className="flex justify-between items-center px-4">
+        <div className="flex items-center justify-between h-16 px-4">
           <div
             className={`flex items-center overflow-hidden ease-in-out transition-all duration-500 ${expand ? "w-auto opacity-100" : "opacity-0"}`}
           >
-            <img src={app_logo} className="flex mr-2 rounded-sm w-6 h-6" />
+            <img src={app_logo} className="flex w-6 h-6 mr-2 rounded-sm" />
             <p className="font-medium text-gray-800 dark:text-gray-100">
               ArtShare
             </p>
@@ -93,9 +91,9 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
             className={`flex dark:hover:bg-mountain-800 justify-center items-center rounded-full w-6 h-6 hover:cursor-pointer max-pointer-events-none`}
           >
             {expand ? (
-              <GoSidebarExpand className="size-5 text-gray-600 dark:text-gray-300" />
+              <GoSidebarExpand className="text-gray-600 size-5 dark:text-gray-300" />
             ) : (
-              <IoReorderThreeOutline className="size-6 text-gray-600 dark:text-gray-300" />
+              <IoReorderThreeOutline className="text-gray-600 size-6 dark:text-gray-300" />
             )}
           </div>
         </div>
@@ -103,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
         <div
           className={`flex flex-col ${expand ? "sidebar" : ""} space-y-6 px-2 h-[calc(100vh-10rem)] overflow-x-hidden text-mountain-800 dark:text-gray-300`}
         >
-          <div className="flex flex-col justify-between items-center space-y-1 w-full">
+          <div className="flex flex-col items-center justify-between w-full space-y-1">
             {[
               { icon: Home, label: "Dashboard", href: "/dashboard" },
               {
@@ -152,7 +150,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               );
             })}
           </div>
-          <div className="flex flex-col justify-between items-center space-y-1 w-full">
+          <div className="flex flex-col items-center justify-between w-full space-y-1">
             {[
               { icon: LuBookOpenText, label: "My Post", href: "/posts/new" },
               { icon: HiOutlineNewspaper, label: "My Writing", href: "/docs" },
@@ -245,31 +243,31 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               >
                 <div className="top-16 -left-1.5 z-10 absolute bg-indigo-100 dark:bg-mountain-800 shadow-sm border-gray-200 dark:border-mountain-700 border-t border-l w-3 h-3 rotate-45 -translate-y-1/2" />
                 <div className="flex flex-col space-y-1">
-                  <div className="space-y-1 bg-indigo-100 dark:bg-mountain-800 p-2 border-mountain-200 dark:border-mountain-700 border-b-1 rounded-t-lg">
+                  <div className="p-2 space-y-1 bg-indigo-100 rounded-t-lg dark:bg-mountain-800 border-mountain-200 dark:border-mountain-700 border-b-1">
                     <p className="font-semibold text-gray-800 dark:text-gray-100">
                       AI Studio
                     </p>
-                    <p className="text-mountain-600 dark:text-mountain-300 text-xs leading-tight">
+                    <p className="text-xs leading-tight text-mountain-600 dark:text-mountain-300">
                       Generate and edit images with AI assistant.
                     </p>
                   </div>
                   <Link
                     to="/image/tool/text-to-image"
-                    className="flex items-center p-2 border-mountain-200 dark:border-mountain-700 border-b-1 hover:text-blue-600 dark:hover:text-blue-400 text-sm text-gray-700 dark:text-gray-300"
+                    className="flex items-center p-2 text-sm text-gray-700 border-mountain-200 dark:border-mountain-700 border-b-1 hover:text-blue-600 dark:hover:text-blue-400 dark:text-gray-300"
                   >
                     <RiImageAiLine className="mr-2 size-4" />
                     <p>Text To Image</p>
                   </Link>
-                  <Link
+                  {/* <Link
                     to="/image/tool/upscale"
-                    className="flex items-center p-2 border-mountain-200 dark:border-mountain-700 border-b-1 hover:text-blue-600 dark:hover:text-blue-400 text-sm text-gray-700 dark:text-gray-300"
+                    className="flex items-center p-2 text-sm text-gray-700 border-mountain-200 dark:border-mountain-700 border-b-1 hover:text-blue-600 dark:hover:text-blue-400 dark:text-gray-300"
                   >
                     <LuImageUpscale className="mr-2 size-4" />
                     <p>Creative Upscale</p>
-                  </Link>
+                  </Link> */}
                   <Link
                     to="/image/tool/editor"
-                    className="flex items-center p-2 hover:text-blue-600 dark:hover:text-blue-400 text-sm text-gray-700 dark:text-gray-300"
+                    className="flex items-center p-2 text-sm text-gray-700 hover:text-blue-600 dark:hover:text-blue-400 dark:text-gray-300"
                   >
                     <BiEdit className="mr-2 size-4" />
                     <p>Image Editor</p>
@@ -282,7 +280,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                     label: "Image Generation",
                     href: "/image/tool/text-to-image",
                   },
-                  { label: "Creative Upscale", href: "#" }, // Consider a unique href or key if necessary
+                  // { label: "Creative Upscale", href: "#" },
                   { label: "Image Editor", href: "/image/tool/editor" },
                 ].map((item, index) => {
                   const isActive = pathname === item.href;
@@ -299,16 +297,13 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                         }
                       `}
                     >
-                      <div className="relative flex justify-center items-center transition-all duration-500">
-                        <hr className="left-0 absolute border-violet-800 dark:border-violet-500 border-t-1 w-3" />
+                      <div className="relative flex items-center justify-center transition-all duration-500">
+                        <hr className="absolute left-0 w-3 border-violet-800 border-t-1" />
                         <p
-                          className={`flex text-nowrap ml-4 transition-opacity duration-500 opacity-100 ${isActive ? "font-medium" : "font-thin"}`}
+                          className={`flex text-nowrap ml-4 transition-opacity duration-500 opacity-100 font-regular`}
                         >
                           {item.label}
                         </p>
-                      </div>
-                      <div className="hidden group-hover:flex w-[14px] h-[14px] text-mountain-400 dark:text-mountain-500 hover:cursor-pointer">
-                        <LuStarOff />
                       </div>
                     </Link>
                   );
@@ -360,19 +355,19 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               >
                 <div className="top-16 -left-1.5 z-10 absolute bg-indigo-100 dark:bg-mountain-800 shadow-sm border-gray-200 dark:border-mountain-700 border-t border-l w-3 h-3 rotate-45 -translate-y-1/2" />
                 <div className="flex flex-col space-y-1">
-                  <div className="space-y-1 bg-indigo-100 dark:bg-mountain-800 p-2 border-mountain-200 dark:border-mountain-700 border-b-1 rounded-t-lg">
+                  <div className="p-2 space-y-1 bg-indigo-100 rounded-t-lg dark:bg-mountain-800 border-mountain-200 dark:border-mountain-700 border-b-1">
                     <p className="font-semibold text-gray-800 dark:text-gray-100">
                       Social Automation
                     </p>{" "}
                     {/* Changed title for clarity */}
-                    <p className="text-mountain-600 dark:text-mountain-300 text-xs leading-tight">
+                    <p className="text-xs leading-tight text-mountain-600 dark:text-mountain-300">
                       Automate your social media activities.
                     </p>{" "}
                     {/* Changed description */}
                   </div>
                   <Link
                     to="/social/connect"
-                    className="flex items-center p-2 border-mountain-200 dark:border-mountain-700 border-b-1 hover:text-blue-600 dark:hover:text-blue-400 text-sm text-gray-700 dark:text-gray-300"
+                    className="flex items-center p-2 text-sm text-gray-700 border-mountain-200 dark:border-mountain-700 border-b-1 hover:text-blue-600 dark:hover:text-blue-400 dark:text-gray-300"
                   >
                     <MdAutoMode className="mr-2 size-4" />{" "}
                     {/* Changed icon to match section */}
@@ -380,14 +375,14 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                   </Link>
                   <Link
                     to="/social/content-gen"
-                    className="flex items-center p-2 border-mountain-200 dark:border-mountain-700 border-b-1 hover:text-blue-600 dark:hover:text-blue-400 text-sm text-gray-700 dark:text-gray-300"
+                    className="flex items-center p-2 text-sm text-gray-700 border-mountain-200 dark:border-mountain-700 border-b-1 hover:text-blue-600 dark:hover:text-blue-400 dark:text-gray-300"
                   >
                     <RiImageAiLine className="mr-2 size-4" />
                     <p>Generate Content</p>
                   </Link>
                   <Link
                     to="/social/scheduler"
-                    className="flex items-center p-2 hover:text-blue-600 dark:hover:text-blue-400 text-sm text-gray-700 dark:text-gray-300"
+                    className="flex items-center p-2 text-sm text-gray-700 hover:text-blue-600 dark:hover:text-blue-400 dark:text-gray-300"
                   >
                     <BiEdit className="mr-2 size-4" />
                     <p>Schedule Posts</p>
@@ -396,34 +391,24 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
               </Popover>
               <CollapsibleContent className="space-y-1 ml-6 px-1 border-purple-800 dark:border-purple-600 border-l-1 overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
                 {[
-                  { label: "Connect Social", href: "/social/connect" }, // Changed hrefs for clarity
-                  { label: "Generate Content", href: "/social/content-gen" },
-                  { label: "Schedule Sharing", href: "/social/scheduler" },
+                  { label: "Link Socials", href: "/auto/link-social" },
+                  { label: "Manage Workflows", href: "/auto/my-projects" },
+                  { label: "Scheduling Center", href: "#" },
                 ].map((item, index) => {
                   const isActive = pathname === item.href;
                   return (
                     <Link
                       to={item.href}
                       key={index}
-                      className={`
-                        group flex pr-1.5 items-center rounded-md justify-between w-full h-8 hover:cursor-pointer transition-colors duration-150
-                        ${
-                          isActive
-                            ? "text-black dark:text-white font-medium" // Active state
-                            : "text-violet-800 dark:text-[#7986cb] hover:bg-gray-50 dark:hover:bg-mountain-800 hover:text-violet-950 dark:hover:text-white" // Inactive state
-                        }
-                      `}
+                      className={`${isActive ? "from-indigo-200 to-purple-200 bg-gradient-to-r" : "text-violet-900"} group flex pr-1.5 items-center rounded-md justify-between w-full h-8 hover:text-mountain-950 hover:cursor-pointer`}
                     >
-                      <div className="relative flex justify-center items-center transition-all duration-500">
-                        <hr className="left-0 absolute border-violet-800 dark:border-violet-500 border-t-1 w-3" />
+                      <div className="relative flex items-center justify-center transition-all duration-500">
+                        <hr className="absolute left-0 w-3 border-violet-800 border-t-1" />
                         <p
-                          className={`flex text-nowrap ml-4 transition-opacity duration-500 opacity-100 ${isActive ? "font-medium" : "font-thin"}`}
+                          className={`flex text-nowrap ml-4 transition-opacity duration-500 opacity-100 font-regular`}
                         >
                           {item.label}
                         </p>
-                      </div>
-                      <div className="hidden group-hover:flex w-[14px] h-[14px] text-mountain-400 dark:text-mountain-500 hover:cursor-pointer">
-                        <LuStarOff />
                       </div>
                     </Link>
                   );
@@ -434,7 +419,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
         </div>
       </div>
       {/* Sidebar Footer
-      <div className="bottom-2 absolute flex pl-2 w-full">
+      <div className="absolute flex w-full pl-2 bottom-2">
         <UserPlan expand={expand} />
       </div> */}
     </aside>
