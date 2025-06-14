@@ -11,8 +11,7 @@ import ReportDialog from "@/features/user-profile-public/components/ReportDialog
 import { useState } from "react";
 import { ReportTargetType } from "@/features/user-profile-public/api/report.api";
 import { useDeletePost } from "../hooks/useDeletePost";
-import { BackendErrorResponse } from "@/api/types/error-response.type";
-import axios, { AxiosError } from "axios";
+import { extractReportErrorMessage } from "@/utils/error.util";
 
 const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
   const navigate = useNavigate();
@@ -55,16 +54,11 @@ const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
           );
         },
         onError: (err) => {
-          const apiError = err as AxiosError<BackendErrorResponse>;
-
-          const displayMessage = axios.isAxiosError(err)
-            ? (apiError.response?.data?.message ??
-              "Failed to submit report. Please try again.")
-            : apiError.message;
-
+          const displayMessage = extractReportErrorMessage(
+            err,
+            ReportTargetType.POST,
+          );
           showSnackbar(displayMessage, "error");
-          // The ReportDialog will remain open here if the submission fails.
-          // The error is shown in the snackbar, not inside the dialog.
         },
       },
     );

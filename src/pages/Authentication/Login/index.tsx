@@ -30,7 +30,6 @@ const Login = () => {
       await loginWithEmail(email, password);
       const user = getAuth();
       const data = await getUserProfile(user.currentUser!.uid);
-      console.log(data);
       if (!data.is_onboard) {
         navigate("/onboarding");
       } else {
@@ -72,7 +71,6 @@ const Login = () => {
       await authenWithGoogle(); // Call Google login function from UserProvider
       const user = getAuth();
       const data = await getUserProfile(user.currentUser!.uid);
-      console.log(data);
       if (!data.is_onboard) navigate("/onboarding");
       else navigate("/explore");
     } catch (error) {

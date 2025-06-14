@@ -40,7 +40,7 @@ export const ImageRenderer = (
     >
       <Link to={`/posts/${photo.postId}`} className="block w-full h-full">
         <img
-          {...photo}
+          src={photo.src}
           srcSet={
             Array.isArray(photo.srcSet) ? photo.srcSet.join(", ") : photo.srcSet
           }

@@ -50,7 +50,11 @@ const DocumentDashboard = () => {
 
       try {
         setIsLoading(true);
-        const blogs = await fetchBlogsByUsername(user.username);
+        // Fetch all blogs with pagination - increase take to get more results
+        const blogs = await fetchBlogsByUsername(user.username, {
+          take: 100,
+          skip: 0,
+        });
         let processedBlogs = [...blogs]; // Create a mutable copy
 
         const now = new Date();

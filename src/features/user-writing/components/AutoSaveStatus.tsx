@@ -1,5 +1,6 @@
 import React from "react";
 import { LuCheck, LuLoader, LuCloud, LuCloudOff } from "react-icons/lu";
+import { formatTimeAgo } from "@/lib/utils";
 
 type SaveStatus = "saved" | "saving" | "unsaved" | "error";
 
@@ -39,21 +40,6 @@ export const AutoSaveStatus: React.FC<AutoSaveStatusProps> = ({
           className: "text-red-600",
         };
     }
-  };
-
-  const formatTimeAgo = (date: Date) => {
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-
-    if (seconds < 5) return "just now";
-    if (seconds < 60) return `${seconds}s ago`;
-
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-
-    return `${Math.floor(hours / 24)}d ago`;
   };
 
   const { icon, text, className } = getStatusDisplay();

@@ -5,7 +5,7 @@ import { LuBookOpenText } from "react-icons/lu";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { fetchRelevantBlogs } from "../api/blog";
 import { Blog } from "@/types/blog";
-import { useState, useEffect } from "react"; // Import useEffect
+import { useState } from "react"; // Import useEffect
 import { getPlainTextPreview } from "../utils/blog";
 
 interface RelatedBlogsProps {
@@ -37,18 +37,6 @@ const RelatedBlogs = ({ currentBlogId }: RelatedBlogsProps) => {
   };
 
   const isLastPage = relatedBlogs.length < take;
-
-  // --- DEBUGGING: Log state changes ---
-  useEffect(() => {
-    console.log({
-      skip,
-      isFetching,
-      isLastPage,
-      numberOfBlogs: relatedBlogs.length,
-      blogs: relatedBlogs,
-    });
-  }, [skip, isFetching, isLastPage, relatedBlogs]);
-  // --- END DEBUGGING ---
 
   if (isLoading) {
     return (

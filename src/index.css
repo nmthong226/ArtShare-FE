@@ -156,7 +156,7 @@ body {
   scrollbar-gutter: "stable";
   background-color: var(--background);
   overflow-x: hidden;
-  overflow-y: hidden;
+  overflow-y: auto;
 }
 
 .bounce-item {
@@ -223,5 +223,18 @@ body {
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent; /* no white bar when thumb absent */
+  }
+
+  /* Notification dropdown responsive fixes */
+  @media (max-width: 640px) {
+    .notification-dropdown {
+      position: fixed !important;
+      right: 1rem !important;
+      left: 1rem !important;
+      top: 4rem !important;
+      width: auto !important;
+      max-width: none !important;
+      transform: none !important;
+    }
   }
 }

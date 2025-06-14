@@ -60,7 +60,6 @@ const SignUp = () => {
       await authenWithGoogle();
       const user = getAuth();
       const data = await getUserProfile(user.currentUser!.uid);
-      console.log(data);
       if (!data.is_onboard) navigate("/onboarding");
       navigate("/explore"); // Redirect after successful login
     } catch (error) {

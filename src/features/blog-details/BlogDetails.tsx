@@ -27,14 +27,15 @@ import {
   unfollowUser,
 } from "../user-profile-public/api/follow.api";
 import { AxiosError } from "axios";
+import { extractReportErrorMessage } from "@/utils/error.util";
 import { createLike, removeLike } from "./api/like-blog";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { TargetType } from "@/utils/constants";
 
 // Import your ReportDialog and the reporting hook
 import ReportDialog from "../user-profile-public/components/ReportDialog";
-import { useReport } from "../user-profile-public/hooks/useReport";
 import { ReportTargetType } from "../user-profile-public/api/report.api";
+import { useReport } from "../user-profile-public/hooks/useReport";
 
 import "./BlogDetails.css";
 interface BlogError {
@@ -226,10 +227,11 @@ const BlogDetails = () => {
           );
         },
         onError: (err: Error) => {
-          showSnackbar(
-            `Failed to report blog: ${err.message || "Unknown error"}`,
-            "error",
+          const displayMessage = extractReportErrorMessage(
+            err,
+            ReportTargetType.BLOG,
           );
+          showSnackbar(displayMessage, "error");
         },
       },
     );
@@ -577,8 +579,8 @@ const BlogDetails = () => {
           {/* For unpublished blogs, hide or disable certain actions */}
           {isPublished && (
             <div
-              className={`transition-all duration-300 ease-in-out w-full h-20 flex justify-center items-center
-                ${showAuthorBadge ? "sticky bottom-4 z-10" : "opacity-100"}`}
+              className={`w-full h-20 flex justify-center items-center
+                ${!showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"}`}
             >
               <ActionButtons />
             </div>
@@ -639,7 +641,11 @@ const BlogDetails = () => {
           {isPublished ? (
             <>
               <div
-                className={`${showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"} transition ease-in-out duration-300 flex justify-center items-center rounded-full w-full h-20`}
+                className={`${
+                  showAuthorBadge
+                    ? "opacity-100 h-20 sticky bottom-4 z-10"
+                    : "opacity-0 pointer-events-none h-0"
+                } flex justify-center items-center rounded-full w-full overflow-hidden`}
               >
                 <ActionButtons />
               </div>

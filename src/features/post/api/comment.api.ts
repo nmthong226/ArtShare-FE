@@ -21,10 +21,8 @@ export const fetchBlogComments = async (postId: number): Promise<Comment[]> => {
     params: {
       target_id: postId,
       target_type: "BLOG",
-      likedByCurrentUser: Boolean,
     },
   });
-  console.log(data);
   return data;
 };
 /** NEW: create a comment (or reply) */
