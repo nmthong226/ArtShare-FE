@@ -203,7 +203,7 @@ const UserButton: React.FC<{
                               </p>
                               <div className="flex items-center space-x-2 mt-1">
                                 <time className="text-xs text-mountain-500 dark:text-mountain-300">
-                                  {formatDaysAgo(notif.payload.resolvedAt)}
+                                  {formatDaysAgo(notif.createdAt)}
                                 </time>
                                 {!notif.isRead && (
                                   <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">

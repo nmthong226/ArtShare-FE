@@ -146,7 +146,11 @@ const BlogItem: React.FC<BlogItemProps> = ({
               </p>
               <span className="text-gray-500 dark:text-gray-500">•</span>
               <span className="text-gray-500 dark:text-gray-400 text-sm">
-                <ReactTimeAgo date={new Date(dateCreated)} locale="en-US" />
+                {dateCreated && !isNaN(new Date(dateCreated).getTime()) ? (
+                  <ReactTimeAgo date={new Date(dateCreated)} locale="en-US" />
+                ) : (
+                  "Unknown time"
+                )}
               </span>
             </div>
             <div className="flex items-center w-fit">

@@ -36,6 +36,12 @@ export const formatDate = (date: string) => {
 
 export const formatDaysAgo = (dateString: string) => {
   const date = new Date(dateString);
+
+  // Check if the date is valid
+  if (!date || isNaN(date.getTime())) {
+    return "Unknown time";
+  }
+
   const now = new Date();
   const diffTime = now.getTime() - date.getTime();
   const diffMinutes = Math.floor(diffTime / (1000 * 60));
@@ -61,6 +67,12 @@ export const formatTimeAgo = (
   options?: { shortFormat?: boolean },
 ) => {
   const date = typeof input === "string" ? new Date(input) : input;
+
+  // Check if the date is valid
+  if (!date || isNaN(date.getTime())) {
+    return "Unknown time";
+  }
+
   const now = new Date();
   const diffTime = now.getTime() - date.getTime();
   const seconds = Math.floor(diffTime / 1000);
