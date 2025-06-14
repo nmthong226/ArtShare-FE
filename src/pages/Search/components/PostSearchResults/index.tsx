@@ -1,16 +1,16 @@
 import IGallery, { GalleryPhoto } from "@/components/gallery/Gallery";
-import { memo, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BsFilter } from "react-icons/bs";
-import MediumFilters from "../MediumFilters";
+import MediumFilters from "./MediumFilters";
 import CategoryList from "@/components/filters/Filter";
 import { useSearchPosts } from "../../hooks/useSearchPosts";
 import { Box } from "@mui/material";
 
-interface PostSearchProps {
+interface PostSearchResultsProps {
   finalQuery: string | null;
 }
 
-const PostSearch = ({ finalQuery }: PostSearchProps) => {
+const PostSearchResults = ({ finalQuery }: PostSearchResultsProps) => {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedMediums, setSelectedMediums] = useState<string[]>([]);
   const galleryAreaRef = useRef<HTMLDivElement>(null);
@@ -149,4 +149,4 @@ const PostSearch = ({ finalQuery }: PostSearchProps) => {
   );
 };
 
-export default memo(PostSearch);
+export default PostSearchResults;

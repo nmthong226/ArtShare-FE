@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Box, Tab, Tabs } from "@mui/material";
 import { a11yProps } from "@/components/TabPanel/util";
 import TabPanel from "@/components/TabPanel";
-import PostSearch from "./components/PostSearch";
-import { UserSearch } from "lucide-react";
+import PostSearchResults from "./components/PostSearchResults";
+import UserSearchResults from "./components/UserSearchResults";
 
 const Search = () => {
   const { query, setQuery } = useSearch();
@@ -33,7 +33,7 @@ const Search = () => {
     setTab(newValue);
     setQuery("");
     setInputValue("");
-    setSearchParams({ q: "" });
+    setSearchParams(undefined);
   };
   return (
     <div className="flex flex-col h-full">
@@ -74,7 +74,7 @@ const Search = () => {
           </div>
         </div>
       </div>
-      <Box className="flex justify-center mt-2">
+      <Box className="flex justify-center mt-2 shadow-2xl z-50">
         <Tabs
           value={tab}
           onChange={handleChangeTab}
@@ -92,10 +92,10 @@ const Search = () => {
       </Box>
 
       <TabPanel value={tab} index={"posts"}>
-        <PostSearch finalQuery={finalQuery} />
+        <PostSearchResults finalQuery={tab === "posts" ? finalQuery : null} />
       </TabPanel>
       <TabPanel value={tab} index={"users"}>
-        <UserSearch />
+        <UserSearchResults searchQuery={tab === "users" ? finalQuery : null} />
       </TabPanel>
     </div>
   );
