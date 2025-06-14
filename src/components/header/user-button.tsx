@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 //Icons
 import { FiLogIn } from "react-icons/fi";
@@ -17,16 +17,595 @@ import { Skeleton } from "../ui/skeleton";
 
 //Types
 import { User } from "@/types";
+import {
+  Notification,
+  NotificationPayload,
+  PostNotificationPayload,
+} from "@/contexts/NotificationsContext";
 import PurchaseButton from "../buttons/PurchaseButton";
 import { Button } from "@mui/material";
 import { useNotifications } from "@/contexts/NotificationsContext";
 import { formatDaysAgo } from "@/lib/utils";
+
+// Enhanced highlighting functions to overcome MUI theme conflicts
+const enhancedHighlightComment = (element: HTMLElement) => {
+  // Store original styles
+  const originalStyles = {
+    backgroundColor: element.style.backgroundColor,
+    borderLeft: element.style.borderLeft,
+    borderRadius: element.style.borderRadius,
+    transition: element.style.transition,
+    boxShadow: element.style.boxShadow,
+    animation: element.style.animation,
+  };
+
+  // Store original styles in a data attribute for restoration
+  element.setAttribute("data-original-styles", JSON.stringify(originalStyles));
+
+  // Add CSS class first (for browsers where CSS works)
+  element.classList.add("highlight-comment");
+
+  // Apply direct styles as backup (to override MUI theme conflicts)
+  const isDarkMode =
+    document.documentElement.classList.contains("dark") ||
+    document.body.classList.contains("dark") ||
+    window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  if (isDarkMode) {
+    // Dark mode styles
+    element.style.backgroundColor = "rgba(99, 102, 241, 0.25)";
+    element.style.borderLeft = "4px solid rgb(129, 140, 248)";
+    element.style.boxShadow = "0 0 0 1px rgba(129, 140, 248, 0.2)";
+  } else {
+    // Light mode styles
+    element.style.backgroundColor = "rgba(99, 102, 241, 0.15)";
+    element.style.borderLeft = "4px solid rgb(99, 102, 241)";
+    element.style.boxShadow = "0 0 0 1px rgba(99, 102, 241, 0.1)";
+  }
+
+  // Common styles
+  element.style.borderRadius = "0.5rem";
+  element.style.transition = "all 0.3s ease-in-out";
+
+  // Add pulse animation using JavaScript
+  element.style.animation = "highlight-pulse 0.6s ease-in-out";
+
+  console.log("[UserButton] Enhanced highlighting applied to element:", {
+    id: element.id,
+    appliedStyles: {
+      backgroundColor: element.style.backgroundColor,
+      borderLeft: element.style.borderLeft,
+      borderRadius: element.style.borderRadius,
+      boxShadow: element.style.boxShadow,
+    },
+    isDarkMode,
+  });
+};
+
+const removeEnhancedHighlight = (element: HTMLElement) => {
+  // Remove CSS class
+  element.classList.remove("highlight-comment");
+
+  // Restore original styles
+  try {
+    const originalStylesStr = element.getAttribute("data-original-styles");
+    if (originalStylesStr) {
+      const originalStyles = JSON.parse(originalStylesStr);
+
+      // Restore each style property using setProperty
+      Object.keys(originalStyles).forEach((property) => {
+        const value = originalStyles[property];
+        const cssProperty = property.replace(/([A-Z])/g, "-$1").toLowerCase();
+        if (value) {
+          element.style.setProperty(cssProperty, value);
+        } else {
+          element.style.removeProperty(cssProperty);
+        }
+      });
+
+      // Remove the data attribute
+      element.removeAttribute("data-original-styles");
+    } else {
+      // Fallback: reset to empty strings if no original styles stored
+      element.style.backgroundColor = "";
+      element.style.borderLeft = "";
+      element.style.borderRadius = "";
+      element.style.transition = "";
+      element.style.boxShadow = "";
+      element.style.animation = "";
+    }
+  } catch (error) {
+    console.warn("[UserButton] Error restoring original styles:", error);
+    // Fallback: reset to empty strings
+    element.style.backgroundColor = "";
+    element.style.borderLeft = "";
+    element.style.borderRadius = "";
+    element.style.transition = "";
+    element.style.boxShadow = "";
+    element.style.animation = "";
+  }
+
+  console.log(
+    "[UserButton] Enhanced highlighting removed from element:",
+    element.id,
+  );
+};
+
+// Helper function to format notification messages with enhanced content
+const formatNotificationMessage = (
+  notif: Notification<NotificationPayload>,
+) => {
+  const message = notif?.payload?.message || "";
+
+  // Enhanced message formatting with post names
+  if (
+    message.includes("liked your artwork") ||
+    message.includes("liked your post")
+  ) {
+    // Try to extract post title if available in the message
+    const parts = message.split(/ liked your (?:artwork|post)/);
+    if (parts.length > 0 && parts[0]) {
+      const userName = parts[0].trim().replace(/^"|"$/g, ""); // Remove quotes if present
+
+      // Check if we have post title in payload
+      const postPayload = notif.payload as PostNotificationPayload;
+      if (postPayload?.postTitle) {
+        return (
+          <>
+            <span className="font-bold">{userName}</span> liked your post:{" "}
+            <span className="font-semibold">{postPayload.postTitle}</span>
+          </>
+        );
+      }
+
+      return (
+        <>
+          <span className="font-bold">{userName}</span> liked your post
+        </>
+      );
+    }
+  }
+
+  if (
+    message.includes("commented on your artwork") ||
+    message.includes("commented on your post")
+  ) {
+    const parts = message.split(/ commented on your (?:artwork|post)/);
+    if (parts.length > 0 && parts[0]) {
+      const userName = parts[0].trim().replace(/^"|"$/g, "");
+
+      // Check if we have post title in payload
+      const postPayload = notif.payload as PostNotificationPayload;
+      if (postPayload?.postTitle) {
+        return (
+          <>
+            <span className="font-bold">{userName}</span> commented on your
+            post: <span className="font-semibold">{postPayload.postTitle}</span>
+          </>
+        );
+      }
+
+      return (
+        <>
+          <span className="font-bold">{userName}</span> commented on your post
+        </>
+      );
+    }
+  }
+
+  // Handle the new backend template format: "username published new post: "title""
+  if (message.includes("published new post:")) {
+    const publishPattern =
+      /^([^.\s]+(?:\s+[^.\s]+)*?)\s+published new post:\s*"?([^"]+)"?$/i;
+    const publishMatch = message.match(publishPattern);
+
+    if (publishMatch && publishMatch[1] && publishMatch[2]) {
+      const userName = publishMatch[1].trim();
+      const postTitle = publishMatch[2].trim();
+      return (
+        <>
+          <span className="font-bold">{userName}</span> published new post:{" "}
+          <span className="font-semibold">{postTitle}</span>
+        </>
+      );
+    }
+  }
+
+  // Handle legacy formats or when post title is in payload
+  if (
+    message.includes("published new artwork") ||
+    message.includes("published a new post")
+  ) {
+    // Handle the "published new post" format with post title
+    const postPayload = notif.payload as PostNotificationPayload;
+
+    // Extract username from message
+    const publishPattern =
+      /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+(?:published new artwork|published a new post))/i;
+    const publishMatch = message.match(publishPattern);
+
+    if (publishMatch && publishMatch[1]) {
+      const userName = publishMatch[1].trim().replace(/^"|"$/g, "");
+
+      // Always show with post title if available, otherwise use generic format
+      if (postPayload?.postTitle) {
+        return (
+          <>
+            <span className="font-bold">{userName}</span> published new post:{" "}
+            <span className="font-semibold">{postPayload.postTitle}</span>
+          </>
+        );
+      }
+
+      return (
+        <>
+          <span className="font-bold">{userName}</span> published a new post
+        </>
+      );
+    }
+  }
+
+  // Check if the message already contains "published new post:" format
+  if (message.includes("published new post:")) {
+    const parts = message.split(" published new post:");
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      const userName = parts[0].trim().replace(/^"|"$/g, "");
+      const postTitle = parts[1].trim();
+      return (
+        <>
+          <span className="font-bold">{userName}</span> published new post:{" "}
+          <span className="font-semibold">{postTitle}</span>
+        </>
+      );
+    }
+  }
+
+  // For other notification types, use the bold name formatting
+  return formatMessageWithBoldNames(message);
+};
+
+// Helper function to make names bold in notification messages
+const formatMessageWithBoldNames = (message: string) => {
+  // This is a simple implementation that tries to identify user names
+  // You might want to enhance this based on your specific message formats
+
+  // Look for patterns like "UserName did something" or "UserName published"
+  const namePattern =
+    /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+(?:published|liked|commented|followed|reported|updated))/i;
+  const match = message.match(namePattern);
+
+  if (match) {
+    const userName = match[1];
+    const action = message.substring(userName.length);
+    return (
+      <>
+        <span className="font-bold">{userName}</span>
+        {action}
+      </>
+    );
+  }
+
+  // If no pattern matches, return the original message
+  return message;
+};
+
+// Helper function to handle notification clicks and navigation
+const handleNotificationClick = (
+  notif: Notification<NotificationPayload>,
+  navigate: ReturnType<typeof useNavigate>,
+  markAsRead: (id: string) => void,
+) => {
+  console.log("[UserButton] Notification clicked:", notif);
+
+  // Mark the notification as read
+  if (!notif.isRead) {
+    markAsRead(notif.id);
+  }
+
+  // Navigate based on notification type and content
+  const message = notif?.payload?.message || "";
+  const payload = notif?.payload;
+
+  console.log(
+    "[UserButton] Notification type:",
+    notif.type,
+    "Message:",
+    message,
+    "Payload:",
+    payload,
+  );
+
+  // Use notification type for better routing
+  switch (notif.type) {
+    case "report_resolved":
+    case "REPORT_RESOLVED": {
+      return;
+    }
+
+    case "artwork_published": {
+      // For post publishing notifications - navigate to the specific post
+      const publishPayload = payload as PostNotificationPayload;
+      console.log(
+        "[UserButton] Post published notification, postId:",
+        publishPayload?.postId,
+      );
+      if (publishPayload?.postId) {
+        navigate(`/posts/${publishPayload.postId}`);
+      } else {
+        navigate("/explore");
+      }
+      return;
+    }
+
+    case "artwork_liked": {
+      // For like notifications - navigate directly to the liked post
+      const likePayload = payload as PostNotificationPayload;
+      console.log(
+        "[UserButton] Post liked notification, postId:",
+        likePayload?.postId,
+      );
+      if (likePayload?.postId) {
+        navigate(`/posts/${likePayload.postId}`);
+      } else {
+        navigate("/explore");
+      }
+      return;
+    }
+
+    case "artwork_commented": {
+      // For comment notifications - navigate to the post and scroll to the comment with highlighting
+      const commentPayload = payload as PostNotificationPayload;
+      console.log(
+        "[UserButton] Comment notification, postId:",
+        commentPayload?.postId,
+        "commentId:",
+        commentPayload?.commentId,
+      );
+
+      if (commentPayload?.postId && commentPayload?.commentId) {
+        // Navigate to the post first
+        navigate(`/posts/${commentPayload.postId}`);
+
+        // Use multiple retries to find the comment element
+        let retryCount = 0;
+        const maxRetries = 5;
+        const checkInterval = 1000; // 1 second intervals
+
+        const tryToFindComment = () => {
+          const commentElement = document.getElementById(
+            `comment-${commentPayload.commentId}`,
+          );
+          console.log(
+            `[UserButton] Attempt ${retryCount + 1} - Looking for comment element:`,
+            `comment-${commentPayload.commentId}`,
+            "Found:",
+            !!commentElement,
+          );
+
+          if (commentElement) {
+            // Found the comment, scroll and highlight
+            console.log("[UserButton] Comment element before highlight:", {
+              id: commentElement.id,
+              className: commentElement.className,
+              computedStyle:
+                window.getComputedStyle(commentElement).backgroundColor,
+            });
+
+            commentElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+
+            // Enhanced highlighting with both CSS class and direct style application
+            enhancedHighlightComment(commentElement);
+
+            console.log("[UserButton] Comment element after highlight:", {
+              id: commentElement.id,
+              className: commentElement.className,
+              computedStyle:
+                window.getComputedStyle(commentElement).backgroundColor,
+              hasHighlightClass:
+                commentElement.classList.contains("highlight-comment"),
+            });
+
+            // Remove highlight after 3 seconds
+            setTimeout(() => {
+              removeEnhancedHighlight(commentElement);
+              console.log(
+                "[UserButton] Removed highlight from comment element",
+              );
+            }, 3000);
+          } else if (retryCount < maxRetries) {
+            // Not found yet, try again
+            retryCount++;
+            setTimeout(tryToFindComment, checkInterval);
+          } else {
+            console.log(
+              "[UserButton] Could not find comment element after",
+              maxRetries,
+              "attempts",
+            );
+          }
+        };
+
+        // Start looking for the comment after a delay
+        setTimeout(tryToFindComment, 1500);
+      } else if (commentPayload?.postId) {
+        // If we have post ID but no comment ID, just navigate to the post
+        console.log(
+          "[UserButton] Comment notification without commentId, navigating to post",
+        );
+        navigate(`/posts/${commentPayload.postId}`);
+      } else {
+        console.log(
+          "[UserButton] Comment notification without postId, fallback to profile",
+        );
+        navigate("/profile");
+      }
+      return;
+    }
+
+    case "user_followed": {
+      // For follow notifications - navigate to the profile of the person who followed
+      const followPattern =
+        /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+(?:followed you|started following you))/i;
+      const followMatch = message.match(followPattern);
+
+      if (followMatch && followMatch[1]) {
+        const username = followMatch[1].trim().replace(/^"|"$/g, ""); // Remove quotes if present
+        console.log(
+          "[UserButton] Follow notification, navigating to username:",
+          username,
+        );
+        navigate(`/${username}`);
+      } else {
+        console.log("[UserButton] Follow notification, fallback to profile");
+        navigate("/profile");
+      }
+      return;
+    }
+
+    default: {
+      console.log(
+        "[UserButton] Unknown notification type, using fallback logic",
+      );
+      // Fallback logic for legacy notifications or unknown types
+      // For post-related notifications - navigate to the specific post
+      if (
+        message.includes("published a new post") ||
+        message.includes("published new post:") ||
+        message.includes("published new artwork")
+      ) {
+        const postPayload = payload as PostNotificationPayload;
+        console.log(
+          "[UserButton] Fallback: Post published, postId:",
+          postPayload?.postId,
+        );
+        if (postPayload?.postId) {
+          navigate(`/posts/${postPayload.postId}`);
+        } else {
+          navigate("/explore");
+        }
+        return;
+      }
+
+      // For like notifications - navigate directly to the liked post
+      if (
+        message.includes("liked your post") ||
+        message.includes("liked your artwork")
+      ) {
+        const postPayload = payload as PostNotificationPayload;
+        console.log(
+          "[UserButton] Fallback: Post liked, postId:",
+          postPayload?.postId,
+        );
+        if (postPayload?.postId) {
+          navigate(`/posts/${postPayload.postId}`);
+        } else {
+          navigate("/explore");
+        }
+        return;
+      }
+
+      // For comment notifications - navigate to the post and scroll to the comment with highlighting
+      if (
+        message.includes("commented on your post") ||
+        message.includes("commented on your artwork")
+      ) {
+        const postPayload = payload as PostNotificationPayload;
+        console.log(
+          "[UserButton] Fallback: Comment, postId:",
+          postPayload?.postId,
+          "commentId:",
+          postPayload?.commentId,
+        );
+        if (postPayload?.postId && postPayload?.commentId) {
+          navigate(`/posts/${postPayload.postId}`);
+
+          // Use the same retry logic as the main handler
+          let retryCount = 0;
+          const maxRetries = 5;
+          const checkInterval = 1000;
+
+          const tryToFindComment = () => {
+            const commentElement = document.getElementById(
+              `comment-${postPayload.commentId}`,
+            );
+            console.log(
+              `[UserButton] Fallback Attempt ${retryCount + 1} - Looking for comment element:`,
+              `comment-${postPayload.commentId}`,
+              "Found:",
+              !!commentElement,
+            );
+
+            if (commentElement) {
+              commentElement.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+
+              // Enhanced highlighting with both CSS class and direct style application
+              enhancedHighlightComment(commentElement);
+
+              setTimeout(() => {
+                removeEnhancedHighlight(commentElement);
+              }, 3000);
+            } else if (retryCount < maxRetries) {
+              retryCount++;
+              setTimeout(tryToFindComment, checkInterval);
+            } else {
+              console.log(
+                "[UserButton] Fallback: Could not find comment element after",
+                maxRetries,
+                "attempts",
+              );
+            }
+          };
+
+          setTimeout(tryToFindComment, 1500);
+        } else if (postPayload?.postId) {
+          navigate(`/posts/${postPayload.postId}`);
+        } else {
+          navigate("/profile");
+        }
+        return;
+      }
+
+      // For follow notifications - navigate to the profile of the person who followed
+      if (
+        message.includes("followed you") ||
+        message.includes("started following you")
+      ) {
+        const followPattern =
+          /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+(?:followed you|started following you))/i;
+        const followMatch = message.match(followPattern);
+
+        if (followMatch && followMatch[1]) {
+          const username = followMatch[1].trim().replace(/^"|"$/g, "");
+          console.log(
+            "[UserButton] Fallback: Follow notification, username:",
+            username,
+          );
+          navigate(`/${username}`);
+        } else {
+          navigate("/profile");
+        }
+        return;
+      }
+
+      // Default fallback - navigate to explore
+      console.log("[UserButton] Using default fallback, navigating to explore");
+      navigate("/explore");
+    }
+  }
+};
 
 const UserButton: React.FC<{
   user?: User | null;
   loading?: boolean;
 }> = ({ user, loading }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
 
@@ -181,10 +760,22 @@ const UserButton: React.FC<{
                     return "bg-white dark:bg-slate-700";
                   };
 
+                  const isReportResolved =
+                    notif.type === "report_resolved" ||
+                    notif.type === "REPORT_RESOLVED";
+
                   return (
                     <div
                       key={notif.id}
-                      className={`relative px-4 py-3 hover:bg-mountain-50 dark:hover:bg-slate-600/50 transition-all duration-200 ${getNotificationBg()}`}
+                      className={`relative px-4 py-3 transition-all duration-200 ${getNotificationBg()} ${
+                        isReportResolved
+                          ? "cursor-default opacity-90"
+                          : "hover:bg-mountain-50 dark:hover:bg-slate-600/50 cursor-pointer"
+                      }`}
+                      onClick={() =>
+                        !isReportResolved &&
+                        handleNotificationClick(notif, navigate, markAsRead)
+                      }
                     >
                       <div className="flex items-start space-x-3">
                         {/* Icon */}
@@ -199,7 +790,7 @@ const UserButton: React.FC<{
                           <div className="flex items-start justify-between">
                             <div className="flex-1 mr-2">
                               <p className="text-xs font-medium text-mountain-950 dark:text-mountain-50 leading-relaxed text-left">
-                                {notif?.payload?.message}
+                                {formatNotificationMessage(notif)}
                               </p>
                               <div className="flex items-center space-x-2 mt-1">
                                 <time className="text-xs text-mountain-500 dark:text-mountain-300">

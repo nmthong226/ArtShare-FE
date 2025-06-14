@@ -167,9 +167,10 @@ export function useNotifications(userId: string): UseNotificationsReturn {
         throw new Error("Failed to mark all notifications as read");
       }
 
-      // Clear both state and Set
-      setNotifications([]);
-      notificationIdsRef.current.clear();
+      // Mark all notifications as read but keep them in the UI
+      setNotifications((prev) =>
+        prev.map((notification) => ({ ...notification, isRead: true })),
+      );
 
       console.log("[useNotifications] All notifications marked as read");
     } catch (err) {
@@ -196,9 +197,12 @@ export function useNotifications(userId: string): UseNotificationsReturn {
       }
 
       setNotifications((prev) =>
-        prev.filter((notification) => notification.id !== notificationId),
+        prev.map((notification) =>
+          notification.id === notificationId
+            ? { ...notification, isRead: true }
+            : notification,
+        ),
       );
-      notificationIdsRef.current.delete(notificationId);
 
       console.log(
         "[useNotifications] Notification marked as read:",

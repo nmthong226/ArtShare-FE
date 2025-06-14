@@ -15,8 +15,28 @@ export interface ReportResolvedPayload {
   resolvedAt: string;
 }
 
+export interface PostNotificationPayload {
+  message: string;
+  postId?: string;
+  postTitle?: string;
+  commentId?: string;
+  userId?: string;
+  username?: string;
+}
+
+export interface FollowNotificationPayload {
+  message: string;
+  userId: string;
+  username: string;
+}
+
+export type NotificationPayload =
+  | ReportResolvedPayload
+  | PostNotificationPayload
+  | FollowNotificationPayload;
+
 export interface NotificationsContextType {
-  notifications: Notification<ReportResolvedPayload>[];
+  notifications: Notification<NotificationPayload>[];
   unreadCount: number;
   markAsRead: (notificationId: string) => void;
   markAllAsRead: () => void;
