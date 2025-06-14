@@ -16,18 +16,15 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import { visuallyHidden } from "@mui/utils";
 import { IoFilter, IoTrashBin } from "react-icons/io5";
-import { Button } from "@mui/material";
-import { getComparator } from "../utils/Utils";
-import { useMemo, useState } from "react";
+import { Button, CircularProgress, Typography } from "@mui/material";
+import { useState } from "react";
 import {
-  Data,
+  AutoProject,
   EnhancedTableProps,
-  EnhancedTableToolbarProps,
   HeadCell,
   Order,
   SortableKeys,
 } from "../types/automation-project";
-import { ProjectData } from "../mocks/data";
 import { generateSlug } from "@/utils/common";
 import { useNavigate } from "react-router-dom";
 

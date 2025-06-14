@@ -14,19 +14,8 @@ import {
   FaChevronRight,
   FaPenFancy,
 } from "react-icons/fa6";
-import {
-  FaCalendar,
-  FaChevronLeft,
-  FaChevronRight,
-  FaPenFancy,
-} from "react-icons/fa6";
 
 const AutoProjectCreation = () => {
-  const steps = [
-    { id: 1, key: "project-info", label: "Project Info", icon: FaInfoCircle },
-    { id: 2, key: "build-posts", label: "Build Posts", icon: FaPenFancy },
-    { id: 3, key: "scheduling", label: "Scheduling", icon: FaCalendar },
-  ];
   const steps = [
     { id: 1, key: "project-info", label: "Project Info", icon: FaInfoCircle },
     { id: 2, key: "build-posts", label: "Build Posts", icon: FaPenFancy },

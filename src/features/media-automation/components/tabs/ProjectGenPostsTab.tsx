@@ -8,9 +8,6 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
 } from "@/components/ui/popover";
 import { Settings2 } from "lucide-react";
 import { GenPostContent } from "../../types/automation-project";
@@ -19,24 +16,20 @@ import { TbFileTextSpark } from "react-icons/tb";
 import { examples } from "../../mocks/data";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import CharacterCount from "@tiptap/extension-character-count";
-import Text from "@tiptap/extension-text";
-import Placeholder from "@tiptap/extension-placeholder";
 import "../../styles/text-editor.scss";
 import Text from "@tiptap/extension-text";
 import Placeholder from "@tiptap/extension-placeholder";
 import "../../styles/text-editor.scss";
 import { RiImageCircleAiFill } from "react-icons/ri";
 import PostScheduler from "../posts/PostScheduling";
-import { Link, Element } from "react-scroll";
+// import { Link, Element } from "react-scroll";
 
 interface ProjectGenPostsProp {
   handleStepChange: (
     step: string,
-    data?: { projectName?: string; selectedPlatform?: Platform[] },
+    data?: { projectName?: string; selectedPlatform?: Platform },
   ) => void;
 }
 
