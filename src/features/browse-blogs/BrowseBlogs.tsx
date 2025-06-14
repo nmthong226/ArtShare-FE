@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import {
   Button,
   CircularProgress,
@@ -260,4 +260,4 @@ const BrowseBlogs: React.FC = () => {
   );
 };
 
-export default BrowseBlogs;
+export default memo(BrowseBlogs);
