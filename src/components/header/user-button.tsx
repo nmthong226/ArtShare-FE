@@ -353,7 +353,6 @@ const handleNotificationClick = (
     }
 
     case "artwork_commented": {
-      // For comment notifications - navigate to the post and scroll to the comment with highlighting
       const commentPayload = payload as PostNotificationPayload;
       console.log(
         "[UserButton] Comment notification, postId:",
@@ -363,73 +362,13 @@ const handleNotificationClick = (
       );
 
       if (commentPayload?.postId && commentPayload?.commentId) {
-        // Navigate to the post first
-        navigate(`/posts/${commentPayload.postId}`);
-
-        // Use multiple retries to find the comment element
-        let retryCount = 0;
-        const maxRetries = 5;
-        const checkInterval = 1000; // 1 second intervals
-
-        const tryToFindComment = () => {
-          const commentElement = document.getElementById(
-            `comment-${commentPayload.commentId}`,
-          );
-          console.log(
-            `[UserButton] Attempt ${retryCount + 1} - Looking for comment element:`,
-            `comment-${commentPayload.commentId}`,
-            "Found:",
-            !!commentElement,
-          );
-
-          if (commentElement) {
-            // Found the comment, scroll and highlight
-            console.log("[UserButton] Comment element before highlight:", {
-              id: commentElement.id,
-              className: commentElement.className,
-              computedStyle:
-                window.getComputedStyle(commentElement).backgroundColor,
-            });
-
-            commentElement.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-
-            // Enhanced highlighting with both CSS class and direct style application
-            enhancedHighlightComment(commentElement);
-
-            console.log("[UserButton] Comment element after highlight:", {
-              id: commentElement.id,
-              className: commentElement.className,
-              computedStyle:
-                window.getComputedStyle(commentElement).backgroundColor,
-              hasHighlightClass:
-                commentElement.classList.contains("highlight-comment"),
-            });
-
-            // Remove highlight after 3 seconds
-            setTimeout(() => {
-              removeEnhancedHighlight(commentElement);
-              console.log(
-                "[UserButton] Removed highlight from comment element",
-              );
-            }, 3000);
-          } else if (retryCount < maxRetries) {
-            // Not found yet, try again
-            retryCount++;
-            setTimeout(tryToFindComment, checkInterval);
-          } else {
-            console.log(
-              "[UserButton] Could not find comment element after",
-              maxRetries,
-              "attempts",
-            );
-          }
-        };
-
-        // Start looking for the comment after a delay
-        setTimeout(tryToFindComment, 1500);
+        // Navigate to the post with the comment ID in state
+        navigate(`/posts/${commentPayload.postId}`, {
+          state: {
+            highlightCommentId: commentPayload.commentId,
+            scrollToComment: true,
+          },
+        });
       } else if (commentPayload?.postId) {
         // If we have post ID but no comment ID, just navigate to the post
         console.log(

@@ -15,6 +15,7 @@ import {
   TextareaAutosize,
   CircularProgress,
   Typography,
+  Box,
 } from "@mui/material";
 import {
   ChevronDown,
@@ -51,8 +52,14 @@ const INDENT = 44;
 const MAX_REPLY_DEPTH = 3;
 
 export interface CommentSectionRef {
-  focusInput: () => void;
+  highlightComment: (commentId: number) => void;
+  focusCommentInput: () => void;
+  getScrollContainer: () => HTMLElement;
+  expandToComment: (commentId: number) => Promise<boolean>;
+  scrollToComment: (commentId: number, highlight?: boolean) => Promise<boolean>;
+  debugScrollToComment: (commentId: number) => void;
 }
+
 const DATETIME_FORMAT_OPTIONS_FOR_TITLE: Intl.DateTimeFormatOptions = {
   month: "short",
   day: "numeric",
@@ -146,6 +153,8 @@ interface RowProps {
   targetType: TargetType;
   depth?: number;
   comment: CommentUI;
+  isHighlighted?: boolean;
+  highlightedCommentId?: number | null; // Changed string to number
   onLike: (id: number) => void;
   onReply: (id: number, username: string) => void;
   onDelete: (id: number) => void;
@@ -171,7 +180,22 @@ const CommentRow = ({
   onAbortEdit,
   onCommitEdit,
   onSubmitReply,
+  isHighlighted = false,
+  highlightedCommentId,
 }: RowProps) => {
+  console.log(
+    `[CommentRow] Rendering comment ${comment.id}, highlighted: ${isHighlighted}, highlightedId: ${highlightedCommentId}`,
+  );
+
+  // Add effect to log when isHighlighted changes
+  useEffect(() => {
+    if (isHighlighted) {
+      console.log(`[CommentRow] Comment ${comment.id} is now highlighted!`);
+    } else {
+      console.log(`[CommentRow] Comment ${comment.id} is not highlighted`);
+    }
+  }, [isHighlighted, comment.id]);
+
   /* ── fresh-reply context ──────────────────────────────── */
   const { map: freshMap, clear: clearFreshIds } = useContext(FreshRepliesCtx);
   const freshIds: Set<number> = freshMap[comment.id] ?? new Set();
@@ -202,10 +226,10 @@ const CommentRow = ({
   const canReplyToThisComment = depth < MAX_REPLY_DEPTH;
 
   /**
-+ * When we come back to the page, `freshIds` may contain ids but
-+ * `comment.replies` is still empty.  Pull the replies once so the new
-+ * comment can render even while the thread is collapsed.
-+ */
+   * When we come back to the page, `freshIds` may contain ids but
+   * `comment.replies` is still empty.  Pull the replies once so the new
+   * comment can render even while the thread is collapsed.
+   */
   useEffect(() => {
     if (
       freshIds.size > 0 &&
@@ -291,302 +315,309 @@ const CommentRow = ({
   };
 
   return (
-    <div id={`comment-${comment.id}`} className="w-full">
-      <div className="flex w-full gap-3 py-3">
-        {comment.user.profile_picture_url ? (
-          <img
-            src={comment.user.profile_picture_url}
-            alt={comment.user.username}
-            className="object-cover w-8 h-8 rounded-full"
-          />
-        ) : (
-          <Avatar
-            name={comment.user.username}
-            size={32}
-            variant="beam"
-            colors={["#84bfc3", "#ff9b62", "#d96153"]}
-          />
-        )}
-        <div className="flex flex-col flex-grow">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="font-bold">@{comment.user.username}</span>
-            <span
-              className="text-neutral-500 dark:text-neutral-400 text-xs"
-              title={
-                new Date(comment.updated_at).getTime() !==
-                new Date(comment.created_at).getTime()
-                  ? `Edited ${new Date(comment.updated_at).toLocaleString(
-                      undefined,
-                      DATETIME_FORMAT_OPTIONS_FOR_TITLE,
-                    )}`
-                  : undefined
-              }
-            >
-              <ReactTimeAgo
-                date={new Date(comment.updated_at)}
-                locale="en-US"
-              />
-              {new Date(comment.updated_at).getTime() !==
-                new Date(comment.created_at).getTime() && " (edited)"}
-            </span>
-          </div>
-
-          {isEditing ? (
-            <div className="flex flex-col gap-2">
-              <TextareaAutosize
-                ref={editRef}
-                defaultValue={comment.content}
-                minRows={2}
-                className="w-full p-2 border rounded-md border-neutral-300"
-              />
-              <div className="flex gap-2 text-xs">
-                <Button
-                  size="small"
-                  onClick={async () =>
-                    await onCommitEdit(
-                      comment.id,
-                      editRef.current!.value.trim(),
-                    )
-                  }
-                >
-                  Save
-                </Button>
-                <Button size="small" variant="outlined" onClick={onAbortEdit}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm whitespace-pre-wrap">
-              {renderContent(comment.content)}
-            </div>
-          )}
-
-          {!isEditing && (
-            <div className="flex items-center gap-1 mt-1">
-              <IconButton
-                size="small"
-                color={comment.likedByCurrentUser ? "primary" : "default"}
-                onClick={() =>
-                  requireAuth("like comments", () => onLike(comment.id))
-                }
-                disabled={false} // We'll handle the debouncing in the parent
-              >
-                <Heart
-                  size={16}
-                  fill={comment.likedByCurrentUser ? "currentColor" : "none"}
-                  stroke="currentColor"
-                />
-              </IconButton>
-              <Typography variant="caption" sx={{ mr: 2 }}>
-                {comment.like_count ?? 0}
-              </Typography>
-              {canReplyToThisComment && (
-                <Button
-                  size="small"
-                  color="primary"
-                  onClick={() =>
-                    requireAuth("reply to comments", () => {
-                      setReplying((v) => !v);
-                      setTimeout(() => replyInputRef.current?.focus(), 0);
-                    })
-                  }
-                >
-                  {replying ? "Cancel" : "Reply"}
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {isMine && !isEditing && (
-          <>
-            <IconButton
-              size="small"
-              edge="end"
-              disableRipple
-              onClick={handleMenu}
-              sx={{
-                // -- keep it compact
-                width: 28,
-                height: 28,
-                p: 0.5,
-                borderRadius: "50%",
-                "&:hover": {
-                  backgroundColor: "action.hover", // subtle, uses theme value
-                },
-              }}
-            >
-              <MoreVertical size={18} />
-            </IconButton>
-
-            <Menu anchorEl={anchorEl} open={openMenu} onClose={closeMenu}>
-              <MenuItem
-                onClick={() => {
-                  closeMenu();
-                  onStartEdit(comment.id);
-                }}
-              >
-                Edit
-              </MenuItem>
-              <MenuItem
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  closeMenu();
-                  setTimeout(() => {
-                    onDelete(comment.id);
-                  }, 0);
-                }}
-              >
-                Delete
-              </MenuItem>
-            </Menu>
-          </>
-        )}
-      </div>
-
-      {/* ▶️  INLINE REPLY INPUT  */}
-      {showThread && depth < MAX_REPLY_DEPTH && (
-        <div
-          className="flex flex-col gap-1 mb-3"
-          style={{ marginLeft: INDENT }}
-        >
-          {/* A.  View / Hide button (only for true older replies) */}
-          {showToggle && (
-            <button
-              onClick={toggleReplies}
-              disabled={loading && !showReplies}
-              className="flex items-center gap-1 text-xs text-blue-600 disabled:text-neutral-400 dark:text-blue-200"
-            >
-              {loading && !showReplies ? (
-                <CircularProgress size={14} />
-              ) : showReplies ? (
-                <ChevronUp size={14} />
-              ) : (
-                <ChevronDown size={14} />
-              )}
-              {showReplies ? "Hide" : "View"} {olderCount}{" "}
-              {olderCount === 1 ? "reply" : "replies"}
-            </button>
-          )}
-
-          {/* C.  Render replies (older + fresh) */}
-          {comment.replies
-            ?.filter((r) => showReplies || freshIds.has(r.id))
-            .sort(
-              (a, b) =>
-                new Date(a.created_at).getTime() -
-                new Date(b.created_at).getTime(),
-            )
-            .map((r) => (
-              <CommentRow
-                key={r.id}
-                targetId={targetId}
-                targetType={targetType}
-                depth={depth + 1}
-                comment={r}
-                onLike={onLike}
-                onReply={onReply}
-                onDelete={onDelete}
-                onRepliesFetched={onRepliesFetched}
-                editingId={editingId}
-                onStartEdit={onStartEdit}
-                onAbortEdit={onAbortEdit}
-                onCommitEdit={onCommitEdit}
-                onSubmitReply={onSubmitReply}
-              />
-            ))}
-        </div>
-      )}
-      {/* B.  Inline-reply input - MOVED HERE and corrected indentation & styling */}
-      {replying && canReplyToThisComment && (
-        <div
-          className="flex items-start gap-3 mt-2"
-          style={{ marginLeft: INDENT }} // Apply indent directly to the reply box container
-        >
-          {/* avatar */}
-          {user?.profile_picture_url ? (
+    <div
+      id={`comment-${comment.id}`}
+      className={`w-full comment-item ${isHighlighted ? "comment-highlighted" : ""}`}
+    >
+      <Box className="w-full">
+        <div className="flex w-full gap-3 py-3">
+          {comment.user.profile_picture_url ? (
             <img
-              src={user.profile_picture_url}
-              alt={user.username}
+              src={comment.user.profile_picture_url}
+              alt={comment.user.username}
               className="object-cover w-8 h-8 rounded-full"
             />
           ) : (
             <Avatar
-              name={user?.username || "Guest"}
+              name={comment.user.username}
               size={32}
               variant="beam"
               colors={["#84bfc3", "#ff9b62", "#d96153"]}
             />
           )}
-          {/* input + buttons */}
-          <div className="flex flex-col flex-1 pr-4">
-            <TextareaAutosize
-              ref={replyInputRef}
-              placeholder="Reply…"
-              minRows={1} // Consistent minRows
-              maxRows={4}
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  const txt = replyText.trim();
-                  if (!txt) return;
-                  // Critical check: ensure parent (this comment) is not temporary before submitting
-                  if (thisCommentIsTemporary) {
-                    showSnackbar(
-                      "Cannot submit reply, parent comment is still saving.",
-                      "error",
-                    );
-                    return;
-                  }
-                  // setShowReplies(true);
-                  onSubmitReply(comment.id, txt); // comment.id here MUST be the real persisted ID
-                  setReplyText("");
-                  setReplying(false);
+          <div className="flex flex-col flex-grow">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-bold">@{comment.user.username}</span>
+              <span
+                className="text-neutral-500 dark:text-neutral-400 text-xs"
+                title={
+                  new Date(comment.updated_at).getTime() !==
+                  new Date(comment.created_at).getTime()
+                    ? `Edited ${new Date(comment.updated_at).toLocaleString(
+                        undefined,
+                        DATETIME_FORMAT_OPTIONS_FOR_TITLE,
+                      )}`
+                    : undefined
                 }
-              }}
-              className="border border-neutral-300 rounded-lg p-3 w-full max-w-full ..."
-            />
-            <div className="flex justify-end gap-2 mt-1">
-              <Button
-                size="small"
-                color="inherit"
-                onClick={() => {
-                  setReplyText("");
-                  setReplying(false);
-                }}
               >
-                Cancel
-              </Button>
-              <Button
-                size="small"
-                variant="contained"
-                disabled={!replyText.trim()}
-                onClick={() => {
-                  const txt = replyText.trim();
-                  if (!txt) return;
-                  if (thisCommentIsTemporary) {
-                    showSnackbar(
-                      "Cannot submit reply, parent comment is still saving.",
-                      "error",
-                    );
-                    return;
+                <ReactTimeAgo
+                  date={new Date(comment.updated_at)}
+                  locale="en-US"
+                />
+                {new Date(comment.updated_at).getTime() !==
+                  new Date(comment.created_at).getTime() && " (edited)"}
+              </span>
+            </div>
+
+            {isEditing ? (
+              <div className="flex flex-col gap-2">
+                <TextareaAutosize
+                  ref={editRef}
+                  defaultValue={comment.content}
+                  minRows={2}
+                  className="w-full p-2 border rounded-md border-neutral-300"
+                />
+                <div className="flex gap-2 text-xs">
+                  <Button
+                    size="small"
+                    onClick={async () =>
+                      await onCommitEdit(
+                        comment.id,
+                        editRef.current!.value.trim(),
+                      )
+                    }
+                  >
+                    Save
+                  </Button>
+                  <Button size="small" variant="outlined" onClick={onAbortEdit}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm whitespace-pre-wrap">
+                {renderContent(comment.content)}
+              </div>
+            )}
+
+            {!isEditing && (
+              <div className="flex items-center gap-1 mt-1">
+                <IconButton
+                  size="small"
+                  color={comment.likedByCurrentUser ? "primary" : "default"}
+                  onClick={() =>
+                    requireAuth("like comments", () => onLike(comment.id))
                   }
-                  //  setShowReplies(true); // keep thread open
-                  onSubmitReply(comment.id, txt);
-                  setReplyText("");
-                  setReplying(false);
+                  disabled={false} // We'll handle the debouncing in the parent
+                >
+                  <Heart
+                    size={16}
+                    fill={comment.likedByCurrentUser ? "currentColor" : "none"}
+                    stroke="currentColor"
+                  />
+                </IconButton>
+                <Typography variant="caption" sx={{ mr: 2 }}>
+                  {comment.like_count ?? 0}
+                </Typography>
+                {canReplyToThisComment && (
+                  <Button
+                    size="small"
+                    color="primary"
+                    onClick={() =>
+                      requireAuth("reply to comments", () => {
+                        setReplying((v) => !v);
+                        setTimeout(() => replyInputRef.current?.focus(), 0);
+                      })
+                    }
+                  >
+                    {replying ? "Cancel" : "Reply"}
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {isMine && !isEditing && (
+            <>
+              <IconButton
+                size="small"
+                edge="end"
+                disableRipple
+                onClick={handleMenu}
+                sx={{
+                  // -- keep it compact
+                  width: 28,
+                  height: 28,
+                  p: 0.5,
+                  borderRadius: "50%",
+                  "&:hover": {
+                    backgroundColor: "action.hover", // subtle, uses theme value
+                  },
                 }}
               >
-                Reply
-              </Button>
+                <MoreVertical size={18} />
+              </IconButton>
+
+              <Menu anchorEl={anchorEl} open={openMenu} onClose={closeMenu}>
+                <MenuItem
+                  onClick={() => {
+                    closeMenu();
+                    onStartEdit(comment.id);
+                  }}
+                >
+                  Edit
+                </MenuItem>
+                <MenuItem
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeMenu();
+                    setTimeout(() => {
+                      onDelete(comment.id);
+                    }, 0);
+                  }}
+                >
+                  Delete
+                </MenuItem>
+              </Menu>
+            </>
+          )}
+        </div>
+
+        {/* ▶️  INLINE REPLY INPUT  */}
+        {showThread && depth < MAX_REPLY_DEPTH && (
+          <div
+            className="flex flex-col gap-1 mb-3"
+            style={{ marginLeft: INDENT }}
+          >
+            {/* A.  View / Hide button (only for true older replies) */}
+            {showToggle && (
+              <button
+                onClick={toggleReplies}
+                disabled={loading && !showReplies}
+                className="flex items-center gap-1 text-xs text-blue-600 disabled:text-neutral-400 dark:text-blue-200"
+              >
+                {loading && !showReplies ? (
+                  <CircularProgress size={14} />
+                ) : showReplies ? (
+                  <ChevronUp size={14} />
+                ) : (
+                  <ChevronDown size={14} />
+                )}
+                {showReplies ? "Hide" : "View"} {olderCount}{" "}
+                {olderCount === 1 ? "reply" : "replies"}
+              </button>
+            )}
+
+            {/* C.  Render replies (older + fresh) */}
+            {comment.replies
+              ?.filter((r) => showReplies || freshIds.has(r.id))
+              .sort(
+                (a, b) =>
+                  new Date(a.created_at).getTime() -
+                  new Date(b.created_at).getTime(),
+              )
+              .map((r) => (
+                <CommentRow
+                  key={r.id}
+                  targetId={targetId}
+                  isHighlighted={highlightedCommentId === r.id} // Compare number with number
+                  highlightedCommentId={highlightedCommentId} // Pass down number | null
+                  targetType={targetType}
+                  depth={depth + 1}
+                  comment={r}
+                  onLike={onLike}
+                  onReply={onReply}
+                  onDelete={onDelete}
+                  onRepliesFetched={onRepliesFetched}
+                  editingId={editingId}
+                  onStartEdit={onStartEdit}
+                  onAbortEdit={onAbortEdit}
+                  onCommitEdit={onCommitEdit}
+                  onSubmitReply={onSubmitReply}
+                />
+              ))}
+          </div>
+        )}
+        {/* B.  Inline-reply input - MOVED HERE and corrected indentation & styling */}
+        {replying && canReplyToThisComment && (
+          <div
+            className="flex items-start gap-3 mt-2"
+            style={{ marginLeft: INDENT }} // Apply indent directly to the reply box container
+          >
+            {/* avatar */}
+            {user?.profile_picture_url ? (
+              <img
+                src={user.profile_picture_url}
+                alt={user.username}
+                className="object-cover w-8 h-8 rounded-full"
+              />
+            ) : (
+              <Avatar
+                name={user?.username || "Guest"}
+                size={32}
+                variant="beam"
+                colors={["#84bfc3", "#ff9b62", "#d96153"]}
+              />
+            )}
+            {/* input + buttons */}
+            <div className="flex flex-col flex-1 pr-4">
+              <TextareaAutosize
+                ref={replyInputRef}
+                placeholder="Reply…"
+                minRows={1} // Consistent minRows
+                maxRows={4}
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    const txt = replyText.trim();
+                    if (!txt) return;
+                    // Critical check: ensure parent (this comment) is not temporary
+                    if (thisCommentIsTemporary) {
+                      showSnackbar(
+                        "Cannot submit reply, parent comment is still saving.",
+                        "error",
+                      );
+                      return;
+                    }
+                    // setShowReplies(true);
+                    onSubmitReply(comment.id, txt); // comment.id here MUST be the real persisted ID
+                    setReplyText("");
+                    setReplying(false);
+                  }
+                }}
+                className="border border-neutral-300 rounded-lg p-3 w-full max-w-full ..."
+              />
+              <div className="flex justify-end gap-2 mt-1">
+                <Button
+                  size="small"
+                  color="inherit"
+                  onClick={() => {
+                    setReplyText("");
+                    setReplying(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  disabled={!replyText.trim()}
+                  onClick={() => {
+                    const txt = replyText.trim();
+                    if (!txt) return;
+                    if (thisCommentIsTemporary) {
+                      showSnackbar(
+                        "Cannot submit reply, parent comment is still saving.",
+                        "error",
+                      );
+                      return;
+                    }
+                    //  setShowReplies(true); // keep thread open
+                    onSubmitReply(comment.id, txt);
+                    setReplyText("");
+                    setReplying(false);
+                  }}
+                >
+                  Reply
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Box>
     </div>
   );
 };
@@ -650,6 +681,27 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
         return {};
       }
     });
+    const [highlightedCommentId, setHighlightedCommentId] = useState<
+      number | null
+    >(null); // Changed string to number
+
+    const focusLogic = useCallback(() => {
+      if (!user) {
+        showSnackbar(
+          "Please login to comment",
+          "warning",
+          <Button
+            size="small"
+            color="inherit"
+            onClick={() => (window.location.href = "/login")}
+          >
+            Login
+          </Button>,
+        );
+        return;
+      }
+      textareaRef.current?.focus();
+    }, [user, showSnackbar, textareaRef]);
 
     const appendFresh = (parentId: number, replyId: number) =>
       setNewRepliesMap((prev) => {
@@ -699,38 +751,528 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
       setComments((prev) => mergeTrees(prev, initial));
     }, [initial]);
 
-    const focusLogic = useCallback(() => {
-      if (!user) {
-        showSnackbar(
-          "Please login to comment",
-          "warning",
-          <Button
-            size="small"
-            color="inherit"
-            onClick={() => (window.location.href = "/login")}
-          >
-            Login
-          </Button>,
-        );
-        return;
-      }
-      textareaRef.current?.focus();
-    }, [user, showSnackbar, textareaRef]);
-
-    // Expose to direct parent ref (e.g., _ref from BlogDetails)
     useImperativeHandle(
       _ref,
       () => ({
-        focusInput: focusLogic,
+        highlightComment: (commentId: number) => {
+          console.log("[CommentSection] Highlighting comment:", commentId);
+          console.log(
+            "[CommentSection] Current highlightedCommentId before:",
+            highlightedCommentId,
+          );
+
+          // Check if the comment exists in the current comments
+          const findComment = (comments: CommentUI[], id: number): boolean => {
+            for (const comment of comments) {
+              if (comment.id === id) return true;
+              if (comment.replies && findComment(comment.replies, id))
+                return true;
+            }
+            return false;
+          };
+
+          const commentExists = findComment(comments, commentId);
+          console.log(
+            "[CommentSection] Comment exists in current comments:",
+            commentExists,
+          );
+
+          setHighlightedCommentId(commentId);
+          console.log(
+            "[CommentSection] Setting highlightedCommentId to:",
+            commentId,
+          );
+          setTimeout(() => {
+            console.log("[CommentSection] Removing highlight after 5 seconds");
+            setHighlightedCommentId(null);
+          }, 5000);
+        },
+        focusCommentInput: () => {
+          focusLogic();
+        },
+        getScrollContainer: () => {
+          // Find the scroll container in the desktop layout
+          const sidebarContainer = document.querySelector(".sidebar");
+          if (sidebarContainer) {
+            return sidebarContainer as HTMLElement;
+          }
+
+          // Fallback: look for any scrollable container
+          const scrollableContainer = document.querySelector(
+            '[class*="overflow-y-auto"], .overflow-y-scroll',
+          );
+          if (scrollableContainer) {
+            return scrollableContainer as HTMLElement;
+          }
+
+          // Final fallback: return the window/document element
+          return document.documentElement;
+        },
+        scrollToComment: async (
+          commentId: number,
+          highlight: boolean = true,
+        ) => {
+          console.log("[CommentSection] === ENHANCED SCROLL START ===");
+          console.log(
+            "[CommentSection] Target:",
+            commentId,
+            "highlight:",
+            highlight,
+          );
+
+          // Find the element
+          const element = document.getElementById(`comment-${commentId}`);
+          if (!element) {
+            console.error(
+              "[CommentSection] ❌ Element not found:",
+              `comment-${commentId}`,
+            );
+
+            // Show available elements for debugging
+            const allComments = document.querySelectorAll('[id^="comment-"]');
+            console.log(
+              "[CommentSection] Available comments:",
+              Array.from(allComments).map((el) => el.id),
+            );
+            return false;
+          }
+
+          console.log("[CommentSection] ✅ Element found:", element);
+
+          // Check visibility and dimensions
+          const rect = element.getBoundingClientRect();
+          const isVisible = rect.width > 0 && rect.height > 0;
+          const computedStyle = window.getComputedStyle(element);
+
+          console.log("[CommentSection] Element analysis:", {
+            rect: rect,
+            isVisible: isVisible,
+            display: computedStyle.display,
+            visibility: computedStyle.visibility,
+            opacity: computedStyle.opacity,
+            overflow: computedStyle.overflow,
+            position: computedStyle.position,
+          });
+
+          // If element is not visible, try to expand parent threads first
+          if (!isVisible) {
+            console.log(
+              "[CommentSection] 🔍 Element not visible, trying to expand parent threads...",
+            );
+
+            try {
+              // Try to expand all collapsed threads that might contain this comment
+              const allToggleButtons = document.querySelectorAll("button");
+              let expandedAny = false;
+
+              for (const button of allToggleButtons) {
+                const buttonText = button.textContent?.toLowerCase() || "";
+                const hasViewText =
+                  buttonText.includes("view") &&
+                  (buttonText.includes("repl") ||
+                    buttonText.includes("comment"));
+                const hasChevronDown = button.querySelector(
+                  'svg[data-lucide="chevron-down"]',
+                );
+
+                if (hasViewText || hasChevronDown) {
+                  console.log(
+                    "[CommentSection] 🔄 Expanding thread with button:",
+                    buttonText,
+                  );
+                  button.click();
+                  expandedAny = true;
+
+                  // Wait for expansion animation
+                  await new Promise((resolve) => setTimeout(resolve, 300));
+
+                  // Check if our target is now visible
+                  const newRect = element.getBoundingClientRect();
+                  if (newRect.width > 0 && newRect.height > 0) {
+                    console.log(
+                      "[CommentSection] ✅ Target element now visible after expansion",
+                    );
+                    break;
+                  }
+                }
+              }
+
+              if (expandedAny) {
+                // Wait a bit more for all expansions to complete
+                await new Promise((resolve) => setTimeout(resolve, 500));
+              }
+            } catch (error) {
+              console.error("[CommentSection] Error expanding threads:", error);
+            }
+          }
+
+          // Re-check visibility after potential expansions
+          const finalRect = element.getBoundingClientRect();
+          const finalVisible = finalRect.width > 0 && finalRect.height > 0;
+
+          console.log("[CommentSection] Final visibility check:", {
+            rect: finalRect,
+            isVisible: finalVisible,
+          });
+
+          if (!finalVisible) {
+            console.warn(
+              "[CommentSection] ⚠️ Element still not visible after expansion attempts",
+            );
+
+            // Try forcing the element to be visible
+            console.log(
+              "[CommentSection] 🔧 Attempting to force visibility...",
+            );
+            element.style.display = "block";
+            element.style.visibility = "visible";
+            element.style.opacity = "1";
+
+            // Check parent containers
+            let parent = element.parentElement;
+            while (parent && parent !== document.body) {
+              const parentStyle = window.getComputedStyle(parent);
+              if (
+                parentStyle.display === "none" ||
+                parentStyle.visibility === "hidden"
+              ) {
+                console.log(
+                  "[CommentSection] 🔧 Found hidden parent, making visible:",
+                  parent,
+                );
+                parent.style.display = "block";
+                parent.style.visibility = "visible";
+              }
+              parent = parent.parentElement;
+            }
+
+            // Wait for styles to apply
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+
+          // Final attempt to scroll
+          console.log("[CommentSection] 🚀 Attempting scroll...");
+
+          try {
+            // Method 1: scrollIntoView
+            element.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+              inline: "nearest",
+            });
+
+            console.log("[CommentSection] ✅ scrollIntoView called");
+
+            // Method 2: Manual scroll as backup
+            setTimeout(() => {
+              const afterScrollRect = element.getBoundingClientRect();
+              console.log(
+                "[CommentSection] After scroll check:",
+                afterScrollRect,
+              );
+
+              if (
+                afterScrollRect.top < 0 ||
+                afterScrollRect.top > window.innerHeight
+              ) {
+                console.log(
+                  "[CommentSection] 🔄 Element not in view, trying manual scroll...",
+                );
+
+                const elementTop = afterScrollRect.top + window.pageYOffset;
+                const targetY = elementTop - window.innerHeight / 2;
+
+                window.scrollTo({
+                  top: Math.max(0, targetY),
+                  behavior: "smooth",
+                });
+
+                console.log("[CommentSection] ✅ Manual scroll executed");
+              }
+            }, 1000);
+          } catch (error) {
+            console.error("[CommentSection] ❌ Scroll failed:", error);
+            return false;
+          }
+
+          // Add highlight
+          if (highlight) {
+            console.log("[CommentSection] 🎨 Adding highlight");
+            setHighlightedCommentId(commentId);
+            setTimeout(() => setHighlightedCommentId(null), 5000);
+          }
+
+          console.log("[CommentSection] === ENHANCED SCROLL END ===");
+          return true;
+        },
+        // Debug helper function for testing in console
+        debugScrollToComment: (commentId: number) => {
+          console.log(
+            "[CommentSection] DEBUG: Testing scroll to comment",
+            commentId,
+          );
+          const element = document.getElementById(`comment-${commentId}`);
+          if (element) {
+            console.log(
+              "[CommentSection] DEBUG: Element found, using scrollIntoView",
+            );
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+            element.style.backgroundColor = "#ffeb3b";
+            setTimeout(() => {
+              element.style.backgroundColor = "";
+            }, 3000);
+          } else {
+            console.log("[CommentSection] DEBUG: Element not found");
+          }
+        },
+        expandToComment: async (commentId: number) => {
+          console.log("[CommentSection] Expanding to show comment:", commentId);
+
+          // Function to recursively find the path to the target comment and expand all parent threads
+          const findCommentPath = (
+            commentsList: CommentUI[],
+            targetId: number,
+            path: number[] = [],
+          ): number[] | null => {
+            for (const comment of commentsList) {
+              const currentPath = [...path, comment.id];
+
+              // If this is the target comment, return the path
+              if (comment.id === targetId) {
+                return currentPath;
+              }
+
+              // Search in replies
+              if (comment.replies && comment.replies.length > 0) {
+                const foundPath = findCommentPath(
+                  comment.replies,
+                  targetId,
+                  currentPath,
+                );
+                if (foundPath) {
+                  return foundPath;
+                }
+              }
+            }
+            return null;
+          };
+
+          // First, check if the comment exists in the DOM (might be hidden due to collapsed parent)
+          const targetElement = document.getElementById(`comment-${commentId}`);
+          if (!targetElement) {
+            console.log(
+              "[CommentSection] Target comment element not found in DOM, trying to expand all collapsed threads",
+            );
+
+            // If the target comment is not in the DOM, we need to expand all collapsed threads
+            // to make sure all comments are loaded and visible
+            const expandAllCollapsedThreads = async (): Promise<boolean> => {
+              let expandedAny = false;
+              const allToggleButtons = document.querySelectorAll(
+                "button.text-blue-600:not([disabled]), button.dark\\:text-blue-200:not([disabled])",
+              );
+
+              for (const button of allToggleButtons) {
+                const toggleButton = button as HTMLButtonElement;
+                if (toggleButton.textContent) {
+                  const buttonText = toggleButton.textContent.toLowerCase();
+                  const hasViewText =
+                    buttonText.includes("view") &&
+                    (buttonText.includes("repl") ||
+                      buttonText.includes("comment"));
+                  const hasChevronDown = toggleButton.querySelector(
+                    'svg[data-lucide="chevron-down"]',
+                  );
+
+                  if (hasViewText || hasChevronDown) {
+                    console.log(
+                      "[CommentSection] Expanding collapsed thread with button text:",
+                      buttonText,
+                    );
+                    toggleButton.click();
+                    expandedAny = true;
+                    // Wait for the expansion animation
+                    await new Promise((resolve) => setTimeout(resolve, 500));
+                  }
+                }
+              }
+              return expandedAny;
+            };
+
+            const wasExpanded = await expandAllCollapsedThreads();
+            console.log(
+              "[CommentSection] Expanded all collapsed threads, expandedAny:",
+              wasExpanded,
+            );
+            return wasExpanded;
+          }
+
+          // Find the path to the target comment
+          const commentPath = findCommentPath(comments, commentId);
+          console.log("[CommentSection] Comment path:", commentPath);
+
+          if (!commentPath) {
+            console.log(
+              "[CommentSection] Comment not found in comment tree, but element exists in DOM",
+            );
+            // The comment exists in DOM but not in our tree, probably because parent threads are collapsed
+            // Try to expand all collapsed threads
+            const allToggleButtons = document.querySelectorAll(
+              "button.text-blue-600:not([disabled]), button.dark\\:text-blue-200:not([disabled])",
+            );
+            let expandedAny = false;
+
+            for (const button of allToggleButtons) {
+              const toggleButton = button as HTMLButtonElement;
+              if (toggleButton.textContent) {
+                const buttonText = toggleButton.textContent.toLowerCase();
+                const hasViewText =
+                  buttonText.includes("view") &&
+                  (buttonText.includes("repl") ||
+                    buttonText.includes("comment"));
+                const hasChevronDown = toggleButton.querySelector(
+                  'svg[data-lucide="chevron-down"]',
+                );
+
+                if (hasViewText || hasChevronDown) {
+                  console.log("[CommentSection] Expanding collapsed thread");
+                  toggleButton.click();
+                  expandedAny = true;
+                  await new Promise((resolve) => setTimeout(resolve, 400));
+                }
+              }
+            }
+
+            return expandedAny;
+          }
+
+          if (commentPath.length <= 1) {
+            console.log(
+              "[CommentSection] Comment is top-level, no expansion needed",
+            );
+            return false;
+          }
+
+          // Function to expand a single parent thread
+          const expandParentThread = (parentId: number): boolean => {
+            const parentElement = document.getElementById(
+              `comment-${parentId}`,
+            );
+            if (parentElement) {
+              // Look for the toggle button that shows/hides replies - more specific selector
+              const toggleButton = parentElement.querySelector(
+                "button.text-blue-600:not([disabled]), button.dark\\:text-blue-200:not([disabled])",
+              ) as HTMLButtonElement;
+              if (toggleButton && toggleButton.textContent) {
+                const buttonText = toggleButton.textContent.toLowerCase();
+                // Check for "view" text and SVG chevron down icon
+                const hasViewText =
+                  buttonText.includes("view") &&
+                  (buttonText.includes("repl") ||
+                    buttonText.includes("comment"));
+                const hasChevronDown = toggleButton.querySelector(
+                  'svg[data-lucide="chevron-down"]',
+                );
+
+                if (hasViewText || hasChevronDown) {
+                  console.log(
+                    "[CommentSection] Found collapsed thread, expanding parent:",
+                    parentId,
+                    "button text:",
+                    buttonText,
+                  );
+                  toggleButton.click();
+                  return true;
+                } else {
+                  console.log(
+                    "[CommentSection] Toggle button found but already expanded for parent:",
+                    parentId,
+                    "button text:",
+                    buttonText,
+                  );
+                }
+              } else {
+                console.log(
+                  "[CommentSection] No toggle button found for parent:",
+                  parentId,
+                );
+              }
+            } else {
+              console.log(
+                "[CommentSection] Parent element not found:",
+                parentId,
+              );
+            }
+            return false;
+          };
+
+          // Expand all parent threads sequentially (except the last one which is the target comment)
+          let expandedAny = false;
+
+          for (let i = 0; i < commentPath.length - 1; i++) {
+            const parentId = commentPath[i];
+            const wasExpanded = expandParentThread(parentId);
+
+            if (wasExpanded) {
+              expandedAny = true;
+              // Wait for the expansion animation before continuing
+              await new Promise((resolve) => setTimeout(resolve, 400));
+            }
+          }
+
+          console.log(
+            "[CommentSection] Expansion complete, expandedAny:",
+            expandedAny,
+          );
+          return expandedAny;
+        },
       }),
-      [focusLogic],
+      [focusLogic, highlightedCommentId, comments],
     );
 
-    // Expose to context ref (e.g., postCommentsRef for PostInfo)
+    // Also expose to context ref if needed
     useImperativeHandle(
       postCommentsRef,
       () => ({
         focusInput: focusLogic,
+        highlightComment: (commentId: number) => {
+          // Changed string to number
+          setHighlightedCommentId(commentId);
+          setTimeout(() => {
+            setHighlightedCommentId(null);
+          }, 5000);
+        },
+        scrollToComment: async (
+          commentId: number,
+          highlight: boolean = true,
+        ) => {
+          // Use the same implementation as the main ref
+          const commentElement = document.getElementById(
+            `comment-${commentId}`,
+          );
+          if (!commentElement) {
+            console.warn(
+              "[CommentSection] Comment element not found:",
+              `comment-${commentId}`,
+            );
+            return false;
+          }
+
+          commentElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "nearest",
+          });
+
+          if (highlight) {
+            setHighlightedCommentId(commentId);
+            setTimeout(() => {
+              setHighlightedCommentId(null);
+            }, 5000);
+          }
+
+          return true;
+        },
       }),
       [focusLogic],
     );
@@ -1087,40 +1629,43 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
           <div
             ref={listRef}
             className={`flex-grow px-4 overflow-x-hidden overflow-y-auto divide-y divide-neutral-100 dark:divide-neutral-700 ${
-              inputPosition === "bottom" ? "pb-28" : "pb-4"
+              hideWrapper
+                ? ""
+                : "bg-white dark:bg-neutral-800 rounded-lg shadow"
+            } ${
+              inputPosition === "top"
+                ? "pb-4" // Add padding to bottom if input is at top
+                : "pt-4" // Add padding to top if input is at bottom
             }`}
+            style={{ scrollBehavior: "smooth" }}
           >
-            {comments.length === 0 ? (
-              <p className="py-4 text-sm text-center text-mountain-500">
-                No comments yet. Be the first to comment!
-              </p>
-            ) : (
-              comments.map((c) => (
-                <CommentRow
-                  targetId={targetId}
-                  targetType={targetType}
-                  key={c.id}
-                  comment={c}
-                  onLike={handleLike}
-                  onSubmitReply={(parentId, content) =>
-                    requireAuth("reply to comments", () =>
-                      handleAdd(content, parentId),
-                    )
-                  }
-                  onReply={(id, username) => {
-                    setReplyParentId(id);
-                    setNewComment(`@${username} `);
-                    textareaRef.current?.focus();
-                  }}
-                  onDelete={handleDelete}
-                  onRepliesFetched={attachReplies}
-                  editingId={editingId}
-                  onStartEdit={startEdit}
-                  onAbortEdit={abortEdit}
-                  onCommitEdit={commitEdit}
-                />
-              ))
-            )}
+            {comments.map((c) => (
+              <CommentRow
+                targetId={targetId}
+                targetType={targetType}
+                isHighlighted={highlightedCommentId === c.id} // Compare number with number
+                highlightedCommentId={highlightedCommentId} // Pass number | null
+                key={c.id}
+                comment={c}
+                onLike={handleLike}
+                onSubmitReply={(parentId, content) =>
+                  requireAuth("reply to comments", () =>
+                    handleAdd(content, parentId),
+                  )
+                }
+                onReply={(id, username) => {
+                  setReplyParentId(id);
+                  setNewComment(`@${username} `);
+                  textareaRef.current?.focus();
+                }}
+                onDelete={handleDelete}
+                onRepliesFetched={attachReplies}
+                editingId={editingId}
+                onStartEdit={startEdit}
+                onAbortEdit={abortEdit}
+                onCommitEdit={commitEdit}
+              />
+            ))}
           </div>
         </FreshRepliesCtx.Provider>
         {inputPosition === "bottom" && InputBar}
@@ -1138,4 +1683,192 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
 );
 
 CommentSection.displayName = "PostComments";
+
+// Global debug functions for browser console testing
+if (typeof window !== "undefined") {
+  // Simple test function accessible from browser console
+  (
+    window as unknown as Window & {
+      testCommentScroll: (commentId: number) => boolean;
+    }
+  ).testCommentScroll = function (commentId: number) {
+    console.log("🧪 === BROWSER CONSOLE TEST ===");
+    console.log("🎯 Testing scroll to comment:", commentId);
+
+    const element = document.getElementById(`comment-${commentId}`);
+    if (!element) {
+      console.error("❌ Element not found:", `comment-${commentId}`);
+
+      // Show available comments
+      const allComments = document.querySelectorAll('[id^="comment-"]');
+      console.log("📋 Available comments:");
+      allComments.forEach((el: Element) => {
+        const rect = el.getBoundingClientRect();
+        const isVisible = rect.width > 0 && rect.height > 0;
+        console.log(
+          `  - ${el.id} (visible: ${isVisible}, rect: ${rect.width}x${rect.height})`,
+        );
+      });
+      return false;
+    }
+
+    console.log("✅ Element found:", element);
+
+    // Check current dimensions
+    const rect = element.getBoundingClientRect();
+    console.log("📐 Current dimensions:", {
+      width: rect.width,
+      height: rect.height,
+      top: rect.top,
+      left: rect.left,
+      visible: rect.width > 0 && rect.height > 0,
+    });
+
+    if (rect.width === 0 && rect.height === 0) {
+      console.log(
+        "⚠️ Element has zero dimensions - trying to expand threads...",
+      );
+
+      // Find and click expand buttons
+      const buttons = document.querySelectorAll("button");
+      let expandedAny = false;
+
+      buttons.forEach((button: Element) => {
+        const buttonElement = button as HTMLButtonElement;
+        const text = buttonElement.textContent?.toLowerCase() || "";
+        const hasViewText =
+          text.includes("view") &&
+          (text.includes("repl") || text.includes("comment"));
+        const hasChevronDown = buttonElement.querySelector(
+          'svg[data-lucide="chevron-down"]',
+        );
+
+        if (hasViewText || hasChevronDown) {
+          console.log("🔄 Clicking expand button:", text);
+          buttonElement.click();
+          expandedAny = true;
+        }
+      });
+
+      if (expandedAny) {
+        console.log("⏳ Waiting for expansions...");
+        setTimeout(() => {
+          const newRect = element.getBoundingClientRect();
+          console.log("📐 After expansion:", newRect);
+          performScroll(element);
+        }, 1000);
+      } else {
+        console.log("🔧 No expand buttons found, forcing visibility...");
+        forceVisibility(element);
+      }
+    } else {
+      performScroll(element);
+    }
+
+    function forceVisibility(el: HTMLElement) {
+      console.log("🔧 Forcing element visibility...");
+      el.style.display = "block";
+      el.style.visibility = "visible";
+      el.style.opacity = "1";
+
+      // Force parent visibility
+      let parent = el.parentElement;
+      while (parent && parent !== document.body) {
+        const parentStyle = window.getComputedStyle(parent);
+        if (
+          parentStyle.display === "none" ||
+          parentStyle.visibility === "hidden"
+        ) {
+          console.log("🔧 Making parent visible:", parent.tagName);
+          (parent as HTMLElement).style.display = "block";
+          (parent as HTMLElement).style.visibility = "visible";
+        }
+        parent = parent.parentElement;
+      }
+
+      setTimeout(() => performScroll(el), 500);
+    }
+
+    function performScroll(el: HTMLElement) {
+      console.log("🚀 Performing scroll...");
+
+      // Add visual highlight
+      const originalBg = el.style.backgroundColor;
+      const originalBorder = el.style.border;
+
+      el.style.backgroundColor = "#ffeb3b";
+      el.style.border = "3px solid #f44336";
+      el.style.transition = "all 0.3s ease";
+
+      console.log("🎨 Added highlight");
+
+      // Scroll to element
+      try {
+        el.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest",
+        });
+        console.log("✅ scrollIntoView called");
+
+        // Verify scroll after delay
+        setTimeout(() => {
+          const finalRect = el.getBoundingClientRect();
+          console.log("📍 Final position:", finalRect.top);
+
+          if (finalRect.top < 50 || finalRect.top > window.innerHeight - 50) {
+            console.log("🔄 Adjusting scroll position...");
+            const targetY =
+              finalRect.top + window.pageYOffset - window.innerHeight / 2;
+            window.scrollTo({ top: Math.max(0, targetY), behavior: "smooth" });
+          }
+
+          console.log("✅ Scroll test completed");
+        }, 1000);
+      } catch (error) {
+        console.error("❌ Scroll failed:", error);
+      }
+
+      // Remove highlight
+      setTimeout(() => {
+        el.style.backgroundColor = originalBg;
+        el.style.border = originalBorder;
+        console.log("🧹 Removed highlight");
+        console.log("🧪 === TEST COMPLETE ===");
+      }, 4000);
+    }
+
+    return true;
+  };
+
+  // List available comments function
+  (window as unknown as Window & { listComments: () => void }).listComments =
+    function () {
+      console.log("📋 === AVAILABLE COMMENTS ===");
+      const comments = document.querySelectorAll('[id^="comment-"]');
+
+      if (comments.length === 0) {
+        console.log("❌ No comment elements found");
+        return;
+      }
+
+      comments.forEach((el: Element, index: number) => {
+        const rect = el.getBoundingClientRect();
+        const isVisible = rect.width > 0 && rect.height > 0;
+        const commentId = el.id.replace("comment-", "");
+
+        console.log(
+          `${index + 1}. Comment ${commentId} - Visible: ${isVisible} - Dimensions: ${rect.width}x${rect.height} - Top: ${rect.top}`,
+        );
+      });
+
+      console.log("💡 Use: testCommentScroll(24) to test scrolling");
+    };
+
+  console.log("🧪 Comment scroll test functions loaded!");
+  console.log("Available functions:");
+  console.log("- testCommentScroll(commentId) - Test scrolling to a comment");
+  console.log("- listComments() - List all available comments");
+}
+
 export default CommentSection;
