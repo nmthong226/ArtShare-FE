@@ -4,19 +4,20 @@ import { Navigate, RouteObject, useRoutes, Outlet } from "react-router-dom";
 
 // Layouts & Wrappers
 import RootLayout from "@/layouts";
-import AuthenLayout from "@/layouts/featLayouts/AuthenLayout";
-import InAppLayout from "@/layouts/InAppLayout";
-import AILayout from "@/layouts/featLayouts/ImageToolsLayout";
 import ProtectedAuthRoute from "@/components/ProtectedItems/ProtectedAuthRoute";
 import ProtectedInAppRoute from "@/components/ProtectedItems/ProtectedInAppRoute";
 import GuestRoute from "@/components/routes/guest-route";
-import EditUser from "./features/edit-user/EditUserPage";
-import OnboardingProfile from "./pages/Onboarding";
-
-import Dashboard from "./features/app-dashboard/Dashboard";
 import OnboardingRoute from "./components/ProtectedItems/OnboardingRoute";
-import RequireOnboard from "./components/ProtectedItems/RequireOnboard";
 
+const AuthenLayout = lazy(() => import("@/layouts/featLayouts/AuthenLayout"));
+const InAppLayout = lazy(() => import("@/layouts/InAppLayout"));
+const AILayout = lazy(() => import("@/layouts/featLayouts/ImageToolsLayout"));
+const Dashboard = lazy(() => import("./features/app-dashboard/Dashboard"));
+const EditUser = lazy(() => import("./features/edit-user/EditUserPage"));
+const OnboardingProfile = lazy(() => import("./pages/Onboarding"));
+const RequireOnboard = lazy(
+  () => import("./components/ProtectedItems/RequireOnboard"),
+);
 // Lazy imports for pages/features
 const LandingPage = lazy(() => import("@/pages/Home"));
 const Login = lazy(() => import("@/pages/Authentication/Login"));
@@ -166,9 +167,7 @@ const routeConfig: RouteObject[] = [
             <Outlet />
           </ProtectedInAppRoute>
         ),
-        children: [
-          { path: "/docs/:blogId", element: <MyWriting /> },
-        ]
+        children: [{ path: "/docs/:blogId", element: <MyWriting /> }],
       },
       // Catch-all -> redirect
       { path: "*", element: <Navigate to="/" replace /> },

@@ -1,25 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo, memo } from "react";
-
-//Libs
 import { useInfiniteQuery, UseQueryResult } from "@tanstack/react-query";
 import { Button, Paper, ToggleButton, ToggleButtonGroup } from "@mui/material";
-
-//Icons
 import { Ellipsis, LoaderPinwheel } from "lucide-react";
 import { BsFilter } from "react-icons/bs";
-
-//Components
 import {
   Categories,
   DataPopper,
 } from "@/components/carousels/categories/Categories";
 import IGallery, { GalleryPhoto } from "@/components/gallery/Gallery";
-
 import { Category, Post } from "@/types";
 import { fetchPosts } from "./api/get-post";
-
-//Contexts
-import { useSearch } from "@/contexts/SearchProvider";
 import { CategoryTypeValues } from "@/constants";
 import { useCategories } from "@/hooks/useCategories";
 
@@ -53,7 +43,6 @@ const Explore: React.FC = () => {
   const [anchorElPP, setAnchorElPP] = useState<null | HTMLElement>(null);
   const [tab, setTab] = useState<string>("for-you");
   const galleryAreaRef = useRef<HTMLDivElement>(null);
-  const { query } = useSearch();
 
   const {
     data: allCategories,
@@ -84,7 +73,7 @@ const Explore: React.FC = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["posts", tab, query, selectedCategories, selectedMediums],
+    queryKey: ["posts", tab, selectedCategories, selectedMediums],
     retry: 2,
     staleTime: 1000 * 60 * 5, // 5 minutes
     queryFn: async ({ pageParam = 1 }): Promise<GalleryPhoto[]> => {
@@ -93,7 +82,7 @@ const Explore: React.FC = () => {
         categoriesToFetch.push(selectedCategories);
       }
 
-      const posts: Post[] = await fetchPosts(pageParam, tab, query, [
+      const posts: Post[] = await fetchPosts(pageParam, tab, undefined, [
         ...categoriesToFetch,
         ...selectedMediums,
       ]);

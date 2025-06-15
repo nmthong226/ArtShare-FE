@@ -1,9 +1,6 @@
 import { Post } from "@/types";
-// import { MEDIA_TYPE } from "@/constants";
-import axios from "axios";
 import api from "@/api/baseApi";
-
-const ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY as string;
+import qs from "qs";
 
 export interface UnsplashPhoto {
   id: string;
@@ -15,21 +12,6 @@ export interface UnsplashPhoto {
   alt_description?: string;
 }
 
-const unsplashAPI = axios.create({
-  baseURL: "https://api.unsplash.com",
-  headers: {
-    Authorization: `Client-ID ${ACCESS_KEY}`,
-  },
-});
-
-export const fetchPhotos = (page = 1) =>
-  unsplashAPI.get<UnsplashPhoto[]>("/photos", {
-    params: {
-      page,
-      per_page: 12,
-    },
-  });
-
 export const fetchPosts = async (
   page: number,
   tab?: string,
@@ -39,15 +21,24 @@ export const fetchPosts = async (
 ): Promise<Post[]> => {
   try {
     if (query) {
-      console.log(
-        `/posts/search?q=${query}&page=${page}&page_size=${pageSize}`,
-      );
-      const response = await api.get<Post[]>(
-        `/posts/search?q=${query}&page=${page}&page_size=${pageSize}`,
-      );
+      const searchParams = {
+        q: query,
+        page: page,
+        page_size: pageSize,
+        filter: filter,
+      };
+      console.log("Search params:", searchParams);
+
+      const queryString = qs.stringify(searchParams, {
+        addQueryPrefix: true, // Adds the leading '?'
+        skipNulls: true, // Omits keys with null or undefined values
+        arrayFormat: "comma", // This is the magic! Handles your .join(',') for you.
+      });
+
+      console.log("Fetching posts with query:", queryString);
+      const response = await api.get<Post[]>(`/posts/search${queryString}`);
       return response.data;
     } else {
-      console.log(`/posts/${tab}?page=${page}&page_size=${pageSize}`);
       const response = await api.post<Post[]>(`/posts/${tab}`, {
         page,
         page_size: pageSize,
@@ -59,14 +50,7 @@ export const fetchPosts = async (
     console.error("Error fetching posts:", error);
     return [];
   }
-
-  // const response = await fetchPhotos(page);
-  // const photos = response.data.map((photo) => photo.urls.regular);
-  // return mockPosts(photos) ;
 };
-
-export const fetchPhotoById = (id: string) =>
-  unsplashAPI.get<UnsplashPhoto>(`/photos/${id}`);
 
 export const fetchPostsByArtist = async (
   artistUsername: string,

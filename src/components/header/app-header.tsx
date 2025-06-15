@@ -1,18 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
-
-//Icons
 import { TiDeleteOutline } from "react-icons/ti";
 import { FiSearch } from "react-icons/fi";
 import { InfoIcon } from "lucide-react";
 
-//Components
 import Tooltip from "@mui/material/Tooltip";
 import UserInAppConfigs from "../popovers/UserInAppConfigs";
 import { Input } from "../ui/input";
 import UserButton from "./user-button";
 
-//Context
 import { useSearch } from "@/contexts/SearchProvider";
 import { useUser } from "@/contexts/UserProvider";
 import { routesForHeaders } from "@/utils/constants";
@@ -22,12 +18,9 @@ const Header: React.FC = () => {
   const [isFocused, setIsFocused] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const { query, setQuery } = useSearch();
+  const { setQuery } = useSearch();
   const navigate = useNavigate();
   const location = useLocation();
-  useEffect(() => {
-    console.log("Query updated:", query);
-  }, [query]);
 
   const matchedRoute = routesForHeaders.find((route) =>
     matchPath({ path: route.path, end: true }, location.pathname),
