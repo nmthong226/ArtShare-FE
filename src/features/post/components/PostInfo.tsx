@@ -134,7 +134,7 @@ const PostInfo = ({ postData }: PostInfoProps) => {
   const handleCloseLikesDialog = () => setIsLikesDialogOpen(false);
 
   const handleFocusCommentInput = () => {
-    postCommentsRef.current?.focusInput();
+    postCommentsRef.current?.focusCommentInput();
   };
 
   if (!postData) return null;
@@ -164,10 +164,15 @@ const PostInfo = ({ postData }: PostInfoProps) => {
             </AnyShowMoreText>
             <div className="text-gray-500 text-xs italic">
               Posted{" "}
-              <ReactTimeAgo
-                date={new Date(postData.created_at)}
-                locale="en-US"
-              />
+              {postData.created_at &&
+              !isNaN(new Date(postData.created_at).getTime()) ? (
+                <ReactTimeAgo
+                  date={new Date(postData.created_at)}
+                  locale="en-US"
+                />
+              ) : (
+                "Unknown time"
+              )}
             </div>
           </div>
           {/* Categories */}
