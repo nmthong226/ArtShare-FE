@@ -266,16 +266,29 @@ const formatNotificationMessage = (
 
 // Helper function to make names bold in notification messages
 const formatMessageWithBoldNames = (message: string) => {
-  // This is a simple implementation that tries to identify user names
-  // You might want to enhance this based on your specific message formats
+  // Enhanced implementation to handle various notification patterns
 
-  // Look for patterns like "UserName did something" or "UserName published"
-  const namePattern =
-    /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+(?:published|liked|commented|followed|reported|updated))/i;
-  const match = message.match(namePattern);
+  // Pattern for report notifications: "Your report regarding "Name" has been reviewed and resolved"
+  const reportPattern =
+    /^Your report regarding\s*[""']([^""']+)[""']\s*(has been\s*.+)$/i;
+  const reportMatch = message.match(reportPattern);
+  if (reportMatch) {
+    const reportedName = reportMatch[1].trim();
+    const restOfMessage = reportMatch[2].trim();
+    return (
+      <>
+        Your report regarding <span className="font-bold">{reportedName}</span>{" "}
+        {restOfMessage}
+      </>
+    );
+  }
 
-  if (match) {
-    const userName = match[1];
+  // Pattern 1: "UserName started following you"
+  const followingPattern =
+    /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+started following you)/i;
+  const followingMatch = message.match(followingPattern);
+  if (followingMatch) {
+    const userName = followingMatch[1].trim().replace(/^"|"$/g, ""); // Remove quotes
     const action = message.substring(userName.length);
     return (
       <>
@@ -283,6 +296,116 @@ const formatMessageWithBoldNames = (message: string) => {
         {action}
       </>
     );
+  }
+
+  // Pattern 2: "UserName followed you"
+  const followedPattern = /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+followed you)/i;
+  const followedMatch = message.match(followedPattern);
+  if (followedMatch) {
+    const userName = followedMatch[1].trim().replace(/^"|"$/g, ""); // Remove quotes
+    const action = message.substring(userName.length);
+    return (
+      <>
+        <span className="font-bold">{userName}</span>
+        {action}
+      </>
+    );
+  }
+
+  // Pattern 3: "UserName replied to your comment"
+  const replyPattern =
+    /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+replied to your comment)/i;
+  const replyMatch = message.match(replyPattern);
+  if (replyMatch) {
+    const userName = replyMatch[1].trim().replace(/^"|"$/g, ""); // Remove quotes
+    const action = message.substring(userName.length);
+    return (
+      <>
+        <span className="font-bold">{userName}</span>
+        {action}
+      </>
+    );
+  }
+
+  // Pattern 4: "UserName mentioned you in a comment"
+  const mentionPattern = /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+mentioned you)/i;
+  const mentionMatch = message.match(mentionPattern);
+  if (mentionMatch) {
+    const userName = mentionMatch[1].trim().replace(/^"|"$/g, ""); // Remove quotes
+    const action = message.substring(userName.length);
+    return (
+      <>
+        <span className="font-bold">{userName}</span>
+        {action}
+      </>
+    );
+  }
+
+  // Pattern 5: "UserName shared your post"
+  const sharePattern =
+    /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+shared your (?:post|artwork))/i;
+  const shareMatch = message.match(sharePattern);
+  if (shareMatch) {
+    const userName = shareMatch[1].trim().replace(/^"|"$/g, ""); // Remove quotes
+    const action = message.substring(userName.length);
+    return (
+      <>
+        <span className="font-bold">{userName}</span>
+        {action}
+      </>
+    );
+  }
+
+  // Pattern 6: "UserName added your post to their collection"
+  const collectionPattern =
+    /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+added your (?:post|artwork) to)/i;
+  const collectionMatch = message.match(collectionPattern);
+  if (collectionMatch) {
+    const userName = collectionMatch[1].trim().replace(/^"|"$/g, ""); // Remove quotes
+    const action = message.substring(userName.length);
+    return (
+      <>
+        <span className="font-bold">{userName}</span>
+        {action}
+      </>
+    );
+  }
+
+  // Pattern 7: General pattern for common verbs
+  const generalPattern =
+    /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+(?:published|liked|commented|followed|reported|updated|created|deleted|edited|voted|rated|reviewed|subscribed|unsubscribed|joined|left))/i;
+  const generalMatch = message.match(generalPattern);
+  if (generalMatch) {
+    const userName = generalMatch[1].trim().replace(/^"|"$/g, ""); // Remove quotes
+    const action = message.substring(userName.length);
+    return (
+      <>
+        <span className="font-bold">{userName}</span>
+        {action}
+      </>
+    );
+  }
+
+  // Pattern 8: Handle messages with usernames at the beginning followed by any verb
+  const anyVerbPattern = /^([^.\s]+(?:\s+[^.\s]+)*?)(\s+\w+)/i;
+  const anyVerbMatch = message.match(anyVerbPattern);
+  if (anyVerbMatch) {
+    const userName = anyVerbMatch[1].trim().replace(/^"|"$/g, ""); // Remove quotes
+    // Only apply bold if the username looks like a valid username (not just a single word like "The" or "A")
+    if (
+      userName.length >= 2 &&
+      !["the", "a", "an", "your", "their", "our"].includes(
+        userName.toLowerCase(),
+      )
+    ) {
+      const action = message.substring(userName.length);
+      return (
+        <>
+          <span className="font-bold">{userName}</span>
+          {action}
+        </>
+      );
+    }
   }
 
   // If no pattern matches, return the original message
