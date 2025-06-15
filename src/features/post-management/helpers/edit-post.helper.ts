@@ -17,7 +17,9 @@ export const getNewVideoFile = (videoMedia?: PostMedia): File | undefined => {
   return videoMedia.file.size > 0 ? videoMedia.file : undefined;
 };
 
-export const getNewlyUploadedRequiredFile = (thumbnail: PostMedia): File | undefined => {
+export const getNewlyUploadedRequiredFile = (
+  thumbnail: PostMedia,
+): File | undefined => {
   return thumbnail.file.size > 0 ? thumbnail.file : undefined;
 };
 
@@ -48,10 +50,9 @@ export const createFormDataForEdit = ({
   isMature,
   aiCreated,
 }: EditFormDataParams) => {
-
   const formData = new FormData();
   formData.append("title", title);
-  if (description) formData.append("description", description);
+  if (description !== undefined) formData.append("description", description);
   // TODO: uncomment this
   formData.append("cate_ids", JSON.stringify(cate_ids));
   formData.append("video_url", videoUrl ?? "");
