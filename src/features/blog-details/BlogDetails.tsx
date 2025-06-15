@@ -27,15 +27,14 @@ import {
   unfollowUser,
 } from "../user-profile-public/api/follow.api";
 import { AxiosError } from "axios";
-import { extractReportErrorMessage } from "@/utils/error.util";
 import { createLike, removeLike } from "./api/like-blog";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { TargetType } from "@/utils/constants";
 
 // Import your ReportDialog and the reporting hook
 import ReportDialog from "../user-profile-public/components/ReportDialog";
-import { ReportTargetType } from "../user-profile-public/api/report.api";
 import { useReport } from "../user-profile-public/hooks/useReport";
+import { ReportTargetType } from "../user-profile-public/api/report.api";
 
 import "./BlogDetails.css";
 interface BlogError {
@@ -227,11 +226,10 @@ const BlogDetails = () => {
           );
         },
         onError: (err: Error) => {
-          const displayMessage = extractReportErrorMessage(
-            err,
-            ReportTargetType.BLOG,
+          showSnackbar(
+            `Failed to report blog: ${err.message || "Unknown error"}`,
+            "error",
           );
-          showSnackbar(displayMessage, "error");
         },
       },
     );
@@ -434,7 +432,7 @@ const BlogDetails = () => {
       <Tooltip title="Comment" placement="bottom" arrow>
         <div
           className="flex justify-center items-center bg-green-100 dark:bg-green-800/40 hover:bg-green-200 dark:hover:bg-green-700/60 shadow-md p-2 rounded-full w-14 h-14 font-medium text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-200 hover:cursor-pointer transition-all duration-200"
-          onClick={() => commentSectionRef.current?.focusInput()}
+          onClick={() => commentSectionRef.current?.focusCommentInput()}
         >
           <BiComment className="mr-1 size-4 text-green-600 dark:text-green-400" />
           <span className="text-green-700 dark:text-green-300 font-medium">
@@ -579,8 +577,8 @@ const BlogDetails = () => {
           {/* For unpublished blogs, hide or disable certain actions */}
           {isPublished && (
             <div
-              className={`w-full h-20 flex justify-center items-center
-                ${!showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+              className={`transition-all duration-300 ease-in-out w-full h-20 flex justify-center items-center
+                ${showAuthorBadge ? "sticky bottom-4 z-10" : "opacity-100"}`}
             >
               <ActionButtons />
             </div>
@@ -641,11 +639,7 @@ const BlogDetails = () => {
           {isPublished ? (
             <>
               <div
-                className={`${
-                  showAuthorBadge
-                    ? "opacity-100 h-20 sticky bottom-4 z-10"
-                    : "opacity-0 pointer-events-none h-0"
-                } flex justify-center items-center rounded-full w-full overflow-hidden`}
+                className={`${showAuthorBadge ? "opacity-100" : "opacity-0 pointer-events-none"} transition ease-in-out duration-300 flex justify-center items-center rounded-full w-full h-20`}
               >
                 <ActionButtons />
               </div>

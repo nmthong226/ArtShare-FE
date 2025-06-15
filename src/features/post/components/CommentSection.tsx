@@ -1234,7 +1234,7 @@ const CommentSection = forwardRef<CommentSectionRef, Props>(
     useImperativeHandle(
       postCommentsRef,
       () => ({
-        focusInput: focusLogic,
+        focusCommentInput: focusLogic,
         highlightComment: (commentId: number) => {
           // Changed string to number
           setHighlightedCommentId(commentId);

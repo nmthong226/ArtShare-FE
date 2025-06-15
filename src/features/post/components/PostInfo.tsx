@@ -134,7 +134,7 @@ const PostInfo = ({ postData }: PostInfoProps) => {
   const handleCloseLikesDialog = () => setIsLikesDialogOpen(false);
 
   const handleFocusCommentInput = () => {
-    postCommentsRef.current?.focusInput();
+    postCommentsRef.current?.focusCommentInput();
   };
 
   if (!postData) return null;
