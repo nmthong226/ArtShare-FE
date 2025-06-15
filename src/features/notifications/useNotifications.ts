@@ -159,51 +159,13 @@ export function useNotifications(userId: string): UseNotificationsReturn {
 
   const markAllAsRead = useCallback(async () => {
     try {
-      setError(null);
+      const res = await api.post(
+        `/notifications/read-all`,
+      );
+      console.log(res)
 
-      const response = await api.post("/notifications/read-all");
-
-      if (response.status !== 200 && response.status !== 201) {
-        throw new Error("Failed to mark all notifications as read");
-      }
-
-      // Clear both state and Set
+      if (res.status !== 201) throw new Error("Failed to mark all as read");
       setNotifications([]);
-      notificationIdsRef.current.clear();
-
-      console.log("[useNotifications] All notifications marked as read");
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Failed to mark notifications as read";
-      console.error("[useNotifications] markAllAsRead error:", err);
-      setError(errorMessage);
-      throw err;
-    }
-  }, []);
-
-  const markAsRead = useCallback(async (notificationId: string) => {
-    try {
-      setError(null);
-
-      const response = await api.post("/notifications/read", {
-        id: notificationId,
-      });
-
-      if (response.status !== 200 && response.status !== 201) {
-        throw new Error("Failed to mark notification as read");
-      }
-
-      setNotifications((prev) =>
-        prev.filter((notification) => notification.id !== notificationId),
-      );
-      notificationIdsRef.current.delete(notificationId);
-
-      console.log(
-        "[useNotifications] Notification marked as read:",
-        notificationId,
-      );
     } catch (err) {
       const errorMessage =
         err instanceof Error

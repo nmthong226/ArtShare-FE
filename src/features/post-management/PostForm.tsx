@@ -118,6 +118,7 @@ const PostForm: React.FC<PostFormProps> = ({
       .min(5, "Title must be at least 5 characters")
       .required("Title is required"),
     // cate_ids: Yup.array().min(1, 'Please select at least one category').required('Categories are required'),
+    description: Yup.string().defined().optional(),
   });
 
   return (

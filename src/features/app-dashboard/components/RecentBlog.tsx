@@ -3,8 +3,8 @@ import { useRef } from "react";
 import { CircularProgress } from "@mui/material";
 import BlogItem from "@/components/lists/BlogItem";
 import { useQuery } from "@tanstack/react-query";
-import { fetchBlogs } from "@/features/blog-details/api/blog";
 import { Blog } from "@/types/blog"; // Adjust path
+import { fetchBlogs } from "@/features/browse-blogs/api/fetch-blogs.api";
 
 const RecentBlog = () => {
   const blogAreaRef = useRef<HTMLDivElement>(null);
@@ -16,7 +16,10 @@ const RecentBlog = () => {
     error,
   } = useQuery<Blog[]>({
     queryKey: ["recentBlogs"],
-    queryFn: () => fetchBlogs({ take: 3, skip: 0 }),
+    queryFn: async () => {
+      const response = await fetchBlogs("trending", { page: 1, limit: 3 });
+      return response.data;
+    },
     retry: 1, // Only retry once
   });
 

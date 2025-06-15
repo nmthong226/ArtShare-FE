@@ -432,7 +432,7 @@ const BlogDetails = () => {
       <Tooltip title="Comment" placement="bottom" arrow>
         <div
           className="flex justify-center items-center bg-green-100 dark:bg-green-800/40 hover:bg-green-200 dark:hover:bg-green-700/60 shadow-md p-2 rounded-full w-14 h-14 font-medium text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-200 hover:cursor-pointer transition-all duration-200"
-          onClick={() => commentSectionRef.current?.focusInput()}
+          onClick={() => commentSectionRef.current?.focusCommentInput()}
         >
           <BiComment className="mr-1 size-4 text-green-600 dark:text-green-400" />
           <span className="text-green-700 dark:text-green-300 font-medium">

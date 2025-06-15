@@ -1,5 +1,13 @@
 // Complete minimal implementation with toast notifications
+// Complete minimal implementation with toast notifications
 
+// components/SuggestPrompt.tsx
+import { RiRobot2Line } from "react-icons/ri";
+import { Button, TextareaAutosize, CircularProgress } from "@mui/material";
+import { ArrowUp, RefreshCw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useChat } from "../../hook/useChat";
+import { useSnackbar } from "@/hooks/useSnackbar";
 // components/SuggestPrompt.tsx
 import { RiRobot2Line } from 'react-icons/ri';
 import { Button, TextareaAutosize, CircularProgress } from '@mui/material';

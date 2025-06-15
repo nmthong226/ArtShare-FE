@@ -1,4 +1,5 @@
 import api from "@/api/baseApi";
+import { PaginatedResponse } from "@/api/types/paginated-response.type";
 import {
   Blog,
   mapSimpleBlogResponseToBlog,
@@ -11,68 +12,6 @@ import {
 export const fetchBlogDetails = async (blogId: number): Promise<Blog> => {
   const response = await api.get<Blog>(`/blogs/${blogId}`);
   return response.data;
-};
-
-/**
- * Fetch a paginated list of published blogs.
- * GET /blogs
- */
-export const fetchBlogs = async (params?: {
-  take?: number;
-  skip?: number;
-  search?: string;
-}): Promise<Blog[]> => {
-  const response = await api.get<SimpleBlogResponseDto[]>("/blogs", { params });
-  // Use the simpler mapping function that matches the actual response structure
-  return response.data.map(mapSimpleBlogResponseToBlog);
-};
-
-/**
- * Fetch trending blogs, optionally filtered by categories.
- * GET /blogs/trending
- */
-export const fetchTrendingBlogs = async (params?: {
-  take?: number;
-  skip?: number;
-  categories?: string[];
-}): Promise<Blog[]> => {
-  // Use SimpleBlogResponseDto since trending endpoint returns same structure as /blogs
-  const response = await api.get<SimpleBlogResponseDto[]>("/blogs/trending", {
-    params,
-  });
-  return response.data.map(mapSimpleBlogResponseToBlog);
-};
-
-/**
- * Fetch blogs from followed users.
- * GET /blogs/following
- */
-export const fetchFollowingBlogs = async (params?: {
-  take?: number;
-  skip?: number;
-  categories?: string[];
-}): Promise<Blog[]> => {
-  // Use SimpleBlogResponseDto since following endpoint likely returns same structure
-  const response = await api.get<SimpleBlogResponseDto[]>("/blogs/following", {
-    params,
-  });
-  return response.data.map(mapSimpleBlogResponseToBlog);
-};
-
-/**
- * Search blogs by query.
- * GET /blogs/search
- */
-export const searchBlogs = async (params: {
-  take?: number;
-  skip?: number;
-  search?: string;
-}): Promise<Blog[]> => {
-  // Use SimpleBlogResponseDto since search endpoint likely returns same structure
-  const response = await api.get<SimpleBlogResponseDto[]>("/blogs/search", {
-    params,
-  });
-  return response.data.map(mapSimpleBlogResponseToBlog);
 };
 
 // ... (toggleBookmark, protectBlog, rateBlog - these likely don't return Blog objects, so no mapping needed for them)
@@ -130,13 +69,16 @@ export const fetchRelevantBlogs = async (
   params?: { take?: number; skip?: number },
 ): Promise<Blog[]> => {
   // Only use BackendBlogListItemDto if this endpoint actually returns that structure
-  const response = await api.get<SimpleBlogResponseDto[]>(
+  const response = await api.get<PaginatedResponse<SimpleBlogResponseDto>>(
     `/blogs/${blogId}/relevant`,
     {
       params,
     },
   );
-  return response.data.map(mapSimpleBlogResponseToBlog);
+
+  const paginatedResponse = response.data;
+
+  return paginatedResponse.data.map(mapSimpleBlogResponseToBlog);
 };
 
 /**
