@@ -177,6 +177,38 @@ export function useNotifications(userId: string): UseNotificationsReturn {
     }
   }, []);
 
+  const markAsRead = useCallback(async (notificationId: string) => {
+    try {
+      setError(null);
+
+      const response = await api.post("/notifications/read", {
+        id: notificationId,
+      });
+
+      if (response.status !== 200 && response.status !== 201) {
+        throw new Error("Failed to mark notification as read");
+      }
+
+      setNotifications((prev) =>
+        prev.filter((notification) => notification.id !== notificationId),
+      );
+      notificationIdsRef.current.delete(notificationId);
+
+      console.log(
+        "[useNotifications] Notification marked as read:",
+        notificationId,
+      );
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to mark notification as read";
+      console.error("[useNotifications] markAsRead error:", err);
+      setError(errorMessage);
+      throw err; // Re-throw so caller can handle
+    }
+  }, []);
+
   return {
     notifications,
     isLoading,

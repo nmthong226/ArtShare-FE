@@ -1,13 +1,4 @@
 // Complete minimal implementation with toast notifications
-// Complete minimal implementation with toast notifications
-
-// components/SuggestPrompt.tsx
-import { RiRobot2Line } from "react-icons/ri";
-import { Button, TextareaAutosize, CircularProgress } from "@mui/material";
-import { ArrowUp, RefreshCw } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useChat } from "../../hook/useChat";
-import { useSnackbar } from "@/hooks/useSnackbar";
 // components/SuggestPrompt.tsx
 import { RiRobot2Line } from 'react-icons/ri';
 import { Button, TextareaAutosize, CircularProgress } from '@mui/material';
@@ -102,7 +93,7 @@ const SuggestPrompt = () => {
                         startIcon={<RefreshCw className="w-4 h-4" />}
                         variant="text"
                         size="small"
-                        className='absolute top-4 right-4 text-mountain-600'
+                        className='absolute top-1 right-4 text-mountain-600'
                     >
                         New Chat
                     </Button>
