@@ -35,7 +35,7 @@ interface ProjectGenPostsProp {
 
 const MAX_WORDS = 2000;
 
-const ProjectGenPostsTab: React.FC<ProjectGenPostsProp> = ({}) => {
+const ProjectGenPostsTab: React.FC<ProjectGenPostsProp> = () => {
   const [postNumber, setPostNumber] = useState<string>("1");
   const [generateMode, setGenerateMode] = useState(true);
   const [postContent, setPostContent] = useState<GenPostContent[]>([]);

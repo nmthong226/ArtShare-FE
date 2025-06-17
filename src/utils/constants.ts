@@ -58,7 +58,14 @@ export enum TargetType {
   BLOG = "BLOG",
 }
 
-export const routesForHeaders = [
+export interface HeaderRoute {
+  path: string;
+  label: string;
+  description: string;
+  parent?: string;
+}
+
+export const routesForHeaders: HeaderRoute[] = [
   {
     path: "/dashboard",
     label: "Home Page",
@@ -83,7 +90,7 @@ export const routesForHeaders = [
     path: "/blogs/:id",
     label: "Read Blogs",
     description: "Dive into creative experiences shared by artists",
-    parent: "/blogs"
+    parent: "/blogs",
   },
   {
     path: "/docs",
@@ -106,7 +113,7 @@ export const routesForHeaders = [
     path: "/posts/:id",
     label: "Post Details",
     description: "View artwork in detail and engage with the artist's post",
-    parent: "/explore"
+    parent: "/explore",
   },
   {
     path: "/collections",
@@ -132,7 +139,7 @@ export const routesForHeaders = [
     path: "/auto/:slug/posts/new",
     label: "Create Posts For Workflow",
     description: "",
-    parent: "/auto/:slug/details"
+    parent: "/auto/:slug/details",
   },
   {
     path: "/auto/my-projects",

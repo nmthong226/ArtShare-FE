@@ -1,17 +1,15 @@
-import React, { useRef, useState } from "react";
-import { matchPath, useLocation, useNavigate } from "react-router-dom";
-import { TiDeleteOutline } from "react-icons/ti";
-import { FiSearch } from "react-icons/fi";
-
-import UserInAppConfigs from "../popovers/UserInAppConfigs";
-import { Input } from "../ui/input";
-import UserButton from "./user-button";
-
-import { useSearch } from "@/contexts/SearchProvider";
-import { useUser } from "@/contexts/UserProvider";
-import { routesForHeaders } from "@/utils/constants";
-import { FaArrowLeft } from "react-icons/fa6";
-import { Button } from "../ui/button";
+import { useSearch } from '@/contexts/SearchProvider';
+import { useUser } from '@/contexts/UserProvider';
+import { HeaderRoute, routesForHeaders } from '@/utils/constants';
+import React, { useRef, useState } from 'react';
+import { FaArrowLeft } from 'react-icons/fa6';
+import { FiSearch } from 'react-icons/fi';
+import { TiDeleteOutline } from 'react-icons/ti';
+import { matchPath, useLocation, useNavigate } from 'react-router-dom';
+import UserInAppConfigs from '../popovers/UserInAppConfigs';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import UserButton from './user-button';
 
 function findMatchedRoute(pathname: string) {
   return routesForHeaders.find((route) =>
@@ -19,13 +17,20 @@ function findMatchedRoute(pathname: string) {
   );
 }
 
-function buildBreadcrumbTrail(route: any): { path: string; label: string }[] {
+function buildBreadcrumbTrail(
+  route: HeaderRoute | null,
+): { path: string; label: string }[] {
   const trail = [];
   while (route) {
     trail.unshift({ path: route.path, label: route.label });
-    route = route.parent
-      ? routesForHeaders.find((r) => r.path === route.parent)
-      : null;
+    if (route.parent) {
+      const parentRoute = routesForHeaders.find(
+        (r) => r.path === route!.parent,
+      );
+      route = parentRoute ?? null;
+    } else {
+      route = null;
+    }
   }
   return trail;
 }
@@ -40,7 +45,7 @@ function useBreadcrumbs() {
 const Header: React.FC = () => {
   const { user, loading } = useUser();
   const [isFocused, setIsFocused] = useState(false);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const { setQuery } = useSearch();
   const navigate = useNavigate();
@@ -69,7 +74,7 @@ const Header: React.FC = () => {
                 <React.Fragment key={crumb.path}>
                   {index > 0 && <span className="px-1 text-gray-400">/</span>}
                   <span
-                    className={`${index === breadcrumbs.length - 1 ? "font-medium text-foreground" : ""} text-lg`}
+                    className={`${index === breadcrumbs.length - 1 ? 'font-medium text-foreground' : ''} text-lg`}
                   >
                     {crumb.label}
                   </span>
@@ -82,7 +87,7 @@ const Header: React.FC = () => {
                             rounded-2xl h-10 text-neutral-700 focus-within:text-mountain-950 dark:focus-within:text-mountain-50 
                             dark:text-neutral-300 -translate-x-1/2 -translate-y-1/2 
                             transition-all duration-300 ease-in-out 
-                            ${isFocused ? "w-108" : "w-96"}`}
+                            ${isFocused ? 'w-108' : 'w-96'}`}
           >
             <FiSearch className="absolute w-5 h-5 -translate-y-1/2 top-1/2 left-2" />
             <Input
@@ -94,8 +99,8 @@ const Header: React.FC = () => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setInputValue("");
+                if (e.key === 'Enter') {
+                  setInputValue('');
                   setQuery(inputValue);
                   inputRef.current?.blur();
                   navigate(`/search?q=${inputValue}`);
@@ -103,10 +108,10 @@ const Header: React.FC = () => {
               }}
             />
             <TiDeleteOutline
-              className={`right-2 text-mountain-600 absolute w-5 h-5 ${inputValue.length <= 0 ? "hidden" : "flex"}`}
+              className={`right-2 text-mountain-600 absolute w-5 h-5 ${inputValue.length <= 0 ? 'hidden' : 'flex'}`}
               onClick={() => {
-                setInputValue("");
-                setQuery("");
+                setInputValue('');
+                setQuery('');
               }}
             />
           </div>
