@@ -1,16 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { matchPath, useLocation, useNavigate } from "react-router-dom";
-
-//Icons
 import { TiDeleteOutline } from "react-icons/ti";
 import { FiSearch } from "react-icons/fi";
 
-//Components
 import UserInAppConfigs from "../popovers/UserInAppConfigs";
 import { Input } from "../ui/input";
 import UserButton from "./user-button";
 
-//Context
 import { useSearch } from "@/contexts/SearchProvider";
 import { useUser } from "@/contexts/UserProvider";
 import { routesForHeaders } from "@/utils/constants";
@@ -18,8 +14,8 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { Button } from "../ui/button";
 
 function findMatchedRoute(pathname: string) {
-  return routesForHeaders.find(route =>
-    matchPath({ path: route.path, end: true }, pathname)
+  return routesForHeaders.find((route) =>
+    matchPath({ path: route.path, end: true }, pathname),
   );
 }
 
@@ -28,7 +24,7 @@ function buildBreadcrumbTrail(route: any): { path: string; label: string }[] {
   while (route) {
     trail.unshift({ path: route.path, label: route.label });
     route = route.parent
-      ? routesForHeaders.find(r => r.path === route.parent)
+      ? routesForHeaders.find((r) => r.path === route.parent)
       : null;
   }
   return trail;
@@ -46,12 +42,8 @@ const Header: React.FC = () => {
   const [isFocused, setIsFocused] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const { query, setQuery } = useSearch();
+  const { setQuery } = useSearch();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    console.log("Query updated:", query);
-  }, [query]);
 
   const breadcrumbs = useBreadcrumbs();
   const hasBack = breadcrumbs.length > 1;
@@ -76,7 +68,9 @@ const Header: React.FC = () => {
               {breadcrumbs.map((crumb, index) => (
                 <React.Fragment key={crumb.path}>
                   {index > 0 && <span className="px-1 text-gray-400">/</span>}
-                  <span className={`${index === breadcrumbs.length - 1 ? "font-medium text-foreground" : ""} text-lg`}>
+                  <span
+                    className={`${index === breadcrumbs.length - 1 ? "font-medium text-foreground" : ""} text-lg`}
+                  >
                     {crumb.label}
                   </span>
                 </React.Fragment>
@@ -128,7 +122,7 @@ const Header: React.FC = () => {
         <UserButton user={user!} loading={loading!} />
         <UserInAppConfigs />
       </div>
-    </nav >
+    </nav>
   );
 };
 

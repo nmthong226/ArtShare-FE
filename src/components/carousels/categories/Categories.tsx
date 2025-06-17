@@ -238,7 +238,7 @@ export const DataPopper: React.FC<DataPopperProps> = ({
         <Fade {...TransitionProps} timeout={350}>
           <Paper
             className={cn(
-              "rounded-lg w-72 max-h-[70vh] overflow-y-auto custom-scrollbar",
+              "rounded-lg w-72 max-h-[60vh] overflow-y-auto custom-scrollbar",
               className,
             )}
           >
