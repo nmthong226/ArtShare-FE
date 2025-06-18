@@ -24,6 +24,7 @@ import AutoPostCreation from "./features/media-automation/AutoPostCreation";
 import AutomationLayout from "./layouts/featLayouts/AutomationLayout";
 import AutoProjectCreation from "./features/media-automation/AutoProjectCreation";
 import AutomationProjectDetails from "./features/media-automation/AutomationProjectDetails";
+import UserSubscription from "./features/user-profile-private/UserSubscription";
 
 // Lazy imports for pages/features
 const LandingPage = lazy(() => import("@/pages/Home"));
@@ -126,13 +127,6 @@ const routeConfig: RouteObject[] = [
           { path: "/blogs", element: <BrowseBlogs /> },
           { path: "/blogs/:blogId", element: <BlogDetails /> },
           { path: "/search", element: <Search /> },
-          { path: "/auto/link-social", element: <LinkSocial /> },
-          { path: "/auto/my-projects", element: <AutomationProject /> },
-          { path: "/auto/my-projects/new", element: <AutoProjectCreation /> },
-          {
-            path: "/auto/:slug/details",
-            element: <AutomationProjectDetails />,
-          },
         ],
       },
       // In-App Private
@@ -152,11 +146,12 @@ const routeConfig: RouteObject[] = [
           { path: "/posts/new", element: <UploadPost /> },
           { path: "/collections", element: <Collection /> },
           { path: "/docs", element: <DocumentDashboard /> },
-          // { path: "/auto/link-social", element: <LinkSocial /> },
-          // { path: "/auto/my-projects", element: <AutomationProject /> },
-          // { path: "/auto/my-projects/new", element: <AutoProjectCreation /> },
-          // { path: "/auto/:slug/details", element: <AutomationProjectDetails /> },
-          { path: "/:username", element: <UserProfile /> }, // <== last
+          { path: "/auto/link-social", element: <LinkSocial /> },
+          { path: "/auto/my-projects", element: <AutomationProject /> },
+          { path: "/auto/my-projects/new", element: <AutoProjectCreation /> },
+          { path: "/auto/:slug/details", element: <AutomationProjectDetails /> },
+          { path: "/app-subscription", element: <UserSubscription />  },
+          { path: "/:username", element: <UserProfile /> },
         ],
       },
       {

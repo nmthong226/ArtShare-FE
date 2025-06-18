@@ -126,6 +126,11 @@ export const routesForHeaders: HeaderRoute[] = [
     description: "Update your user profile information if needed",
   },
   {
+    path: "/app-subscription",
+    label: "App Subscription",
+    description: "View and manage your current subscription plan",
+  },
+  {
     path: "/:username",
     label: "My Profile",
     description: "This place is yours",
