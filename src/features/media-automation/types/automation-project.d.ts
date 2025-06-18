@@ -1,20 +1,20 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from 'react';
 
-export type Order = "asc" | "desc";
+export type Order = 'asc' | 'desc';
 
 export type SortableKeys =
-  | keyof Pick<AutoProject, "title" | "status" | "nextPostAt">
-  | "autoPosts";
+  | keyof Pick<AutoProject, 'title' | 'status' | 'nextPostAt'>
+  | 'autoPosts';
 
 export interface HeadCell {
-  id: SortableKeys | "platforms" | "actions"; // The unique ID for the column. Can be non-sortable.
+  id: SortableKeys | 'platforms' | 'actions'; // The unique ID for the column. Can be non-sortable.
   label: string;
   numeric: boolean;
   disablePadding: boolean;
   isSortable: boolean; // Flag to control if the column should have sorting UI.
 }
 
-type PostStatus = "canceled" | "draft" | "scheduled" | "active";
+type PostStatus = 'canceled' | 'draft' | 'scheduled' | 'active';
 
 interface Data {
   id: number;
@@ -50,7 +50,7 @@ type ProjectDialogProps = {
   selectedRow: Data;
 };
 
-type PostStatus = "draft" | "scheduled" | "posted" | "canceled";
+type PostStatus = 'draft' | 'scheduled' | 'posted' | 'canceled';
 
 type AutoPost = {
   id: number;
@@ -91,11 +91,11 @@ interface HeadCellItemTable {
 }
 
 interface GenPostContent {
-    id: number;
-    title: string;
-    content: string;
-    images?: string[];
-    hashtags?: string[];
+  id: number;
+  title: string;
+  content: string;
+  images?: string[];
+  hashtags?: string[];
 }
 
 export interface AutoPostMeta {
@@ -103,22 +103,17 @@ export interface AutoPostMeta {
   images_count: number;
 }
 
-export interface CreateAutoProjectPayload {
-  title: string;
-  description: string;
-  platform_id: number;
-  auto_post_meta_list: AutoPostMeta[];
-}
+export type ProjectStatus = ACTIVE | COMPLETED | CANCELLED | FAILED | DRAFT;
 
 export interface AutoProject {
   id: number;
   title: string;
   description: string;
-  status: "ACTIVE" | "COMPLETED" | "CANCELLED" | "FAILED"; // Matches Prisma Enum
+  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'FAILED'; // Matches Prisma Enum
   platforms: {
     platform: {
       id: number;
-      name: "FACEBOOK" | "INSTAGRAM"; // Matches Prisma Enum
+      name: 'FACEBOOK' | 'INSTAGRAM'; // Matches Prisma Enum
     };
   }[];
   _count: {
@@ -126,6 +121,22 @@ export interface AutoProject {
   };
   // Assuming your backend can determine the next post time
   nextPostAt: string | null;
+}
+
+export interface AutoProjectDetailsDto {
+  id: number;
+  title: string;
+  description: string;
+  status: AutoProjectStatus;
+  created_at: Date;
+  updated_at: Date | null;
+  platform: {
+    id: number;
+    name: SharePlatform;
+    external_page_id: string;
+    token_expires_at: Date | null;
+    status: PlatformStatus;
+  };
 }
 
 export interface ProjectSummaryStats {
