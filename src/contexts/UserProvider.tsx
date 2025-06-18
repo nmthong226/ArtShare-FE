@@ -19,7 +19,6 @@ import { login, signup } from "@/api/authentication/auth";
 import { User } from "@/types";
 import { getUserProfile } from "@/features/user-profile-private/api/get-user-profile";
 import { useNavigate } from "react-router-dom";
-import api from "@/api/baseApi";
 
 interface UserContextType {
   user: User | null;
@@ -57,8 +56,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             const fbToken = await firebaseUser.getIdToken();
             const { access_token } = await login(fbToken);
             localStorage.setItem("accessToken", access_token);
-            api.defaults.headers.common["Authorization"] =
-              `Bearer ${access_token}`;
             const data = await getUserProfile();
             setUser(data);
           } catch (err) {

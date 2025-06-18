@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import Cropper, { Area, Point } from "react-easy-crop";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,10 +14,6 @@ import MuiButton from "@mui/material/Button";
 import { ThumbnailMeta } from "@/features/post-management/types/crop-meta.type";
 import getCroppedImg from "@/utils/cropImage";
 
-const DEFAULT_CROP = { x: 0, y: 0 };
-const DEFAULT_ZOOM = 1;
-const DEFAULT_ASPECT_LABEL = "Original";
-
 interface Props {
   originalThumbnailUrl: string;
   open: boolean;
@@ -25,18 +21,6 @@ interface Props {
   onCropped: (croppedFile: Blob, thumbnail_crop_meta: ThumbnailMeta) => void;
   thumbnailMeta: ThumbnailMeta;
 }
-
-interface AspectOption {
-  label: string;
-  value: number;
-}
-
-const aspectOptions: AspectOption[] = [
-  { label: "1:1", value: 1 },
-  { label: "3:2", value: 3 / 2 },
-  { label: "2:3", value: 2 / 3 },
-  { label: "9:16", value: 9 / 16 },
-];
 
 const ImageCropperModal: React.FC<Props> = ({
   originalThumbnailUrl,
@@ -212,4 +196,25 @@ const ImageCropperModal: React.FC<Props> = ({
   );
 };
 
-export default ImageCropperModal;
+export default memo(ImageCropperModal, (prevProps, nextProps) => {
+  return (
+    prevProps.open === nextProps.open &&
+    prevProps.originalThumbnailUrl === nextProps.originalThumbnailUrl
+  );
+});
+
+interface AspectOption {
+  label: string;
+  value: number;
+}
+
+const aspectOptions: AspectOption[] = [
+  { label: "1:1", value: 1 },
+  { label: "3:2", value: 3 / 2 },
+  { label: "2:3", value: 2 / 3 },
+  { label: "9:16", value: 9 / 16 },
+];
+
+const DEFAULT_CROP = { x: 0, y: 0 };
+const DEFAULT_ZOOM = 1;
+const DEFAULT_ASPECT_LABEL = "Original";

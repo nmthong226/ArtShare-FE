@@ -42,16 +42,11 @@ const EditPost: React.FC = () => {
 
     setHasArtNovaImages(fetchedPost.ai_created);
 
-    // Set thumbnail and original thumbnail
     setThumbnail({
       url: fetchedPost.thumbnail_url,
       type: MEDIA_TYPE.IMAGE,
       file: new File([], "template file for thumbnail"),
     });
-    console.log(
-      "Setting original thumbnail with crop meta:",
-      fetchedPost.thumbnail_crop_meta,
-    );
     setOriginalThumbnail({
       url: fetchedPost.thumbnail_crop_meta.initialThumbnail,
       type: MEDIA_TYPE.IMAGE,

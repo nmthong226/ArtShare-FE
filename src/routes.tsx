@@ -4,18 +4,20 @@ import { Navigate, RouteObject, useRoutes, Outlet } from "react-router-dom";
 
 // Layouts & Wrappers
 import RootLayout from "@/layouts";
-import AuthenLayout from "@/layouts/featLayouts/AuthenLayout";
-import InAppLayout from "@/layouts/InAppLayout";
-import AILayout from "@/layouts/featLayouts/ImageToolsLayout";
 import ProtectedAuthRoute from "@/components/ProtectedItems/ProtectedAuthRoute";
 import ProtectedInAppRoute from "@/components/ProtectedItems/ProtectedInAppRoute";
 import GuestRoute from "@/components/routes/guest-route";
-import EditUser from "./features/edit-user/EditUserPage";
-import OnboardingProfile from "./pages/Onboarding";
-
-import Dashboard from "./features/app-dashboard/Dashboard";
 import OnboardingRoute from "./components/ProtectedItems/OnboardingRoute";
-import RequireOnboard from "./components/ProtectedItems/RequireOnboard";
+
+const AuthenLayout = lazy(() => import("@/layouts/featLayouts/AuthenLayout"));
+const InAppLayout = lazy(() => import("@/layouts/InAppLayout"));
+const AILayout = lazy(() => import("@/layouts/featLayouts/ImageToolsLayout"));
+const Dashboard = lazy(() => import("./features/app-dashboard/Dashboard"));
+const EditUser = lazy(() => import("./features/edit-user/EditUserPage"));
+const OnboardingProfile = lazy(() => import("./pages/Onboarding"));
+const RequireOnboard = lazy(
+  () => import("./components/ProtectedItems/RequireOnboard"),
+);
 import LinkSocial from "./features/media-automation/LinkSocial";
 import AutomationProject from "./features/media-automation/AutomationProject";
 import AutoPostCreation from "./features/media-automation/AutoPostCreation";
@@ -127,7 +129,10 @@ const routeConfig: RouteObject[] = [
           { path: "/auto/link-social", element: <LinkSocial /> },
           { path: "/auto/my-projects", element: <AutomationProject /> },
           { path: "/auto/my-projects/new", element: <AutoProjectCreation /> },
-          { path: "/auto/:slug/details", element: <AutomationProjectDetails /> },
+          {
+            path: "/auto/:slug/details",
+            element: <AutomationProjectDetails />,
+          },
         ],
       },
       // In-App Private
@@ -152,7 +157,22 @@ const routeConfig: RouteObject[] = [
           // { path: "/auto/my-projects/new", element: <AutoProjectCreation /> },
           // { path: "/auto/:slug/details", element: <AutomationProjectDetails /> },
           { path: "/:username", element: <UserProfile /> }, // <== last
-        ]
+        ],
+      },
+      {
+        element: (
+          <RequireOnboard>
+            <ProtectedInAppRoute>
+              <AutomationLayout>
+                <Outlet />
+              </AutomationLayout>
+            </ProtectedInAppRoute>
+          </RequireOnboard>
+        ),
+        children: [
+          { path: "/auto/:slug/posts/new", element: <AutoPostCreation /> },
+          { path: "/auto/:slug/posts/:id", element: <AutoPostCreation /> },
+        ],
       },
       // In-App AI Private
       {
@@ -182,7 +202,7 @@ const routeConfig: RouteObject[] = [
         ),
         children: [
           { path: "/auto/:slug/posts/new", element: <AutoPostCreation /> },
-          { path: "/auto/:slug/posts/:id", element: <AutoPostCreation /> }
+          { path: "/auto/:slug/posts/:id", element: <AutoPostCreation /> },
         ],
       },
       // No layout routes
@@ -194,9 +214,7 @@ const routeConfig: RouteObject[] = [
             </ProtectedInAppRoute>
           </RequireOnboard>
         ),
-        children: [
-          { path: "/docs/:blogId", element: <MyWriting /> },
-        ]
+        children: [{ path: "/docs/:blogId", element: <MyWriting /> }],
       },
       // Catch-all -> redirect
       { path: "*", element: <Navigate to="/" replace /> },

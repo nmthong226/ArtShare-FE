@@ -15,5 +15,6 @@ export const useGetPostDetails = (postId?: string | number) => {
       return response.data;
     },
     enabled: isEnabled,
+    staleTime: 5 * 60 * 1000,
   });
 };
