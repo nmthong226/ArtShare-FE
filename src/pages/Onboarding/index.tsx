@@ -17,6 +17,10 @@ import {
 import axios, { AxiosError } from "axios";
 import { useUser } from "@/contexts/UserProvider";
 import { getUserProfile } from "@/api/authentication/auth";
+import { User } from "@/types";
+
+// Constants
+const SUCCESS_MESSAGE_TIMEOUT_MS = 1500;
 
 interface ProfileForm {
   full_name: string;
