@@ -90,7 +90,7 @@ const OnboardingProfile: React.FC = () => {
     try {
       await api.patch("/users/profile", payload);
       // mark them onboarded in context so guards will let them through
-      const updatedUser = await getUserProfile(user!.id);
+      const updatedUser: User = await getUserProfile(user!.id);
       setUser!(updatedUser);
 
       // Show success message first
