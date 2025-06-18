@@ -135,10 +135,10 @@ const OnboardingProfile: React.FC = () => {
           e.preventDefault();
         }}
         hideCloseButton
-        className="w-full max-w-xl bg-white shadow-xl border border-neutral-200 p-6 rounded-lg"
+        className="w-full max-w-xl bg-white dark:bg-neutral-900 shadow-xl border border-neutral-200 dark:border-neutral-700 p-6 rounded-lg"
       >
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-neutral-900 text-center">
+          <DialogTitle className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 text-center">
             Complete your profile
           </DialogTitle>
         </DialogHeader>
@@ -146,7 +146,7 @@ const OnboardingProfile: React.FC = () => {
           {/* Display Name */}
           <div className="space-y-1">
             <label
-              className="text-sm font-medium text-neutral-700"
+              className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
               htmlFor="full_name"
             >
               Display Name <span className="text-rose-500">*</span>
@@ -155,8 +155,7 @@ const OnboardingProfile: React.FC = () => {
               id="full_name"
               placeholder="Your Fullname"
               {...register("full_name", { required: true, maxLength: 80 })}
-              className="w-full px-4 py-2 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-neutral-400 text-neutral-900"
-              style={{ color: "#6b7280" }} // Ensuring text color is different from placeholder
+              className="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-800"
             />
             {errors.full_name && (
               <p className="text-xs text-rose-500">Display name is required</p>
@@ -166,7 +165,7 @@ const OnboardingProfile: React.FC = () => {
           {/* Username */}
           <div className="space-y-1">
             <label
-              className="text-sm font-medium text-neutral-700"
+              className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
               htmlFor="username"
             >
               Username <span className="text-rose-500">*</span>
@@ -194,8 +193,7 @@ const OnboardingProfile: React.FC = () => {
                     "Use only lowercase letters, numbers, _, and - (no spaces)",
                 },
               })}
-              className="w-full px-4 py-2 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-neutral-400 text-neutral-900"
-              style={{ color: "#6b7280" }}
+              className="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-800"
             />
 
             {/* Error handling */}
@@ -207,7 +205,7 @@ const OnboardingProfile: React.FC = () => {
           {/* Birthday */}
           <div className="space-y-1">
             <label
-              className="text-sm font-medium text-neutral-700"
+              className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
               htmlFor="birthday"
             >
               Birthday <span className="text-rose-500">*</span>
@@ -222,6 +220,7 @@ const OnboardingProfile: React.FC = () => {
                     ? true
                     : "You must be at least 13 years old.",
               })}
+              className="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-800"
             />
 
             {errors.birthday && (
@@ -232,7 +231,7 @@ const OnboardingProfile: React.FC = () => {
           {/* Bio */}
           <div className="space-y-1">
             <label
-              className="text-sm font-medium text-neutral-700"
+              className="text-sm font-medium text-neutral-700 dark:text-neutral-300"
               htmlFor="bio"
             >
               Bio (optional)
@@ -241,12 +240,12 @@ const OnboardingProfile: React.FC = () => {
               id="bio"
               minRows={3}
               maxLength={150}
-              className="w-full px-4 py-2 rounded-lg border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-neutral-900 text-sm"
+              className="w-full px-4 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 text-sm placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
               placeholder="A short description about you"
               {...register("bio")}
               style={{ resize: "none" }}
             />
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {150 - (watch("bio")?.length || 0)} characters left
             </p>
           </div>
@@ -255,7 +254,7 @@ const OnboardingProfile: React.FC = () => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex justify-center mt-4 bg-blue-600 text-white rounded-lg p-2"
+            className="w-full flex justify-center mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg p-2"
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save changes
@@ -269,7 +268,7 @@ const OnboardingProfile: React.FC = () => {
               <XCircle className="text-rose-500 w-8 h-8 mb-2" />
             )}
             <span
-              className={`text-base font-medium ${popMessage.ok ? "text-green-700" : "text-rose-700"}`}
+              className={`text-base font-medium ${popMessage.ok ? "text-green-700 dark:text-green-400" : "text-rose-700 dark:text-rose-400"}`}
             >
               {popMessage.text}
             </span>
