@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import axios, { AxiosError } from "axios";
 import { useUser } from "@/contexts/UserProvider";
-import { User } from "@/types";
+import { getUserProfile } from "@/api/authentication/auth";
 
 interface ProfileForm {
   full_name: string;
@@ -90,14 +90,18 @@ const OnboardingProfile: React.FC = () => {
     try {
       await api.patch("/users/profile", payload);
       // mark them onboarded in context so guards will let them through
-      setUser!({ ...(user as User), is_onboard: true });
+      const updatedUser = await getUserProfile(user!.id);
+      setUser!(updatedUser);
+
+      // Show success message first
+      showDialog(true, "Profile completed successfully!");
       reset(raw);
-      // Close the dialog first so that the useEffect cleans up the body styles
-      setOpen(false);
-      // Navigate after a short delay to allow the cleanup to run
+
+      // Navigate after showing success message for better UX
       setTimeout(() => {
-        navigate("/explore");
-      }, 0);
+        setOpen(false);
+        navigate("/explore", { replace: true });
+      }, 1500);
     } catch (err: unknown) {
       // ──── 1. Axios error? ───────────────────────────────────────
       if (axios.isAxiosError(err)) {
