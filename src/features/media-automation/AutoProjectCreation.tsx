@@ -83,14 +83,15 @@ const AutoProjectCreation = () => {
   };
 
   const { mutate: createProject } = useCreateProject({
-    onSuccess: () => setCurrentStep('build-posts'),
+    onSuccess: (createResponse) => {
+      handleStepChange('build-posts');
+      setProjectName(createResponse.title);
+      setPlatformName(createResponse.platform.name);
+    },
   });
 
   const handleSubmitCreateProject = async (values: ProjectFormValues) => {
     createProject(values);
-
-    setProjectName(values.projectName);
-    setPlatformName(values.platform.name);
   };
 
   return (
