@@ -1,5 +1,3 @@
-import { Dispatch, SetStateAction } from "react";
-
 export type Order = "asc" | "desc";
 
 export type SortableKeys =
@@ -7,11 +5,11 @@ export type SortableKeys =
   | "autoPosts";
 
 export interface HeadCell {
-  id: SortableKeys | "platforms" | "actions"; // The unique ID for the column. Can be non-sortable.
+  id: SortableKeys | "platforms" | "actions";
   label: string;
   numeric: boolean;
   disablePadding: boolean;
-  isSortable: boolean; // Flag to control if the column should have sorting UI.
+  isSortable: boolean;
 }
 
 type PostStatus = "canceled" | "draft" | "scheduled" | "active";
@@ -43,12 +41,6 @@ interface EnhancedTableToolbarProps {
   dense: boolean;
   handleChangeDense: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
-
-type ProjectDialogProps = {
-  openDiaLog: boolean;
-  setOpenDialog: Dispatch<SetStateAction<boolean>>;
-  selectedRow: Data;
-};
 
 type PostStatus = "draft" | "scheduled" | "posted" | "canceled";
 
@@ -91,11 +83,11 @@ interface HeadCellItemTable {
 }
 
 interface GenPostContent {
-    id: number;
-    title: string;
-    content: string;
-    images?: string[];
-    hashtags?: string[];
+  id: number;
+  title: string;
+  content: string;
+  images?: string[];
+  hashtags?: string[];
 }
 
 export interface AutoPostMeta {
@@ -114,17 +106,17 @@ export interface AutoProject {
   id: number;
   title: string;
   description: string;
-  status: "ACTIVE" | "COMPLETED" | "CANCELLED" | "FAILED"; // Matches Prisma Enum
+  status: "ACTIVE" | "COMPLETED" | "CANCELLED" | "FAILED";
   platforms: {
     platform: {
       id: number;
-      name: "FACEBOOK" | "INSTAGRAM"; // Matches Prisma Enum
+      name: "FACEBOOK" | "INSTAGRAM";
     };
   }[];
   _count: {
     autoPosts: number;
   };
-  // Assuming your backend can determine the next post time
+
   nextPostAt: string | null;
 }
 
