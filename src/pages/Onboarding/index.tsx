@@ -101,7 +101,7 @@ const OnboardingProfile: React.FC = () => {
       setTimeout(() => {
         setOpen(false);
         navigate("/explore", { replace: true });
-      }, 1500);
+      }, SUCCESS_MESSAGE_TIMEOUT_MS);
     } catch (err: unknown) {
       // ──── 1. Axios error? ───────────────────────────────────────
       if (axios.isAxiosError(err)) {
