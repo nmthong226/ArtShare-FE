@@ -121,7 +121,7 @@ const ProjectInfoForm = forwardRef<ProjectInfoFormRef, ProjectInfoProp>(
         );
 
         const response = await api.get(
-          `/facebook-integration/initiate-connection-url?redirectUrl=${encodedRedirectUrl}`,
+          `/facebook-integration/initiate-connection-url?successUrl=${encodedRedirectUrl}&errorUrl=${encodedRedirectUrl}`,
         );
         const { facebookLoginUrl } = response.data;
         if (facebookLoginUrl) {
