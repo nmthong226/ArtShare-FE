@@ -1,5 +1,5 @@
 import Loading from '@/components/loading/Loading';
-import { Container, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ProjectForm from '../components/ProjectForm';
@@ -54,19 +54,15 @@ const ProjectEditorPage = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography
-        variant="h4" // A visually appropriate size for a page title.
-        component="h1" // Keeps the correct HTML tag for SEO and accessibility.
-        gutterBottom // Adds a standard margin below the text.
-      >
+    <Box className="p-3 flex-1">
+      <Typography variant="h4" component="h1" gutterBottom>
         {isEditMode ? 'Edit Project' : 'Create a New Project'}
       </Typography>
 
       {isLoadingProject && <Loading />}
 
       <ProjectForm initialValues={initialValues} onSubmit={handleSubmitForm} />
-    </Container>
+    </Box>
   );
 };
 

@@ -1,4 +1,5 @@
 import api from '@/api/baseApi';
+import InlineErrorMessage from '@/components/InlineErrorMessage';
 import {
   Select,
   SelectContent,
@@ -9,7 +10,7 @@ import {
 import { SharePlatformName } from '@/features/media-automation/types';
 import { useSnackbar } from '@/hooks/useSnackbar';
 import { Menu, MenuItem } from '@mui/material';
-import { FormikHelpers } from 'formik';
+import { ErrorMessage, useFormikContext } from 'formik';
 import { useEffect, useState } from 'react';
 import { FaFacebookSquare, FaInstagram } from 'react-icons/fa';
 import { FiRepeat } from 'react-icons/fi';
@@ -18,20 +19,20 @@ import { useFetchLinkedPlatforms } from '../../hooks/useFetchLinkedPlatforms';
 import { FormPlatform, ProjectFormValues } from '../../types';
 import { Platform } from '../../types/platform';
 
-interface PlatformSelectionProps {
-  initialPlatform: FormPlatform;
-  setFieldValue: FormikHelpers<ProjectFormValues>['setFieldValue'];
-}
+const name = 'platform';
 
-const PlatformSelection = ({
-  initialPlatform,
-  setFieldValue,
-}: PlatformSelectionProps) => {
+const PlatformSelection = () => {
+  const { setFieldValue, getFieldMeta } = useFormikContext<ProjectFormValues>();
   const { showSnackbar } = useSnackbar();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const [selectedPlatformName, setSelectedPlatformName] =
-    useState<SharePlatformName | null>(null);
+  const initialPlatform = getFieldMeta(name).initialValue as FormPlatform;
+  const [platformTypeToFetch, setPlatformTypeToFetch] =
+    useState<SharePlatformName | null>(() =>
+      isValidInitialPlatform(initialPlatform)
+        ? (initialPlatform.name as SharePlatformName)
+        : null,
+    );
 
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(
     null,
@@ -41,20 +42,26 @@ const PlatformSelection = ({
     useState<Platform | null>(null);
 
   const {
-    data: platforms = [],
+    data: fetchedPlatforms = [],
     isLoading,
     error,
   } = useFetchLinkedPlatforms({
-    platformName: selectedPlatformName,
+    platformName: platformTypeToFetch,
   });
 
   useEffect(() => {
-    if (initialPlatform.id > 0) {
-      setSelectedPlatformName(initialPlatform.name as SharePlatformName);
+    if (
+      fetchedPlatforms.length > 0 &&
+      isValidInitialPlatform(initialPlatform)
+    ) {
+      const foundPlatform = fetchedPlatforms.find(
+        (p) => p.id === initialPlatform.id,
+      );
+      setSelectedPlatform(foundPlatform!);
+    } else {
+      setSelectedPlatform(null);
     }
-    const platform = platforms.find((p) => p.id === initialPlatform.id);
-    setSelectedPlatform(platform!);
-  }, [initialPlatform, platforms]);
+  }, [fetchedPlatforms, initialPlatform]);
 
   const handleMenuOpen = (
     event: React.MouseEvent<HTMLElement>,
@@ -69,6 +76,18 @@ const PlatformSelection = ({
   const handleMenuClose = () => {
     setAnchorEl(null);
     setPlatformToReconnect(null);
+  };
+
+  const handlePlatformSelected = (platform: Platform) => {
+    setSelectedPlatform(platform);
+    setFieldValue(`${name}.id`, platform.id);
+    setFieldValue(`${name}.name`, platform.name);
+  };
+  const handlePlatformTypeChange = (value: SharePlatformName) => {
+    setPlatformTypeToFetch(value);
+    setSelectedPlatform(null);
+    // Reset the Formik field value when the type changes
+    setFieldValue(`${name}.id`, -1);
   };
 
   const handleReconnectClick = () => {
@@ -124,13 +143,7 @@ const PlatformSelection = ({
           Select Platform
           <span className="text-red-600">*</span>
         </label>
-        <Select
-          onValueChange={(value: SharePlatformName) => {
-            setSelectedPlatformName(value);
-            setSelectedPlatform(null);
-          }}
-          // disabled={isLoading}
-        >
+        <Select onValueChange={handlePlatformTypeChange}>
           <SelectTrigger className="w-[180px] data-[size=default]:h-10">
             <SelectValue placeholder="Choose Platform" />
           </SelectTrigger>
@@ -143,6 +156,10 @@ const PlatformSelection = ({
           </SelectContent>
         </Select>
 
+        <ErrorMessage name={`${name}.id`}>
+          {(errorMsg) => <InlineErrorMessage errorMsg={errorMsg} />}
+        </ErrorMessage>
+
         <label className="block mt-6 mb-1 font-medium">
           Choose Account
           <span className="text-red-600">*</span>
@@ -151,7 +168,7 @@ const PlatformSelection = ({
         {isLoading && <p>Loading platforms...</p>}
         {error && <p className="text-red-500">{error.message}</p>}
 
-        {!isLoading && !error && selectedPlatformName === 'INSTAGRAM' && (
+        {!isLoading && !error && platformTypeToFetch === 'INSTAGRAM' && (
           <div className="relative flex flex-col items-center justify-center p-4 text-center bg-gray-100 border cursor-not-allowed group h-36 rounded-3xl opacity-80">
             <FaInstagram className="w-10 h-10 mb-2 text-gray-500" />
             <p className="text-sm font-semibold text-gray-700">
@@ -163,11 +180,11 @@ const PlatformSelection = ({
           </div>
         )}
 
-        {!isLoading && !error && selectedPlatformName === 'FACEBOOK' && (
+        {!isLoading && !error && platformTypeToFetch === 'FACEBOOK' && (
           <>
-            {platforms.length > 0 ? (
+            {fetchedPlatforms.length > 0 ? (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {platforms.map((platform) => {
+                {fetchedPlatforms.map((platform) => {
                   const expired = isTokenExpired(platform.token_expires_at);
                   return (
                     <button
@@ -178,13 +195,7 @@ const PlatformSelection = ({
                           ? 'ring-2 ring-mountain-500 border-mountain-500'
                           : 'border-gray-300'
                       }`}
-                      onClick={() => {
-                        setFieldValue('platform', {
-                          id: platform.id,
-                          name: platform.name,
-                        });
-                        setSelectedPlatform(platform);
-                      }}
+                      onClick={() => handlePlatformSelected(platform)}
                     >
                       <div className="flex flex-col items-start space-y-1">
                         {platform.name === 'FACEBOOK' && (
@@ -242,7 +253,7 @@ const PlatformSelection = ({
           </>
         )}
 
-        {!isLoading && !selectedPlatformName && (
+        {!isLoading && !platformTypeToFetch && (
           <p className="text-sm text-mountain-600">
             Please select a platform to continue.
           </p>
@@ -267,3 +278,8 @@ const allAvailablePlatformTypes: SharePlatformName[] = [
   'FACEBOOK',
   'INSTAGRAM',
 ];
+const isValidInitialPlatform = (
+  platform: FormPlatform | null | undefined,
+): boolean => {
+  return !!platform && platform.id > 0 && !!platform.name;
+};

@@ -189,29 +189,6 @@ const routeConfig: RouteObject[] = [
           },
         ],
       },
-      // {
-      //   element: (
-      //     <RequireOnboard>
-      //       <ProtectedInAppRoute>
-      //         <InAppLayout>
-      //           <AutomationLayout>
-      //             <Outlet />
-      //           </AutomationLayout>
-      //         </InAppLayout>
-      //       </ProtectedInAppRoute>
-      //     </RequireOnboard>
-      //   ),
-      //   children: [
-      //     {
-      //       path: '/auto/projects/:projectId/posts/new',
-      //       element: <AutoPostEditorPage />,
-      //     },
-      //     {
-      //       path: '/auto/projects/:projectId/posts/:postId/edit',
-      //       element: <AutoPostEditorPage />,
-      //     },
-      //   ],
-      // },
       // In-App AI Private
       {
         element: (
