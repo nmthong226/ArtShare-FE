@@ -1,24 +1,24 @@
+import { login, signup } from '@/api/authentication/auth';
+import { getUserProfile } from '@/features/user-profile-private/api/get-user-profile';
+import { auth } from '@/firebase';
+import { User } from '@/types';
 import {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
-import { auth } from "@/firebase";
-import {
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut,
-  GoogleAuthProvider,
-  signInWithPopup,
   FacebookAuthProvider,
   getAdditionalUserInfo,
-} from "firebase/auth";
-import { login, signup } from "@/api/authentication/auth";
-import { User } from "@/types";
-import { getUserProfile } from "@/features/user-profile-private/api/get-user-profile";
-import { useNavigate } from "react-router-dom";
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+} from 'firebase/auth';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface UserContextType {
   user: User | null;
@@ -55,12 +55,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           try {
             const fbToken = await firebaseUser.getIdToken();
             const { access_token } = await login(fbToken);
-            localStorage.setItem("accessToken", access_token);
+            localStorage.setItem('accessToken', access_token);
             const data = await getUserProfile();
             setUser(data);
           } catch (err) {
-            console.error("Error retrieving user token:", err);
-            setError("Failed to retrieve user token.");
+            console.error('Error retrieving user token:', err);
+            setError('Failed to retrieve user token.');
           }
         } else {
           setUser(null);
@@ -90,7 +90,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         password,
       );
       const user = userCredential.user;
-      await signup(user.uid, email, "", username);
+      await signup(user.uid, email, '', username);
       const token = await user.getIdToken();
       return token;
     } catch (error) {
@@ -111,7 +111,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       );
       const user = userCredential.user;
       if (!user?.emailVerified) {
-        const errMsg = "Please verify your email before logging in.";
+        const errMsg = 'Please verify your email before logging in.';
         setError(errMsg);
         throw new Error(errMsg);
       }
@@ -124,7 +124,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       if (backendResponse) {
         return token;
       } else {
-        const errMsg = "Error during login. Please try again.";
+        const errMsg = 'Error during login. Please try again.';
         setError(errMsg);
         throw new Error(errMsg);
       }
@@ -144,20 +144,20 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         await signup(
           googleUser.uid,
           googleUser.email!,
-          "",
-          googleUser.displayName || "",
+          '',
+          googleUser.displayName || '',
         );
       }
 
       const googleToken = await googleUser.getIdToken();
       const loginResponse = await login(googleToken);
-      localStorage.setItem("accessToken", loginResponse.access_token);
+      localStorage.setItem('accessToken', loginResponse.access_token);
 
       const data = await getUserProfile();
       setUser(data);
     } catch (error) {
       setError((error as Error).message);
-      console.error("Google sign-in error:", error);
+      console.error('Google sign-in error:', error);
       throw error;
     }
   };
@@ -171,18 +171,18 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
       const backendResponse = await login(token);
       if (backendResponse.success) {
-        navigate("/home", { replace: true });
+        navigate('/home', { replace: true });
       } else {
         const signupResponse = await signup(
           user.uid,
           user.email!,
-          "",
-          user.displayName || "",
+          '',
+          user.displayName || '',
         );
         if (signupResponse.success) {
-          navigate("/home", { replace: true });
+          navigate('/home', { replace: true });
         } else {
-          setError("Error with Facebook login.");
+          setError('Error with Facebook login.');
         }
       }
     } catch (error) {
@@ -194,6 +194,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     try {
       await signOut(auth);
       setUser(null);
+      localStorage.removeItem('accessToken');
     } catch (error) {
       setError((error as Error).message);
     }
@@ -225,7 +226,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {
-    throw new Error("useUser must be used within a UserProvider");
+    throw new Error('useUser must be used within a UserProvider');
   }
   return context;
 };

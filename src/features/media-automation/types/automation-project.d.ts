@@ -1,8 +1,10 @@
-export type Order = "asc" | "desc";
+import { Dispatch, SetStateAction } from 'react';
+
+export type Order = 'asc' | 'desc';
 
 export type SortableKeys =
-  | keyof Pick<AutoProject, "title" | "status" | "nextPostAt">
-  | "autoPosts";
+  | keyof Pick<AutoProject, 'title' | 'status' | 'nextPostAt'>
+  | 'autoPosts';
 
 export interface HeadCell {
   id: SortableKeys | "platforms" | "actions";
@@ -12,7 +14,7 @@ export interface HeadCell {
   isSortable: boolean;
 }
 
-type PostStatus = "canceled" | "draft" | "scheduled" | "active";
+type PostStatus = 'canceled' | 'draft' | 'scheduled' | 'active';
 
 interface Data {
   id: number;
@@ -41,6 +43,12 @@ interface EnhancedTableToolbarProps {
   dense: boolean;
   handleChangeDense: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
+
+type ProjectDialogProps = {
+  openDiaLog: boolean;
+  setOpenDialog: Dispatch<SetStateAction<boolean>>;
+  selectedRow: Data;
+};
 
 type PostStatus = "draft" | "scheduled" | "posted" | "canceled";
 
@@ -95,12 +103,7 @@ export interface AutoPostMeta {
   images_count: number;
 }
 
-export interface CreateAutoProjectPayload {
-  title: string;
-  description: string;
-  platform_id: number;
-  auto_post_meta_list: AutoPostMeta[];
-}
+export type ProjectStatus = ACTIVE | COMPLETED | CANCELLED | FAILED | DRAFT;
 
 export interface AutoProject {
   id: number;
@@ -120,8 +123,31 @@ export interface AutoProject {
   nextPostAt: string | null;
 }
 
+export interface AutoProjectDetailsDto {
+  id: number;
+  title: string;
+  description: string;
+  status: AutoProjectStatus;
+  created_at: Date;
+  updated_at: Date | null;
+  platform: {
+    id: number;
+    name: SharePlatform;
+    external_page_id: string;
+    token_expires_at: Date | null;
+    status: PlatformStatus;
+  };
+}
+
 export interface ProjectSummaryStats {
   active: number;
   completed: number;
   cancelledOrFailed: number;
+}
+
+export interface CreateAutoProjectPayload {
+  title: string;
+  description: string;
+  platform_id: number;
+  auto_post_meta_list: AutoPostMeta[];
 }

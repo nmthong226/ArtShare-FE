@@ -1,6 +1,6 @@
-interface Platform {
+export interface Platform {
   id: number;
-  name: "FACEBOOK" | "INSTAGRAM";
+  name: 'FACEBOOK' | 'INSTAGRAM';
   external_page_id: string;
   config: {
     page_name: string;
