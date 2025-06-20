@@ -7,7 +7,7 @@ export type SortableKeys =
   | 'autoPosts';
 
 export interface HeadCell {
-  id: SortableKeys | "platforms" | "actions";
+  id: SortableKeys | 'platforms' | 'actions';
   label: string;
   numeric: boolean;
   disablePadding: boolean;
@@ -50,8 +50,7 @@ type ProjectDialogProps = {
   selectedRow: Data;
 };
 
-<<<<<<< HEAD:src/features/media-automation/types/automation-project.d.ts
-type PostStatus = "draft" | "scheduled" | "posted" | "canceled";
+type PostStatus = 'draft' | 'scheduled' | 'posted' | 'canceled';
 
 type AutoPost = {
   id: number;
@@ -62,8 +61,6 @@ type AutoPost = {
   scheduledTime?: Date;
 };
 
-=======
->>>>>>> feat/automation:src/features/media-automation/projects/types/automation-project.d.ts
 type AutomationProjectDetail = {
   id: number;
   name: string;
@@ -110,11 +107,11 @@ export interface AutoProject {
   id: number;
   title: string;
   description: string;
-  status: "ACTIVE" | "COMPLETED" | "CANCELLED" | "FAILED";
+  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'FAILED';
   platforms: {
     platform: {
       id: number;
-      name: "FACEBOOK" | "INSTAGRAM";
+      name: 'FACEBOOK' | 'INSTAGRAM';
     };
   }[];
   _count: {
