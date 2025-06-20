@@ -76,7 +76,7 @@ const ProjectForm = ({ initialValues, onSubmit }: ProjectFormProps) => {
                   </Box>
                   <Box className="w-full">
                     <Typography className="flex w-full mb-1 gap-1 font-medium text-left">
-                      <p>Description</p>
+                      Description
                       <span className="text-red-600">*</span>
                     </Typography>
                     <Field

@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { Navigate, Outlet, RouteObject, useRoutes } from 'react-router-dom';
+import { Outlet, RouteObject, useRoutes } from 'react-router-dom';
 
 // Layouts & Wrappers
 import ProtectedAuthRoute from '@/components/ProtectedItems/ProtectedAuthRoute';
@@ -67,6 +67,8 @@ const AutoPostEditorPage = lazy(
   () =>
     import('@/features/media-automation/auto-posts/routes/AutoPostEditorPage'),
 );
+
+const NotFoundPage = lazy(() => import('@/components/NotFoundPage'));
 
 const routeConfig: RouteObject[] = [
   {
@@ -217,7 +219,7 @@ const routeConfig: RouteObject[] = [
         children: [{ path: '/docs/:blogId', element: <MyWriting /> }],
       },
       // Catch-all -> redirect
-      { path: '*', element: <Navigate to="/" replace /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ];

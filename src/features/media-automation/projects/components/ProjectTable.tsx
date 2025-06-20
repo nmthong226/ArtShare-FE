@@ -405,7 +405,7 @@ export default function ProjectTable({
                               className="bg-indigo-50 border-1 border-mountain-200 font-normal"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/auto/projects/edit/${row.id}`);
+                                navigate(`/auto/projects/${row.id}/edit`);
                               }}
                             >
                               Edit
