@@ -20,7 +20,7 @@ import { useState } from 'react';
 import { IoFilter, IoTrashBin } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import {
-  AutoProject,
+  AutoProjectListItem,
   EnhancedTableProps,
   HeadCell,
   Order,
@@ -36,14 +36,14 @@ const headCells: readonly HeadCell[] = [
     isSortable: true,
   },
   {
-    id: 'platforms',
+    id: 'platform',
     numeric: true,
     disablePadding: false,
-    label: 'Platforms',
+    label: 'Platform',
     isSortable: false,
   },
   {
-    id: 'autoPosts',
+    id: 'postCount',
     numeric: true,
     disablePadding: false,
     label: 'Post Number',
@@ -61,7 +61,7 @@ const headCells: readonly HeadCell[] = [
     numeric: true,
     disablePadding: false,
     label: 'Next Post Time',
-    isSortable: false,
+    isSortable: true,
   },
 ];
 
@@ -174,7 +174,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
 }
 
 interface ProjectTableProps {
-  projects: AutoProject[];
+  projects: AutoProjectListItem[];
   totalProjects: number;
   isLoading: boolean;
   order: Order;
@@ -365,20 +365,15 @@ export default function ProjectTable({
                         </TableCell>
                         <TableCell align="right">
                           <div className="flex flex-wrap justify-end gap-2">
-                            {row.platforms.map((p, index) => (
-                              <div
-                                key={index}
-                                className="bg-mountain-100 px-2 py-1 rounded"
-                              >
+                            {
+                              <div className="bg-mountain-100 px-2 py-1 rounded">
                                 {/* CHANGE: Using the helper function here */}
-                                {formatToTitleCase(p.platform.name)}
+                                {formatToTitleCase(row.platform.name)}
                               </div>
-                            ))}
+                            }
                           </div>
                         </TableCell>
-                        <TableCell align="right">
-                          {row._count.autoPosts}
-                        </TableCell>
+                        <TableCell align="right">{row.postCount}</TableCell>
                         <TableCell align="right">
                           <span className="flex justify-end items-center gap-2 text-sm">
                             <span

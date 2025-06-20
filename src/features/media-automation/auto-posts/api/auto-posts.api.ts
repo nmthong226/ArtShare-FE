@@ -1,4 +1,5 @@
 import api from '@/api/baseApi';
+import { PaginatedResponse } from '@/api/types/paginated-response.type';
 import { getQueryParams } from '@/utils';
 import { Order } from '../../projects/types/automation-project';
 import { AutoPost, AutoPostStatus } from '../types';
@@ -14,9 +15,7 @@ export interface GetAutoPostsParams {
 
 export const getAutoPosts = async (
   params: GetAutoPostsParams,
-): Promise<AutoPost[]> => {
-  const response = await api.get<AutoPost[]>(
-    `/auto-post${getQueryParams(params)}`,
-  );
+): Promise<PaginatedResponse<AutoPost>> => {
+  const response = await api.get(`/auto-post${getQueryParams(params)}`);
   return response.data;
 };

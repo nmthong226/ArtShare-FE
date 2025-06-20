@@ -1,27 +1,17 @@
 import api from '@/api/baseApi';
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { FaCalendarCheck, FaCalendarTimes } from 'react-icons/fa';
 import { FaCalendarDays } from 'react-icons/fa6';
 import { MdOutlineAddBox } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import ProjectTable from '../components/ProjectTable';
+import { useGetProjects } from '../hooks/useGetProjects';
 import {
-  AutoProject,
   Order,
   ProjectSummaryStats,
   SortableKeys,
 } from '../types/automation-project';
-
-interface ProjectsResponse {
-  projects: AutoProject[];
-  total: number;
-}
 
 const ProjectsPage = () => {
   const navigate = useNavigate();
@@ -29,32 +19,24 @@ const ProjectsPage = () => {
 
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<SortableKeys>('nextPostAt');
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [selected, setSelected] = useState<readonly number[]>([]);
 
   const {
-    data,
+    data: fetchedProjectsResponse,
     isLoading: isFetchingProjects,
     error: fetchError,
-  } = useQuery<ProjectsResponse, Error>({
-    queryKey: ['auto-projects', { page, rowsPerPage, orderBy, order }],
-    queryFn: async () => {
-      const response = await api.get('/auto-project', {
-        params: {
-          page: page + 1,
-          page_size: rowsPerPage,
-          sort_by: orderBy,
-          sort_order: order,
-        },
-      });
-      return response.data;
-    },
-    placeholderData: keepPreviousData,
-  });
+  } = useGetProjects({ page, rowsPerPage, orderBy, order });
 
-  const projects = useMemo(() => data?.projects ?? [], [data]);
-  const totalProjects = data?.total ?? 0;
+  const projects = useMemo(
+    () => fetchedProjectsResponse?.data ?? [],
+    [fetchedProjectsResponse?.data],
+  );
+  const totalProjects = useMemo(
+    () => fetchedProjectsResponse?.total ?? 0,
+    [fetchedProjectsResponse?.total],
+  );
 
   const {
     mutate: deleteProjects,

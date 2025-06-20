@@ -1,17 +1,16 @@
 import { Dispatch, SetStateAction } from 'react';
+import { SharePlatformName } from '../../types';
 
 export type Order = 'asc' | 'desc';
 
-export type SortableKeys =
-  | keyof Pick<AutoProject, 'title' | 'status' | 'nextPostAt'>
-  | 'autoPosts';
+export type SortableKeys = 'title' | 'status' | 'nextPostAt' | 'postCount';
 
 export interface HeadCell {
-  id: SortableKeys | 'platforms' | 'actions'; // The unique ID for the column. Can be non-sortable.
+  id: SortableKeys | 'platform' | 'actions'; // The unique ID for the column. Can be non-sortable.
   label: string;
   numeric: boolean;
   disablePadding: boolean;
-  isSortable: boolean; // Flag to control if the column should have sorting UI.
+  isSortable: boolean;
 }
 
 type PostStatus = 'canceled' | 'draft' | 'scheduled' | 'active';
@@ -92,23 +91,28 @@ export interface AutoPostMeta {
   images_count: number;
 }
 
-export interface AutoProject {
+export interface AutoProjectListItem {
   id: number;
   title: string;
   description: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'FAILED'; // Matches Prisma Enum
-  platforms: {
-    platform: {
-      id: number;
-      name: 'FACEBOOK' | 'INSTAGRAM'; // Matches Prisma Enum
-    };
-  }[];
-  _count: {
-    autoPosts: number;
+  status: ProjectStatus;
+  platform: {
+    id: number;
+    name: SharePlatformName; // Matches Prisma Enum
   };
+  postCount: number;
   // Assuming your backend can determine the next post time
   nextPostAt: string | null;
 }
+// "id": 9,
+// "title": "àdsaf",
+// "status": "ACTIVE",
+// "platform": {
+//     "id": 1,
+//     "name": "FACEBOOK"
+// },
+// "postCount": 0,
+// "nextPostAt": null
 
 export type ProjectStatus = ACTIVE | COMPLETED | CANCELLED | FAILED | DRAFT;
 

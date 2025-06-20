@@ -16,6 +16,6 @@ export const useGetProjectDetails = (
     },
 
     enabled: !!numericId && (options?.enabled ?? true),
-    staleTime: 0,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
