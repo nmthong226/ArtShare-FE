@@ -10,6 +10,7 @@ import { useUser } from "@/contexts/UserProvider";
 import { AxiosError } from "axios";
 import { getAuth } from "firebase/auth";
 import { getUserProfile } from "@/api/authentication/auth";
+import { validatePassword, validateEmail } from "@/utils/validation";
 
 const SignUp = () => {
   const { signUpWithEmail, authenWithGoogle, signUpWithFacebook } = useUser();
@@ -21,11 +22,44 @@ const SignUp = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate(); // To navigate after signup
 
+  // Handle password change with validation
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const passwordValue = e.target.value;
+    setPassword(passwordValue);
+
+    const validationError = validatePassword(passwordValue);
+    setPasswordError(validationError || "");
+  };
+
+  // Handle email change with validation
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const emailValue = e.target.value;
+    setEmail(emailValue);
+
+    const validationError = validateEmail(emailValue);
+    setEmailError(validationError || "");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(""); // Clear previous error
     setEmailError("");
     setPasswordError("");
+
+    // Validate email before submitting
+    const emailValidationError = validateEmail(email);
+    if (emailValidationError) {
+      setEmailError(emailValidationError);
+      return;
+    }
+
+    // Validate password before submitting
+    const passwordValidationError = validatePassword(password);
+    if (passwordValidationError) {
+      setPasswordError(passwordValidationError);
+      return;
+    }
+
     try {
       const token = await signUpWithEmail(email, password, username); // Get the token
       localStorage.setItem("user_verify", token);
@@ -172,7 +206,7 @@ const SignUp = () => {
             placeholder="Enter your email"
             className="dark:bg-mountain-900 shadow-sm mt-1 p-3 border border-mountain-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full h-10 text-mountain-950 dark:text-mountain-50"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={handleEmailChange}
           />
           {emailError && emailError.length > 0 && (
             <p className="mt-2 text-red-600 dark:text-red-400 text-sm">
@@ -190,22 +224,34 @@ const SignUp = () => {
           <Input
             type="password"
             placeholder="Enter your password"
-            className="dark:bg-mountain-900 shadow-sm mt-1 p-3 border border-mountain-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full h-10 text-mountain-950 dark:text-mountain-50"
+            className={`dark:bg-mountain-900 shadow-sm mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 w-full h-10 text-mountain-950 dark:text-mountain-50 ${
+              passwordError
+                ? "border-red-500 focus:ring-red-500"
+                : password && !passwordError
+                  ? "border-green-500 focus:ring-green-500"
+                  : "border-mountain-800 focus:ring-blue-500"
+            }`}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
           />
           {passwordError && passwordError.length > 0 && (
             <p className="mt-2 text-red-600 dark:text-red-400 text-sm">
               {passwordError}
             </p>
           )}
+          {password && !passwordError ? (
+            <div className="flex items-center gap-2 mt-1">
+              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <p className="text-green-600 dark:text-green-400 text-xs font-medium">
+                Password requirements satisfied!
+              </p>
+            </div>
+          ) : (
+            <p className="mt-1 text-mountain-500 dark:text-mountain-400 text-xs">
+              At least 8 characters with numbers & symbols
+            </p>
+          )}
         </div>
-        <div className="flex justify-between items-center mt-4">
-          <span className="text-mountain-500 text-xs xl:text-sm">
-            Your password must be at least 8 characters, numbers & symbols.
-          </span>
-        </div>
-
         <Button
           type="submit"
           className="bg-mountain-800 hover:bg-mountain-700 dark:bg-gradient-to-r dark:from-blue-800 dark:via-purple-700 dark:to-pink-900 hover:brightness-110 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full h-10 font-bold text-white dark:text-mountain-50 hover:cursor-pointer"
