@@ -140,7 +140,7 @@ const PostInfo = ({ postData }: PostInfoProps) => {
 
   const location = useLocation();
 
-  const handleCopyLink = async (e: React.MouseEvent) => {
+  const handleCopyLink = useCallback(async (e: React.MouseEvent) => {
       e.stopPropagation();
       const fullUrl = `${window.location.origin}${location.pathname}${location.search}`;
       try {
