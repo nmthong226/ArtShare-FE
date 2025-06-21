@@ -1,59 +1,60 @@
-import api from '@/api/baseApi';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogTitle } from '@mui/material';
-import { Check, LoaderPinwheel, Plus, Trash2Icon, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { FiSearch } from 'react-icons/fi';
-import { TiDeleteOutline } from 'react-icons/ti';
-import { PlatformStatus } from '../../types';
-import { useDisconnectPlatform } from '../hooks/useDisconnectPlatform';
-import { usePlatforms } from '../hooks/usePlatforms';
-import fb_icon from '/fb_icon.png';
-import ins_icon from '/ins_icon.png';
-import linkedin_icon from '/linkedin_icon.png';
+import { Button, Dialog, DialogContent, DialogTitle } from '@mui/material';
+import { Newspaper, Plus, Trash2Icon } from 'lucide-react';
+import { useState } from 'react';
+import fb_icon from '/public/fb_icon.png';
+import ins_icon from '/public/ins_icon.png';
+import linkedin_icon from '/public/linkedin_icon.png';
+import { PiArrowsClockwise } from 'react-icons/pi';
+import { MdLogout } from 'react-icons/md';
+import dayjs from 'dayjs';
+import UserGuide from '../components/UserGuide';
 
 const SocialLinksPage = () => {
-  const { data: platforms = [], isLoading, error } = usePlatforms();
-  const {
-    mutate: disconnect,
-    isPending: isDisconnecting,
-    variables: disconnectingId,
-  } = useDisconnectPlatform();
-
-  const [selectedPlatformFilter, setSelectedPlatformFilter] =
-    useState<string>('All');
-  const [searchInput, setSearchInput] = useState<string>('');
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('Facebook');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [connectError, setConnectError] = useState<string | null>(null);
-
-  const handleFacebookConnect = async () => {
-    try {
-      setConnectError(null);
-      const currentPageUrl = window.location.href;
-      const encodedRedirectUrl = encodeURIComponent(currentPageUrl);
-      const response = await api.get(
-        `/facebook-integration/initiate-connection-url?successUrl=${encodedRedirectUrl}&errorUrl=${encodedRedirectUrl}`,
-      );
-      const { facebookLoginUrl } = response.data;
-      if (facebookLoginUrl) {
-        window.location.href = facebookLoginUrl;
-      }
-    } catch (err) {
-      console.error('Failed to get reconnection URL', err);
-      setConnectError(
-        'Could not initiate reconnection. Please try again later.',
-      );
-    }
+  const [dialogUserGuideOpen, setDialogUserGuideOpen] = useState<boolean>(false);
+  const platforms = ['Facebook', 'Instagram', 'LinkedIn', 'Twitter'];
+  const facebookProfile = {
+    name: 'Travelaro Tralala',
+    profilePicture: 'https://i.pravatar.cc/150?img=37',
   };
+  const facebookPages = [
+    {
+      id: 1,
+      platform: 'Facebook',
+      name: 'John’s Page',
+      post: 15,
+      status: 'Connected',
+      expiredAt: dayjs().add(30, 'day').format('MMM D, YYYY'),
+    },
+    {
+      id: 4,
+      platform: 'Facebook',
+      name: 'Backup Page',
+      post: 2,
+      status: 'Connected',
+      expiredAt: dayjs().add(30, 'day').format('MMM D, YYYY'),
+    },
+    {
+      id: 2,
+      platform: 'Facebook',
+      name: 'John’s Page',
+      post: 15,
+      status: 'Connected',
+      expiredAt: dayjs().add(30, 'day').format('MMM D, YYYY'),
+    },
+    {
+      id: 3,
+      platform: 'Facebook',
+      name: 'John’s Page',
+      post: 15,
+      status: 'Connected',
+      expiredAt: dayjs().add(30, 'day').format('MMM D, YYYY'),
+    },
+  ];
 
-  const onDisconnectClick = (platformId: number) => {
-    if (window.confirm('Are you sure you want to disconnect this account?')) {
-      disconnect(platformId);
-    }
-  };
-
-  const getPlatformIcon = (platformName: string) => {
-    switch (platformName.toLowerCase()) {
+  const getPlatformIcon = (platform: string) => {
+    switch (platform.toLowerCase()) {
       case 'facebook':
         return fb_icon;
       case 'instagram':
@@ -61,177 +62,168 @@ const SocialLinksPage = () => {
       case 'linkedin':
         return linkedin_icon;
       default:
-        return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+        return null;
     }
   };
-
-  const formatExpiryDate = (dateString: string | null) => {
-    if (!dateString) return 'Token does not expire';
-    const date = new Date(dateString);
-    return `Expires: ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`;
-  };
-
-  const filteredPlatforms = useMemo(() => {
-    return platforms
-      .filter(
-        (acc) =>
-          selectedPlatformFilter === 'All' ||
-          acc.name.toLowerCase() === selectedPlatformFilter.toLowerCase(),
-      )
-      .filter((acc) =>
-        acc.config.page_name.toLowerCase().includes(searchInput.toLowerCase()),
-      );
-  }, [platforms, selectedPlatformFilter, searchInput]);
+  const filteredAccounts = facebookPages.filter((acc) => acc.platform === selectedPlatform);
 
   return (
     <div className="flex flex-col items-center gap-4 p-4 w-full h-[calc(100vh-4rem)]">
       <div className="flex w-full h-full gap-4">
         {/* Filter Panel */}
         <div className="flex flex-col w-1/4 h-full gap-2 space-y-2 bg-white border border-mountain-200 rounded-3xl">
-          <div className="flex items-center w-full h-20 p-2 border-b border-mountain-200">
+          <div className="flex items-center w-full h-20 p-2 border-mountain-200 border-b-1">
             <div
-              onClick={() => setDialogOpen(true)}
-              className="flex items-center justify-center w-full h-full gap-2 p-2 text-white border cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:brightness-105 rounded-xl"
+              onClick={() => setDialogOpen(!dialogOpen)}
+              className="flex items-center justify-center w-full h-full gap-2 p-2 text-white transform border opacity-50 cursor-pointer bg-gradient-to-r from-blue-600 to-purple-600 hover:brightness-105 border-mountain-200 rounded-xl rounded-t-3xl"
             >
               <Plus />
-              <p>New Connect</p>
+              <p>Connect Platform</p>
             </div>
           </div>
-          <div className="flex flex-col px-4">
-            <h3 className="mb-2 text-sm font-semibold">Platforms</h3>
-            {['All', 'Facebook', 'Instagram'].map((platform) => (
-              <button
-                key={platform}
-                onClick={() => setSelectedPlatformFilter(platform)}
-                className={`px-4 py-2 text-left rounded-lg transition-all ${
-                  selectedPlatformFilter === platform
-                    ? 'bg-indigo-100 font-semibold'
-                    : 'hover:bg-indigo-50 text-gray-700'
-                }`}
-              >
-                {platform}
-              </button>
-            ))}
+          <div className="flex flex-col px-4 space-y-2">
+            {platforms.map((platform) => {
+              const isDisabled = platform !== 'Facebook';
+              const isSelected = selectedPlatform === platform;
+              return (
+                <button
+                  key={platform}
+                  onClick={() => {
+                    if (!isDisabled) setSelectedPlatform(platform);
+                  }}
+                  disabled={isDisabled}
+                  className={`relative px-4 border border-mountain-200 py-2 text-left rounded-lg transition-all w-full
+                    ${isSelected ? 'bg-indigo-100 font-medium' : 'hover:bg-indigo-50 text-gray-700'}
+                    ${isDisabled ? 'cursor-not-allowed opacity-50' : ''}
+                  `}
+                >
+                  {platform}
+                  {isDisabled && (
+                    <span className="absolute text-sm text-gray-500 transform -translate-y-1/2 top-1/2 right-3">
+                      Coming soon
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
-
         {/* Accounts Panel */}
         <div className="flex flex-col w-3/4 h-full overflow-y-auto bg-white border border-mountain-200 rounded-3xl">
-          <div className="z-10 flex items-center justify-between w-full h-20 p-4 border-b shadow-md shrink-0">
-            <p className="text-sm font-semibold">
-              {selectedPlatformFilter} Platform
-            </p>
+          <div className="z-50 flex items-center justify-between w-full h-20 p-4 shadow-md border-mountain-200 border-b-1 shrink-0">
+            <div className='flex items-center space-x-2'>
+              <img src={fb_icon} className="size-8" />
+              <div className='flex flex-col'>
+                <p className="text-sm font-semibold">{selectedPlatform} Account</p>
+                <span className="text-xs text-gray-500">Manage your {selectedPlatform} accounts</span>
+              </div>
+            </div>
             <div className="relative flex items-center">
-              <FiSearch className="absolute w-5 h-5 text-gray-400 left-2" />
-              <Input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search by page name..."
-                className="w-64 pl-8 pr-8 shadow-inner rounded-2xl"
-              />
-              {searchInput && (
-                <TiDeleteOutline
-                  className="absolute w-5 h-5 text-gray-500 cursor-pointer right-2"
-                  onClick={() => setSearchInput('')}
-                />
-              )}
+              <Button onClick={() => { setDialogUserGuideOpen(!dialogUserGuideOpen) }} className='flex items-center h-10 gap-2 px-4 font-medium border rounded-lg shadow-sm border-mountain-200 text-mountain-800'>
+                <Newspaper className='size-4' />
+                <p className='text-sm'>User Guide</p>
+              </Button>
             </div>
           </div>
-          <div className="flex flex-col h-full p-4 pr-2 space-y-4 sidebar">
-            {isLoading ? (
-              <p className="text-gray-500">Loading connections...</p>
-            ) : error ? (
-              <p className="italic text-red-500">Error: {error.message}</p>
-            ) : filteredPlatforms.length === 0 ? (
-              <p className="italic text-gray-500">
-                No accounts connected matching your criteria.
-              </p>
-            ) : (
-              filteredPlatforms.map((account) => (
-                <div
-                  key={account.id}
-                  className="relative flex items-center p-4 space-x-4 border border-gray-200 shadow-sm bg-gray-50 rounded-xl"
-                >
-                  <img
-                    src={getPlatformIcon(account.name)}
-                    alt={`${account.name} icon`}
-                    className="size-8"
-                  />
-                  <div className="flex flex-col w-[30%]">
-                    <span className="text-base font-medium">
-                      {account.config.page_name}
-                    </span>
-                    <span className="text-xs capitalize text-mountain-600">
-                      {account.name.toLowerCase()}
-                    </span>
+          <div className="flex flex-col items-center w-full h-full p-4 pr-2 space-y-4 sidebar">
+            {facebookProfile ? (
+              <>
+                <div className='relative flex flex-col items-center justify-center w-full h-64 p-2 space-y-2 rounded-lg bg-gradient-to-r from-indigo-50 to-indigo-100 shrink-0'>
+                  <img src={facebookProfile?.profilePicture} className="rounded-full size-24" />
+                  <div className='flex flex-col items-center justify-center'>
+                    <p className='text-xl font-medium text-indigo-600'>{facebookProfile.name}</p>
                   </div>
-                  <div
-                    className={`flex items-center pl-2 space-x-2 rounded-lg w-auto px-3 py-1 text-sm ${account.status === PlatformStatus.ACTIVE ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-                  >
-                    {account.status === PlatformStatus.ACTIVE ? (
-                      <Check className="size-4" />
-                    ) : (
-                      <X className="size-4" />
-                    )}
-                    <p>
-                      {account.status === PlatformStatus.ACTIVE
-                        ? 'Connected'
-                        : 'Inactive'}
-                    </p>
+                  <span className='text-sm'>{filteredAccounts.length} Facebook Page{filteredAccounts.length > 1 ? 's' : ''}</span>
+                  <div className='absolute flex items-center h-10 space-x-2 top-2 right-2'>
+                    <Button className='flex items-center justify-center h-full gap-2 px-4 py-2 font-normal bg-white rounded-lg shadow-md hover:brightness-105 text-mountain-950'>
+                      <MdLogout className='size-5' />
+                    </Button>
                   </div>
-                  <span className="text-sm text-mountain-600">
-                    {formatExpiryDate(account.token_expires_at)}
-                  </span>
-                  <div
-                    onClick={() => onDisconnectClick(account.id)}
-                    className={`right-4 absolute flex justify-center items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${isDisconnecting && disconnectingId === account.id ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-mountain-100/60 hover:bg-red-100 text-mountain-800 hover:text-red-700 cursor-pointer select-none'}`}
-                  >
-                    {isDisconnecting && disconnectingId === account.id ? (
-                      <>
-                        <LoaderPinwheel size={16} className="animate-spin" />
-                        <p className="text-sm">Disconnecting...</p>
-                      </>
-                    ) : (
-                      <>
-                        <Trash2Icon className="size-4" />
-                        <p className="text-sm">Disconnect</p>
-                      </>
-                    )}
+                  <div className='absolute flex items-center h-10 space-x-2 right-2 bottom-2'>
+                    <div className='flex items-center justify-center h-full px-2 space-x-2 bg-white rounded-lg shadow-md cursor-pointer select-none w-fit text-mountain-800'>
+                      <PiArrowsClockwise />
+                      <span>Reconnect</span>
+                    </div>
                   </div>
                 </div>
-              ))
+                {filteredAccounts.length === 0 ? (
+                  <p className="italic text-gray-500">Your facebook account needs to have at least 1 page to create the new post automation workflow.</p>
+                ) : (
+                  filteredAccounts.map((account) => (
+                    <div className="relative flex items-center w-full px-4 py-2 space-x-2 border border-gray-200 shadow-md rounded-xl">
+                      <div className='flex items-center space-x-2 border-mountain-200 border-r-1 w-[30%] shrink-0'>
+                        <img
+                          src={getPlatformIcon(account.platform)!}
+                          className="size-8"
+                        />
+                        <div key={account.id} className="flex flex-col">
+                          <span className="text-base line-clamp-1">{account.name}</span>
+                          <span className="text-xs text-mountain-600">
+                            {account.platform}
+                          </span>
+                        </div>
+                      </div>
+                      <div className='flex items-center p-2 px-4 space-x-2 rounded-full bg-mountain-50 shrink-0'>
+                        <span className="text-sm text-mountain-600">
+                          {account.post} Post{account.post > 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      <div className='absolute flex items-center space-x-2 -translate-y-1/2 top-1/2 right-2'>
+                        <div className='flex items-center h-10 px-4 space-x-2 text-sm border rounded-full cursor-pointer select-none border-mountain-200 w-fit text-mountain-600'>
+                          <span>Expires at: </span>
+                          <span>{account.expiredAt}</span>
+                        </div>
+                        <Button className="flex items-center justify-center h-10 px-2 rounded-lg cursor-pointer select-none bg-mountain-100/60 w-fit text-mountain-800">
+                          <Trash2Icon className='size-5' />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </>
+
+            ) : (
+              <div className='flex flex-col items-center justify-center w-full h-full p-2 space-y-2 rounded-lg bg-gradient-to-r from-indigo-50 to-indigo-100 shrink-0'>
+                <p className='text-gray-500'>No Facebook account connected</p>
+                <Button onClick={() => setDialogOpen(!dialogOpen)} className='px-4 py-2 text-white bg-blue-600 rounded-lg hover:brightness-105'>
+                  Connect Facebook Account
+                </Button>
+              </div>
             )}
+
           </div>
         </div>
       </div>
-
-      {/* Dialog remains the same */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-        <DialogTitle>Connect a New Social Platform</DialogTitle>
-        <DialogContent className="flex flex-wrap gap-4 p-4 bg-white">
-          <div
-            onClick={handleFacebookConnect}
-            className="relative flex flex-col items-center justify-center w-32 h-32 duration-300 ease-in-out transform rounded-lg cursor-pointer bg-indigo-50 md:w-36 md:h-36 hover:scale-105 hover:shadow-lg"
-          >
-            <img src={fb_icon} className="size-10" alt="Facebook Icon" />
-            <p className="font-semibold">Facebook</p>
-            <span className="absolute text-xs text-blue-600 bottom-2">
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(!dialogOpen)}>
+        <DialogTitle className="flex items-center space-x-2">
+          <p>Connect Social</p>
+        </DialogTitle>
+        <DialogContent className="flex p-4 space-x-8 bg-white h-fit">
+          <div className="relative flex flex-col items-center justify-center duration-300 ease-in-out transform rounded-lg cursor-pointer bg-indigo-50 w-36 h-36 hover:scale-105">
+            <img src={fb_icon} className="size-10" />
+            <p>Facebook</p>
+            <span className="absolute text-xs bottom-2 text-mountain-400">
               Click to connect
             </span>
           </div>
-          <div className="relative flex flex-col items-center justify-center w-32 h-32 bg-gray-200 rounded-lg select-none brightness-95 md:w-36 md:h-36">
-            <img src={ins_icon} className="size-10" alt="Instagram Icon" />
+          <div className="relative flex flex-col items-center justify-center rounded-lg select-none bg-indigo-50 brightness-95 w-36 h-36">
+            <img src={ins_icon} className="size-10" />
             <p>Instagram</p>
-            <span className="absolute text-xs text-gray-500 bottom-2">
+            <span className="absolute text-xs bottom-2 text-mountain-400">
               Coming soon
             </span>
           </div>
-          {connectError && (
-            <p className="w-full text-sm italic text-red-500">{connectError}</p>
-          )}
+          <div className="relative flex flex-col items-center justify-center rounded-lg select-none bg-indigo-50 brightness-95 w-36 h-36">
+            <img src={linkedin_icon} className="size-10" />
+            <p>Linkedin</p>
+            <span className="absolute text-xs bottom-2 text-mountain-400">
+              Coming soon
+            </span>
+          </div>
         </DialogContent>
       </Dialog>
-    </div>
+      <UserGuide dialogUserGuideOpen={dialogUserGuideOpen} setDialogUserGuideOpen={setDialogUserGuideOpen} />
+    </div >
   );
 };
 
