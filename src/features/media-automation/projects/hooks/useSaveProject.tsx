@@ -48,6 +48,8 @@ export const useSaveProject = ({
 
     onSuccess: (savedProject, input) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['platforms'] });
+
       if (input.id) {
         queryClient.invalidateQueries({ queryKey: ['projects', input.id] });
       }
