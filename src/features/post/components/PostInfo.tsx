@@ -19,7 +19,6 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { TargetType } from "@/utils/constants";
 import { useSnackbar } from "@/hooks/useSnackbar";
 import { useLocation } from "react-router-dom";
-import { useLocation } from "react-router-dom";
 
 interface SimpleCollection {
   id: number;
