@@ -18,6 +18,7 @@ import { likePost, unlikePost } from "../api/post.api";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { TargetType } from "@/utils/constants";
 import { useSnackbar } from "@/hooks/useSnackbar";
+import { useLocation } from "react-router-dom";
 
 interface SimpleCollection {
   id: number;
@@ -137,6 +138,23 @@ const PostInfo = ({ postData }: PostInfoProps) => {
     postCommentsRef.current?.focusCommentInput();
   };
 
+  const location = useLocation();
+
+  const handleCopyLink = useCallback(
+    async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      const fullUrl = `${window.location.origin}${location.pathname}${location.search}`;
+      try {
+        await navigator.clipboard.writeText(fullUrl);
+        showSnackbar("Copied post link", "success");
+      } catch (err) {
+        console.error("Failed to copy link:", err);
+        showSnackbar("Cannot copy post link!", "error");
+      }
+    },
+    [location.pathname, location.search, showSnackbar],
+  );
+
   if (!postData) return null;
 
   const existingCollectionNames = simpleCollections.map((c) => c.name);
@@ -238,6 +256,7 @@ const PostInfo = ({ postData }: PostInfoProps) => {
             <Button
               className="hover:bg-blue-50 p-2 border-0 rounded-lg w-10 min-w-0 h-10 text-blue-900 dark:text-blue-200 hover:dark:bg-blue-900"
               title="Copy Link"
+              onClick={(e) => handleCopyLink(e)}
             >
               <Share2 className="size-5" />
             </Button>
