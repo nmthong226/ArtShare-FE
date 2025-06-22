@@ -1,13 +1,12 @@
 import { Dispatch, SetStateAction } from 'react';
+import { SharePlatformName } from '../../types';
 
 export type Order = 'asc' | 'desc';
 
-export type SortableKeys =
-  | keyof Pick<AutoProject, 'title' | 'status' | 'nextPostAt'>
-  | 'autoPosts';
+export type SortableKeys = 'title' | 'status' | 'nextPostAt' | 'postCount';
 
 export interface HeadCell {
-  id: SortableKeys | 'platforms' | 'actions';
+  id: SortableKeys | 'platform' | 'actions';
   label: string;
   numeric: boolean;
   disablePadding: boolean;
@@ -103,23 +102,28 @@ export interface AutoPostMeta {
   images_count: number;
 }
 
-export interface AutoProject {
+export interface AutoProjectListItem {
   id: number;
   title: string;
   description: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'FAILED';
-  platforms: {
-    platform: {
-      id: number;
-      name: 'FACEBOOK' | 'INSTAGRAM';
-    };
-  }[];
-  _count: {
-    autoPosts: number;
+  status: ProjectStatus;
+  platform: {
+    id: number;
+    name: SharePlatformName; // Matches Prisma Enum
   };
-
+  postCount: number;
+  // Assuming your backend can determine the next post time
   nextPostAt: string | null;
 }
+// "id": 9,
+// "title": "àdsaf",
+// "status": "ACTIVE",
+// "platform": {
+//     "id": 1,
+//     "name": "FACEBOOK"
+// },
+// "postCount": 0,
+// "nextPostAt": null
 
 export type ProjectStatus = ACTIVE | COMPLETED | CANCELLED | FAILED | DRAFT;
 

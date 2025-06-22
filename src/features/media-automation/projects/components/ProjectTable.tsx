@@ -20,7 +20,7 @@ import { useState } from 'react';
 import { IoFilter, IoTrashBin } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import {
-  AutoProject,
+  AutoProjectListItem,
   EnhancedTableProps,
   HeadCell,
   Order,
@@ -36,14 +36,14 @@ const headCells: readonly HeadCell[] = [
     isSortable: true,
   },
   {
-    id: 'platforms',
+    id: 'platform',
     numeric: true,
     disablePadding: false,
-    label: 'Platforms',
+    label: 'Platform',
     isSortable: false,
   },
   {
-    id: 'autoPosts',
+    id: 'postCount',
     numeric: true,
     disablePadding: false,
     label: 'Post Number',
@@ -61,7 +61,7 @@ const headCells: readonly HeadCell[] = [
     numeric: true,
     disablePadding: false,
     label: 'Next Post Time',
-    isSortable: false,
+    isSortable: true,
   },
 ];
 
@@ -81,7 +81,7 @@ function ProjectTableHead(props: EnhancedTableProps) {
 
   return (
     <TableHead>
-      <TableRow className="border-mountain-100 border-b-2">
+      <TableRow className="border-b-2 border-mountain-100">
         <TableCell padding="checkbox">
           <Checkbox
             color="primary"
@@ -174,7 +174,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
 }
 
 interface ProjectTableProps {
-  projects: AutoProject[];
+  projects: AutoProjectListItem[];
   totalProjects: number;
   isLoading: boolean;
   order: Order;
@@ -348,7 +348,7 @@ export default function ProjectTable({
                           navigate(`/auto/projects/${row.id}/details`)
                         }
                         sx={{ cursor: 'pointer' }}
-                        className="hover:bg-mountain-50 border-mountain-100 border-b-2"
+                        className="border-b-2 hover:bg-mountain-50 border-mountain-100"
                       >
                         <TableCell padding="checkbox">
                           <Checkbox
@@ -365,22 +365,17 @@ export default function ProjectTable({
                         </TableCell>
                         <TableCell align="right">
                           <div className="flex flex-wrap justify-end gap-2">
-                            {row.platforms.map((p, index) => (
-                              <div
-                                key={index}
-                                className="bg-mountain-100 px-2 py-1 rounded"
-                              >
+                            {
+                              <div className="px-2 py-1 rounded bg-mountain-100">
                                 {/* CHANGE: Using the helper function here */}
-                                {formatToTitleCase(p.platform.name)}
+                                {formatToTitleCase(row.platform.name)}
                               </div>
-                            ))}
+                            }
                           </div>
                         </TableCell>
+                        <TableCell align="right">{row.postCount}</TableCell>
                         <TableCell align="right">
-                          {row._count.autoPosts}
-                        </TableCell>
-                        <TableCell align="right">
-                          <span className="flex justify-end items-center gap-2 text-sm">
+                          <span className="flex items-center justify-end gap-2 text-sm">
                             <span
                               className={`w-2 h-2 rounded-full ${getStatusColor(
                                 row.status,
@@ -402,10 +397,10 @@ export default function ProjectTable({
                         >
                           <Tooltip title="Edit">
                             <Button
-                              className="bg-indigo-50 border-1 border-mountain-200 font-normal"
+                              className="font-normal bg-indigo-50 border-1 border-mountain-200"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/auto/projects/edit/${row.id}`);
+                                navigate(`/auto/projects/${row.id}/edit`);
                               }}
                             >
                               Edit
@@ -414,7 +409,7 @@ export default function ProjectTable({
                           <Tooltip title="Delete">
                             <Button
                               color="error"
-                              className="bg-red-50 border-1 border-mountain-200 font-normal"
+                              className="font-normal bg-red-50 border-1 border-mountain-200"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onDelete([row.id]);
@@ -440,7 +435,7 @@ export default function ProjectTable({
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          className="flex-shrink-0 border-mountain-100 border-t-2 overflow-hidden"
+          className="flex-shrink-0 overflow-hidden border-t-2 border-mountain-100"
         />
       </div>
     </div>

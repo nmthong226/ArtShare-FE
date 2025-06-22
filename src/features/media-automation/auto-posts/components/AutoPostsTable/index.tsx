@@ -24,7 +24,7 @@ const AutoPostsTable = () => {
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<SortableKeysItemTable>('content');
   const [selected, setSelected] = useState<readonly number[]>([]);
-  const [page] = useState(0);
+  const [page] = useState(1);
   const [rowsPerPage] = useState(7);
   const navigate = useNavigate();
 
@@ -35,13 +35,15 @@ const AutoPostsTable = () => {
   }
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { data: posts = [] } = useGetAutoPosts({
+  const { data: fetchedPostsResponse } = useGetAutoPosts({
     projectId: projectDetails?.id,
     orderBy,
     order,
     page,
     limit: rowsPerPage,
   });
+
+  const posts = fetchedPostsResponse?.data ?? [];
 
   const handleRequestSort = (
     _event: React.MouseEvent<unknown>,

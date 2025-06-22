@@ -15,9 +15,9 @@ import { useEffect, useState } from 'react';
 import { FaFacebookSquare, FaInstagram } from 'react-icons/fa';
 import { FiRepeat } from 'react-icons/fi';
 import { IoMdMore } from 'react-icons/io';
-import { useFetchLinkedPlatforms } from '../../hooks/useFetchLinkedPlatforms';
-import { FormPlatform, ProjectFormValues } from '../../types';
-import { Platform } from '../../types/platform';
+import { useFetchLinkedPlatforms } from '../hooks/useFetchLinkedPlatforms';
+import { FormPlatform, ProjectFormValues } from '../types';
+import { Platform } from '../types/platform';
 
 const name = 'platform';
 
