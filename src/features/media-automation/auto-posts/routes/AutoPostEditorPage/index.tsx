@@ -143,10 +143,10 @@ const AutoPostEditorPage = () => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="relative flex items-center bg-white w-full h-full p-3"
+      className="relative flex items-center bg-white p-4 rounded-t-3xl w-full h-full"
     >
       {/* Left side for post list */}
-      <div className="flex flex-col pl-4 border-mountain-200 border-r-1 w-[25%] h-full">
+      <div className="flex flex-col border-mountain-200 border-r-1 w-[25%] h-full">
         <div className="flex justify-between items-end pr-2 pb-2 border-mountain-200 border-b-1 w-full h-18">
           <div className="relative flex gap-4 p-2">
             <p className="font-medium text-lg">Project Posts</p>
@@ -170,11 +170,10 @@ const AutoPostEditorPage = () => {
                   setSelectedPostIndex(index), setGenerateMode(false);
                 }}
                 className={`flex justify-between px-2 items-center border-1 rounded-md w-full shadow-md h-14 cursor-pointer select-none shrink-0
-                                    ${
-                                      selectedPostIndex === index
-                                        ? 'bg-white border-indigo-600'
-                                        : 'bg-white border-mountain-200 hover:bg-gray-100'
-                                    }`}
+                                    ${selectedPostIndex === index
+                    ? 'bg-white border-indigo-600'
+                    : 'bg-white border-mountain-200 hover:bg-gray-100'
+                  }`}
               >
                 <p className="w-[70%] text-mountain-600 text-sm line-clamp-1">
                   Post {index + 1}
@@ -201,7 +200,7 @@ const AutoPostEditorPage = () => {
         </div>
       </div>
       {/* Right side for gen-post, preview post */}
-      <div className="flex flex-col space-y-2 bg-mountain-50 w-[75%] h-full overflow-y-auto">
+      <div className="flex flex-col space-y-2 bg-mountain-50 rounded-tr-3xl w-[75%] h-full overflow-y-auto">
         {generateMode ? (
           <div className="flex items-center bg-white pb-2 border-mountain-200 border-b-1 w-full h-18">
             <div className="relative flex items-end gap-4 pl-4 w-xl">
@@ -270,18 +269,17 @@ const AutoPostEditorPage = () => {
                             type="button"
                             onClick={() => setSelectedTone(tone)}
                             className={`px-2 py-1 rounded-md text-sm border transition 
-                                                    ${
-                                                      selectedTone === tone
-                                                        ? 'bg-indigo-500 text-white border-indigo-600'
-                                                        : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'
-                                                    }`}
+                                                    ${selectedTone === tone
+                                ? 'bg-indigo-500 text-white border-indigo-600'
+                                : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-100'
+                              }`}
                           >
                             {tone}
                           </button>
                         ))}
                         <button
                           type="button"
-                          onClick={() => {}}
+                          onClick={() => { }}
                           className="flex items-center bg-white hover:bg-gray-100 px-3 py-1 border border-gray-300 rounded-md text-gray-800 text-sm"
                         >
                           <BiChevronDown className="mr-1" />
@@ -384,7 +382,7 @@ const AutoPostEditorPage = () => {
           </div>
         )}
         {postContent && postContent.length > 0 && !generateMode ? (
-          <div className="flex flex-col h-[calc(100vh-13.5rem)] overflow-y-auto sidebar">
+          <div className="flex flex-col h-[calc(100vh-10rem)] overflow-y-auto sidebar">
             <div className="space-y-2 ml-4 h-full overflow-y-auto sidebar">
               <div className="flex items-center space-x-2 py-2 border-mountain-200 border-b-1 text-indigo-900">
                 <p>🖊️</p>
@@ -497,7 +495,7 @@ const AutoPostEditorPage = () => {
                   imagePreviews.length < 4 && (
                     <div className="flex justify-center pb-2 rounded-full w-full">
                       <label
-                        onClick={() => {}}
+                        onClick={() => { }}
                         className="flex justify-center items-center gap-2 bg-white shadow-sm mx-2 px-4 py-2 border border-mountain-200 rounded-md w-1/4 font-medium text-mountain-950 text-sm text-center cursor-pointer"
                       >
                         <Trash2 />
@@ -531,7 +529,7 @@ const AutoPostEditorPage = () => {
             </div>
           </div>
         ) : (
-          <div className="relative flex flex-col justify-center items-center gap-4 ml-4 w-xl h-[520px]">
+          <div className="relative flex flex-col justify-center items-center gap-4 bg-white shadow-md ml-4 w-xl h-[520px]">
             <TbFileTextSpark className="size-12 text-mountain-400" />
             <p className="text-mountain-400 text-sm">
               Prompt for your post content to automate posting workflow

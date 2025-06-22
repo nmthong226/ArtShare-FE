@@ -88,7 +88,6 @@ const ProjectsPage = () => {
   return (
     <div className="flex flex-col space-y-4 p-4 w-full h-screen">
       <div className="flex gap-x-12 w-full">
-        {/* ... rest of the JSX is unchanged ... */}
         <div
           onClick={navigateToCreateProject}
           className="flex justify-center items-center space-x-2 bg-mountain-50 hover:bg-mountain-50/80 shadow-md p-4 rounded-3xl w-1/3 h-28 cursor-pointer"

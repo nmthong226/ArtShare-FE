@@ -64,17 +64,17 @@ const Header: React.FC = () => {
               <Button
                 disabled={!hasBack}
                 onClick={() => navigate(-1)}
-                className="flex items-center justify-center w-8 h-8 bg-white rounded-full cursor-pointer hover:bg-mountain-100 border-1 border-mountain-100 text-mountain-950"
+                className="flex justify-center items-center bg-white hover:bg-mountain-100 border-1 border-mountain-100 rounded-full w-8 h-8 text-mountain-950 cursor-pointer"
               >
                 <FaArrowLeft />
               </Button>
             </div>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1 text-muted-foreground text-sm">
               {breadcrumbs.map((crumb, index) => (
                 <React.Fragment key={crumb.path}>
                   {index > 0 && <span className="px-1 text-gray-400">/</span>}
                   <span
-                    className={`${index === breadcrumbs.length - 1 ? 'font-medium text-foreground' : ''} text-lg`}
+                    className={`${index === breadcrumbs.length - 1 ? 'font-medium text-foreground' : ''} font-thin text-base`}
                   >
                     {crumb.label}
                   </span>
@@ -89,12 +89,12 @@ const Header: React.FC = () => {
                             transition-all duration-300 ease-in-out 
                             ${isFocused ? 'w-108' : 'w-96'}`}
           >
-            <FiSearch className="absolute w-5 h-5 -translate-y-1/2 top-1/2 left-2" />
+            <FiSearch className="top-1/2 left-2 absolute w-5 h-5 -translate-y-1/2" />
             <Input
               ref={inputRef}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              className="w-full pl-8 bg-white shadow-inner rounded-2xl"
+              className="bg-white shadow-inner pl-8 rounded-2xl w-full"
               placeholder="Search"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -115,8 +115,8 @@ const Header: React.FC = () => {
               }}
             />
           </div>
-          <div className="flex items-center h-full border-b-4 border-white lg:hidden dark:border-mountain-950">
-            <div className="items-center hidden p-2 mt-1 rounded-lg md:flex space-x-1:lg:space-x-2 hover:bg-mountain-100 dark:hover:bg-mountain-1000 text-mountain-500 hover:text-mountain-800 dark:hover:text-mountain-50 hover:cursor-pointer lg">
+          <div className="lg:hidden flex items-center border-white dark:border-mountain-950 border-b-4 h-full">
+            <div className="hidden md:flex items-center space-x-1:lg:space-x-2 hover:bg-mountain-100 dark:hover:bg-mountain-1000 mt-1 p-2 rounded-lg text-mountain-500 hover:text-mountain-800 dark:hover:text-mountain-50 hover:cursor-pointer lg">
               <FiSearch className="w-6 h-6" />
               <p className="text-sm">Search</p>
             </div>
