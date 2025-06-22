@@ -18,7 +18,9 @@ const ProfileStats: FC<ProfileStatsProps> = ({
   following,
   followers,
 }) => {
-  const [openModal, setOpenModal] = useState<null | "followings" | "followers">(null);
+  const [openModal, setOpenModal] = useState<null | "followings" | "followers">(
+    null,
+  );
 
   const {
     data: followingsList,
@@ -65,25 +67,21 @@ const ProfileStats: FC<ProfileStatsProps> = ({
       <div className="py-3 flex gap-4 text-sm">
         <div
           onClick={openFollowingsModal}
-          className="flex items-center hover:underline cursor-pointer"
+          className="flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-mountain-800 px-2 py-1 rounded-md transition-colors duration-200"
         >
           <span className="font-bold text-black dark:text-white">
             {following}
           </span>
-          <span className="ml-1 text-black dark:text-gray-500">
-            Following
-          </span>
+          <span className="ml-1 text-black dark:text-gray-500">Following</span>
         </div>
         <div
           onClick={openFollowersModal}
-          className="flex items-center hover:underline cursor-pointer"
+          className="flex items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-mountain-800 px-2 py-1 rounded-md transition-colors duration-200"
         >
           <span className="font-bold text-black dark:text-white">
             {followers}
           </span>
-          <span className="ml-1 text-black dark:text-gray-500">
-            Followers
-          </span>
+          <span className="ml-1 text-black dark:text-gray-500">Followers</span>
         </div>
       </div>
 
