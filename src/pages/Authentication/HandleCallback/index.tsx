@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { validatePassword } from "@/utils/validation";
 
 const AuthAction = () => {
   const location = useLocation(); // Access the URL parameters (e.g., mode, oobCode)
