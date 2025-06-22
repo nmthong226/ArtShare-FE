@@ -140,17 +140,20 @@ const PostInfo = ({ postData }: PostInfoProps) => {
 
   const location = useLocation();
 
-  const handleCopyLink = useCallback(async (e: React.MouseEvent) => {
+  const handleCopyLink = useCallback(
+    async (e: React.MouseEvent) => {
       e.stopPropagation();
       const fullUrl = `${window.location.origin}${location.pathname}${location.search}`;
       try {
         await navigator.clipboard.writeText(fullUrl);
-        showSnackbar('Copied post link', 'success');
+        showSnackbar("Copied post link", "success");
       } catch (err) {
         console.error("Failed to copy link:", err);
-        showSnackbar('Cannot copy post link!', 'error');
+        showSnackbar("Cannot copy post link!", "error");
       }
-    };
+    },
+    [location.pathname, location.search, showSnackbar],
+  );
 
   if (!postData) return null;
 
