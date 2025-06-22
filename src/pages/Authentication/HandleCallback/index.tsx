@@ -20,26 +20,6 @@ const AuthAction = () => {
   const [error, setError] = useState<string | null>(null); // Error message
   const [loading, setLoading] = useState(false);
 
-  // Password validation function
-  const validatePassword = (password: string): string | null => {
-    if (password.length < 8) {
-      return "Password must be at least 8 characters long";
-    }
-
-    const hasNumber = /\d/.test(password);
-    const hasSymbol = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]/.test(password);
-
-    if (!hasNumber) {
-      return "Password must contain at least one number";
-    }
-
-    if (!hasSymbol) {
-      return "Password must contain at least one symbol";
-    }
-
-    return null;
-  };
-
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const modeFromUrl = params.get("mode");
