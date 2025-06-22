@@ -14,6 +14,8 @@ import {
   Typography,
 } from "@mui/material";
 import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import BoringAvatar from "boring-avatars";
 
 export interface FollowListModalProps {
   open: boolean;
@@ -36,53 +38,109 @@ const FollowListModal: FC<FollowListModalProps> = ({
   error,
   data,
   onClose,
-}) => (
-  <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-    <DialogTitle sx={{ m: 0, p: 2 }}>
-      {title}
-      <IconButton
-        aria-label="close"
-        onClick={onClose}
-        sx={{
-          position: "absolute",
-          right: 8,
-          top: 8,
-        }}
-        size="large"
-      >
-        <X />
-      </IconButton>
-    </DialogTitle>
+}) => {
+  const navigate = useNavigate();
 
-    <DialogContent dividers>
-      {loading ? (
-        <CircularProgress />
-      ) : error ? (
-        <Typography color="error">Error: {error.message}</Typography>
-      ) : data && data.length > 0 ? (
-        <List>
-          {data.map((user) => (
-            <ListItem key={user.id} component="div" disablePadding>
-              <ListItemAvatar>
-                <Avatar
-                  src={user.profile_picture_url || undefined}
-                  alt={user.username}
+  const handleUserClick = (username: string) => {
+    navigate(`/${username}`);
+    onClose(); // Close the modal after navigation
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+      <DialogTitle sx={{ m: 0, p: 2 }}>
+        {title}
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+          }}
+          size="large"
+        >
+          <X />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent dividers>
+        {loading ? (
+          <CircularProgress />
+        ) : error ? (
+          <Typography color="error">Error: {error.message}</Typography>
+        ) : data && data.length > 0 ? (
+          <List>
+            {data.map((user) => (
+              <ListItem
+                key={user.id}
+                component="div"
+                disablePadding
+                onClick={() => handleUserClick(user.username)}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 1,
+                  "&:hover": {
+                    backgroundColor: "action.hover",
+                  },
+                  transition: "background-color 0.2s ease-in-out",
+                  px: 2,
+                  py: 1,
+                }}
+                role="button"
+                aria-label={`Navigate to ${user.username}'s profile`}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleUserClick(user.username);
+                  }
+                }}
+              >
+                <ListItemAvatar>
+                  {user.profile_picture_url ? (
+                    <Avatar
+                      src={user.profile_picture_url}
+                      alt={user.username}
+                    />
+                  ) : (
+                    <BoringAvatar
+                      size={40}
+                      name={user.username}
+                      variant="beam"
+                      colors={[
+                        "#84bfc3",
+                        "#fff5d6",
+                        "#ffb870",
+                        "#d96153",
+                        "#000511",
+                      ]}
+                    />
+                  )}
+                </ListItemAvatar>
+                <ListItemText
+                  primary={
+                    <Typography fontWeight={500}>
+                      {user.full_name || user.username}
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="caption" color="text.secondary">
+                      @{user.username}
+                    </Typography>
+                  }
                 />
-              </ListItemAvatar>
-              <ListItemText
-                primary={user.username}
-                secondary={user.full_name || ""}
-              />
-            </ListItem>
-          ))}
-        </List>
-      ) : (
-        <Typography textAlign="center" color="textSecondary">
-          No {title.toLowerCase()} found.
-        </Typography>
-      )}
-    </DialogContent>
-  </Dialog>
-);
+              </ListItem>
+            ))}
+          </List>
+        ) : (
+          <Typography textAlign="center" color="textSecondary">
+            No {title.toLowerCase()} found.
+          </Typography>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export default FollowListModal;

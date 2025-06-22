@@ -123,10 +123,26 @@ export const LikesDialog: React.FC<LikesDialogProps> = ({
             {likingUsers.map((u) => (
               <ListItem
                 key={u.id}
-                sx={{ px: 2, py: 1, cursor: "pointer" }}
+                sx={{
+                  px: 2,
+                  py: 1,
+                  cursor: "pointer",
+                  borderRadius: 1,
+                  "&:hover": {
+                    backgroundColor: "action.hover",
+                  },
+                  transition: "background-color 0.2s ease-in-out",
+                }}
                 role="button"
                 aria-label={`Navigate to ${u.username}'s profile`}
                 onClick={() => navigate(`/${u.username}`)}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    navigate(`/${u.username}`);
+                  }
+                }}
               >
                 <ListItemAvatar>
                   {u.profile_picture_url ? (
