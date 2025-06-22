@@ -35,14 +35,18 @@ const Login = () => {
       } else {
         navigate("/explore");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       let errorMessage = "";
-      if (err instanceof AxiosError) {
-        const code = err.code;
+
+      // Handle Firebase Auth errors (they have a .code property)
+      if (err && typeof err === "object" && "code" in err) {
+        const firebaseError = err as { code: string; message?: string };
+        const code = firebaseError.code;
         switch (code) {
           case "auth/invalid-credential":
+          case "auth/invalid-login-credentials":
             errorMessage =
-              "Invalid email or password. Try signing up if you don’t have an account.";
+              "Invalid email or password. Please check your credentials and try again.";
             break;
           case "auth/wrong-password":
             setPasswordError("Incorrect password. Please try again.");
@@ -52,15 +56,50 @@ const Login = () => {
             errorMessage = "Please verify your email before logging in.";
             break;
           case "auth/invalid-email":
-            setEmailError("Invalid email. Please try again");
+            setEmailError(
+              "Invalid email format. Please enter a valid email address.",
+            );
             break;
           case "auth/missing-password":
-            setPasswordError("Missing password. Please try again");
+            setPasswordError(
+              "Password is required. Please enter your password.",
+            );
+            break;
+          case "auth/user-not-found":
+            errorMessage =
+              "No account found with this email. Please sign up first.";
+            break;
+          case "auth/too-many-requests":
+            errorMessage =
+              "Too many failed login attempts. Please try again later.";
             break;
           default:
-            errorMessage = err.message;
+            errorMessage =
+              firebaseError.message || "Login failed. Please try again.";
         }
       }
+      // Handle Axios errors
+      else if (err instanceof AxiosError) {
+        errorMessage =
+          err.response?.data?.message ||
+          err.message ||
+          "Network error. Please try again.";
+      }
+      // Handle other errors including the INVALID_LOGIN_CREDENTIALS case
+      else if (err instanceof Error) {
+        if (
+          err.message?.includes("INVALID_LOGIN_CREDENTIALS") ||
+          err.message?.includes("invalid-login-credentials")
+        ) {
+          errorMessage =
+            "Invalid email or password. Please check your credentials and try again.";
+        } else {
+          errorMessage = err.message;
+        }
+      } else {
+        errorMessage = "An unexpected error occurred. Please try again.";
+      }
+
       setError(errorMessage);
     }
   };
@@ -114,13 +153,18 @@ const Login = () => {
     const emailValue = e.target.value;
     setEmail(emailValue);
 
-    // // Basic email validation
-    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // if (!emailRegex.test(emailValue)) {
-    //   setError("Please enter a valid email address.");
-    // } else {
-    //   setError(null); // Clear error if email is valid
-    // }
+    // Clear errors when user starts typing
+    if (emailError) setEmailError("");
+    if (error) setError("");
+  }
+
+  function handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const passwordValue = e.target.value;
+    setPassword(passwordValue);
+
+    // Clear errors when user starts typing
+    if (passwordError) setPasswordError("");
+    if (error) setError("");
   }
 
   return (
@@ -172,7 +216,7 @@ const Login = () => {
             placeholder="Enter your password"
             className="dark:bg-mountain-900 shadow-sm mt-1 p-3 border border-mountain-800 rounded-lg focus:ring-indigo-500 w-full h-10 text-mountain-950 dark:text-mountain-50"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
           />
           {/* Display error and success messages */}
           {passwordError && passwordError.length > 0 && (

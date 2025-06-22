@@ -36,7 +36,7 @@ import {
 import { CommentUI, CreateCommentDto } from "@/types/comment";
 import { useUser } from "@/contexts/UserProvider";
 import { User } from "@/types";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import MuiLink from "@mui/material/Link";
 import { useSnackbar } from "@/hooks/useSnackbar";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
@@ -183,6 +183,7 @@ const CommentRow = ({
   isHighlighted = false,
   highlightedCommentId,
 }: RowProps) => {
+  const navigate = useNavigate();
   console.log(
     `[CommentRow] Rendering comment ${comment.id}, highlighted: ${isHighlighted}, highlightedId: ${highlightedCommentId}`,
   );
@@ -305,6 +306,7 @@ const CommentRow = ({
             to={`/${username}`}
             color="primary"
             underline="hover"
+            className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 font-medium"
           >
             @{username}
           </MuiLink>
@@ -325,19 +327,39 @@ const CommentRow = ({
             <img
               src={comment.user.profile_picture_url}
               alt={comment.user.username}
-              className="object-cover w-8 h-8 rounded-full"
+              className="object-cover w-8 h-8 rounded-full ring-2 ring-transparent hover:ring-blue-500/30 transition-all duration-200 cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/${comment.user.username}`);
+              }}
             />
           ) : (
-            <Avatar
-              name={comment.user.username}
-              size={32}
-              variant="beam"
-              colors={["#84bfc3", "#ff9b62", "#d96153"]}
-            />
+            <div
+              className="ring-2 ring-transparent hover:ring-blue-500/30 transition-all duration-200 cursor-pointer rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/${comment.user.username}`);
+              }}
+            >
+              <Avatar
+                name={comment.user.username}
+                size={32}
+                variant="beam"
+                colors={["#84bfc3", "#ff9b62", "#d96153"]}
+              />
+            </div>
           )}
           <div className="flex flex-col flex-grow">
             <div className="flex items-center gap-2 text-sm">
-              <span className="font-bold">@{comment.user.username}</span>
+              <span
+                className="font-bold hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/${comment.user.username}`);
+                }}
+              >
+                @{comment.user.username}
+              </span>
               <span
                 className="text-neutral-500 dark:text-neutral-400 text-xs"
                 title={
