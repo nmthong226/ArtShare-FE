@@ -43,6 +43,11 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+// Constants for better maintainability
+const BACKEND_TOKEN_PROCESSING_DELAY_MS = 100;
+const AUTH_RETRY_DELAY_MS = 500;
+const LOADING_DELAY_MS = 1000;
+
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -68,7 +73,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
               "🔐 UserProvider: Token set, waiting 100ms before fetching profile",
             );
             // Add a small delay to ensure the backend has processed the token
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve) =>
+              setTimeout(resolve, BACKEND_TOKEN_PROCESSING_DELAY_MS),
+            );
 
             console.log("🔐 UserProvider: Fetching user profile");
             const data = await getUserProfile();
@@ -92,7 +99,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                   console.error("🔐 UserProvider: Retry failed:", retryErr);
                   setError("Failed to retrieve user profile after retry.");
                 }
-              }, 500);
+              }, AUTH_RETRY_DELAY_MS);
             } else {
               setError("Failed to retrieve user token.");
             }
@@ -106,7 +113,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }
         setTimeout(() => {
           setLoading(false);
-        }, 1000);
+        }, LOADING_DELAY_MS);
       },
       (err) => {
         console.error("🔐 UserProvider: Auth listener error:", err);

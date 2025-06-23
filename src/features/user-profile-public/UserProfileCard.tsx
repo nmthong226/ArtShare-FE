@@ -42,7 +42,7 @@ export const UserProfileCard = () => {
     isLoading,
     isError,
     error,
-  } = useQuery({
+  } = useQuery<UserProfile, Error>({
     queryKey: ["userProfile", username],
     queryFn,
     enabled: !!username && username.trim() !== "", // Ensure username is not empty
@@ -57,12 +57,7 @@ export const UserProfileCard = () => {
       // Retry up to 2 times for other errors
       return failureCount < 2;
     },
-  }) as {
-    data: UserProfile | undefined;
-    isLoading: boolean;
-    isError: boolean;
-    error: Error | null;
-  };
+  });
 
   useEffect(() => {
     // Once the profile refetch shows isFollowing === false, drop the flag
