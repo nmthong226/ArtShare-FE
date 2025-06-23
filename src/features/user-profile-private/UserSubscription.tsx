@@ -1,6 +1,8 @@
 import { PricingTier } from "@/components/ui/pricing-card";
 import { PricingSection } from "@/components/ui/pricing-section";
 import PlanHelpGuide from "./components/PlanHelpGuide";
+import { useSubscriptionInfo } from "@/hooks/useSubscription";
+import { BiError } from "react-icons/bi";
 
 export const PAYMENT_FREQUENCIES = ["monthly", "yearly"];
 
@@ -88,28 +90,58 @@ export const TIERS: PricingTier[] = [
 ];
 
 const UserSubscription = () => {
+  const {
+    data: subscriptionInfo,
+    isLoading: loadingSubscriptionInfo,
+    isError: isSubscriptionError,
+  } = useSubscriptionInfo();
+  console.log("Subscription Info:", subscriptionInfo);
   return (
     <div className="flex flex-col p-4 pb-16 w-full h-[calc(100vh-4rem)] overflow-y-auto select-none sidebar">
       <div className="flex justify-center items-center w-full">
         <div className="relative flex flex-col items-center space-y-2 bg-gradient-to-r from-indigo-100 to-purple-100 p-4 rounded-3xl w-112 h-48">
-          <div className="flex flex-col items-center">
-            <p className="font-thin">Your current plan</p>
-            <h1 className="inline-block bg-clip-text bg-gradient-to-r from-blue-700 via-purple-500 to-indigo-400 font-medium text-transparent text-2xl">
-              Creative Pro
-            </h1>
-          </div>
-          <p className="font-thin text-sm">Expires in 29 days</p>
-          <div className="bottom-4 absolute flex flex-col justify-center items-center bg-white shadow-md p-2 rounded-lg w-64 h-16 cursor-pointer">
-            <p className="text-mountain-400 text-sm">Your Token Remaining</p>
-            <span className="font-medium text-lg">50</span>
-          </div>
+          {loadingSubscriptionInfo ? (
+            <div className="flex justify-center items-center w-full h-full animate-pulse">
+              <p className="text-gray-500">Loading...</p>
+            </div>
+          ) : isSubscriptionError ? (
+            <div className="flex flex-col justify-center items-center w-full h-full">
+              <BiError className="size-16 text-red-800" />
+              <p className="text-red-800">Error loading subscription info</p>
+              <button
+                className="bg-indigo-500 hover:brightness-105 mt-2 px-4 py-2 rounded-lg text-white cursor-pointer"
+                onClick={() => window.location.reload()}
+              >
+                <span>Reload page</span>
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col items-center">
+                <p className="font-thin">Your current plan</p>
+                <h1 className="inline-block bg-clip-text bg-gradient-to-r from-blue-700 via-purple-500 to-indigo-400 font-medium text-transparent text-2xl">
+                  {subscriptionInfo?.plan === "free" ? "Starter" : subscriptionInfo?.plan}
+                </h1>
+              </div>
+              <p className="font-thin text-sm">
+                {subscriptionInfo?.plan === "free"
+                  ? "Free to use"
+                  : subscriptionInfo?.expiresAt.toLocaleDateString()}
+              </p>
+              <div className="bottom-4 absolute flex flex-col justify-center items-center bg-white shadow-md p-2 rounded-lg w-64 h-16 cursor-pointer">
+                <p className="text-mountain-400 text-sm">Your Token Remaining</p>
+                <span className="font-medium text-lg">{subscriptionInfo?.aiCreditRemaining}</span>
+              </div>
+            </>
+          )}
         </div>
+
       </div>
-      <hr className="flex my-8 border-[1px] border-mountain-100 w-full"/>
+      <hr className="flex my-8 border-[1px] border-mountain-100 w-full" />
       <PricingSection frequencies={PAYMENT_FREQUENCIES} tiers={TIERS} />
-      <hr className="flex my-8 border-[1px] border-mountain-100 w-full"/>
-      <PlanHelpGuide/>
-    </div>
+      <hr className="flex my-8 border-[1px] border-mountain-100 w-full" />
+      <PlanHelpGuide />
+    </div >
   )
 }
 

@@ -28,33 +28,33 @@ const ProjectForm = forwardRef<ProjectFormRef, ProjectFormProps>(
     return (
       <Formik initialValues={initialValues} onSubmit={onSubmit}>
         {(formikProps: FormikProps<ProjectFormValues>) => {
-          const { values, setFieldValue } = formikProps;
+          const { setFieldValue } = formikProps;
           return (
             <Form
               ref={formikFormRef}
-              className="relative flex flex-col items-center w-full h-full p-2 bg-white"
+              className="relative flex flex-col items-center bg-white p-2 w-full h-full"
             >
               <div className="flex gap-6">
                 {/* General Info Section */}
                 <div className="flex flex-col space-y-4">
-                  <h2 className="text-lg font-semibold capitalize">
+                  <h2 className="font-semibold text-lg capitalize">
                     🧠 General Info
                   </h2>
                   <div className="flex flex-col items-center space-y-4 w-xl">
-                    <Typography className="flex w-full mb-1 font-medium text-left">
+                    <Typography className="flex mb-1 w-full font-medium text-left">
                       Project Name
                       <span className="text-red-600">*</span>
                     </Typography>
                     <Field
                       name="projectName" // Connects to Formik state
                       as={TextField}
-                      className="w-full rounded-md focus:outline-none focus:ring-2 focus:ring-mountain-500"
+                      className="rounded-md focus:outline-none focus:ring-2 focus:ring-mountain-500 w-full"
                       placeholder="Enter your project name"
                       required
                     />
-                    <Typography className="flex items-center w-full mb-1 space-x-2 font-medium text-left">
+                    <Typography className="flex items-center space-x-2 mb-1 w-full font-medium text-left">
                       <p>Description</p>
-                      <span className="text-sm font-normal text-mountain-600">
+                      <span className="font-normal text-mountain-600 text-sm">
                         (optional)
                       </span>
                     </Typography>
