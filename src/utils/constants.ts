@@ -136,7 +136,7 @@ export const routesForHeaders: HeaderRoute[] = [
     description: 'This place is yours',
   },
   {
-    path: '/auto/link-social',
+    path: '/auto/social-links',
     label: 'Link Socials',
     description: 'Connect social accounts to enable automated posting',
   },

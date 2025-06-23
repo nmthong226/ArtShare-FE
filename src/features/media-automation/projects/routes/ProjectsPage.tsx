@@ -19,7 +19,7 @@ const ProjectsPage = () => {
 
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<SortableKeys>('nextPostAt');
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [selected, setSelected] = useState<readonly number[]>([]);
 
@@ -27,7 +27,7 @@ const ProjectsPage = () => {
     data: fetchedProjectsResponse,
     isLoading: isFetchingProjects,
     error: fetchError,
-  } = useGetProjects({ page, rowsPerPage, orderBy, order });
+  } = useGetProjects({ page: page + 1, rowsPerPage, orderBy, order });
 
   const projects = useMemo(
     () => fetchedProjectsResponse?.data ?? [],
