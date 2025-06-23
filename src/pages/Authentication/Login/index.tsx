@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
 import InstagramIcon from "/auth_logo_instagram.svg";
@@ -8,11 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserProvider";
 import { AxiosError } from "axios";
-import { getAuth } from "firebase/auth";
-import { getUserProfile } from "@/api/authentication/auth";
 
 const Login = () => {
-  const { loginWithEmail, authenWithGoogle, signUpWithFacebook } = useUser();
+  const {
+    loginWithEmail,
+    authenWithGoogle,
+    signUpWithFacebook,
+    user,
+    loading,
+  } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -21,6 +25,17 @@ const Login = () => {
   const [message] = useState<string | null>(null);
   const navigate = useNavigate(); // To navigate after login
 
+  // Navigate when user state changes after successful login
+  useEffect(() => {
+    if (user && !loading) {
+      if (!user.is_onboard) {
+        navigate("/onboarding");
+      } else {
+        navigate("/explore");
+      }
+    }
+  }, [user, loading, navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -28,13 +43,8 @@ const Login = () => {
     setPasswordError("");
     try {
       await loginWithEmail(email, password);
-      const user = getAuth();
-      const data = await getUserProfile(user.currentUser!.uid);
-      if (!data.is_onboard) {
-        navigate("/onboarding");
-      } else {
-        navigate("/explore");
-      }
+      // The UserProvider will handle fetching profile and setting user state
+      // We'll navigate after the user state is updated
     } catch (err: unknown) {
       let errorMessage = "";
 
@@ -108,10 +118,8 @@ const Login = () => {
     setError(""); // Clear previous error
     try {
       await authenWithGoogle(); // Call Google login function from UserProvider
-      const user = getAuth();
-      const data = await getUserProfile(user.currentUser!.uid);
-      if (!data.is_onboard) navigate("/onboarding");
-      else navigate("/explore");
+      // The UserProvider will handle fetching profile and setting user state
+      // We'll navigate after the user state is updated
     } catch (error) {
       let message = "Something went wrong. Please try again.";
       if (error instanceof AxiosError) {
