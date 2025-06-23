@@ -131,7 +131,7 @@ const ProjectItemTable = ({ selectedRow }: { selectedRow: Data }) => {
 
     const handleAddPostClick = () => {
         if (!selectedRow) return;
-        const slug = generateSlug(selectedRow.projectName || 'project');
+        const slug = generateSlug(selectedRow.title || 'project');
 
         navigate(`/auto/${slug}/posts/new`);
     }

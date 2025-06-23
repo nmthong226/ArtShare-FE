@@ -24,20 +24,20 @@ export function getComparator<Key extends SortableKeys>(
 
 export function createData(
     id: number,
-    projectName: string,
+    title: string,
     platforms: string[],
     numberOfPosts: number,
     status: PostStatus,
-    nextPostTime: Date | null,
+    nextPostAt: Date | null,
     posts: AutoPost[],
 ): Data {
     return {
         id,
-        projectName,
+        title,
         platforms,
         numberOfPosts,
         status,
-        nextPostTime,
+        nextPostAt,
         posts
     };
 }

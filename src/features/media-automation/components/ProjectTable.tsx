@@ -44,7 +44,7 @@ const headCells: readonly HeadCell[] = [
     isSortable: false,
   },
   {
-    id: "autoPosts",
+    id: "posts",
     numeric: true,
     disablePadding: false,
     label: "Post Number",

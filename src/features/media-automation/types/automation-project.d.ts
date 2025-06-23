@@ -2,9 +2,10 @@ import { Dispatch, SetStateAction } from 'react';
 
 export type Order = 'asc' | 'desc';
 
-export type SortableKeys =
-  | keyof Pick<AutoProject, 'title' | 'status' | 'nextPostAt'>
-  | 'autoPosts';
+export type SortableKeys = keyof Pick<
+  AutoProject,
+  'title' | 'status' | 'nextPostAt' | 'posts'
+>;
 
 export interface HeadCell {
   id: SortableKeys | 'platforms' | 'actions'; // The unique ID for the column. Can be non-sortable.
@@ -18,11 +19,11 @@ type PostStatus = 'canceled' | 'draft' | 'scheduled' | 'active';
 
 interface Data {
   id: number;
-  projectName: string;
+  title: string;
   platforms: string[];
   numberOfPosts: number;
   status: PostStatus;
-  nextPostTime: Date | null;
+  nextPostAt: Date | null;
   posts?: AutoPost[] | null;
 }
 

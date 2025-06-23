@@ -15,6 +15,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import "../../styles/text-editor.scss";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { Platform } from "../../types/platform";
 
 interface ProjectPostCreateProp {
   handleStepChange: (
@@ -65,34 +66,34 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
 
   const percentage = editor
     ? Math.round(
-        (100 / MAX_CHARACTERS) * editor.storage.characterCount.characters(),
-      )
+      (100 / MAX_CHARACTERS) * editor.storage.characterCount.characters(),
+    )
     : 0;
 
   return (
     <>
-      <div className="relative flex w-full h-full gap-2 bg-white">
+      <div className="relative flex gap-2 bg-white w-full h-full">
         <div className="flex flex-col items-center space-y-2 bg-mountain-50 p-2 border border-mountain-200 rounded-lg w-24 h-[calc(100vh-14.5rem)]">
-          <div className="flex items-center justify-center bg-indigo-200 rounded-full shadow-md w-14 h-14">
+          <div className="flex justify-center items-center bg-indigo-200 shadow-md rounded-full w-14 h-14">
             <Plus />
           </div>
-          <hr className="w-full h-1 border-mountain-200 border-t-1" />
-          <div className="flex items-center justify-center w-16 bg-white border-indigo-600 rounded-md cursor-pointer select-none border-1 h-14 shrink-0">
-            <p className="text-sm text-mountain-600">Post 1</p>
+          <hr className="border-mountain-200 border-t-1 w-full h-1" />
+          <div className="flex justify-center items-center bg-white border-1 border-indigo-600 rounded-md w-16 h-14 cursor-pointer select-none shrink-0">
+            <p className="text-mountain-600 text-sm">Post 1</p>
           </div>
-          <div className="flex items-center justify-center w-16 bg-white rounded-md cursor-pointer select-none border-1 border-mountain-200 h-14 shrink-0">
-            <p className="text-sm text-mountain-600">Post 2</p>
+          <div className="flex justify-center items-center bg-white border-1 border-mountain-200 rounded-md w-16 h-14 cursor-pointer select-none shrink-0">
+            <p className="text-mountain-600 text-sm">Post 2</p>
           </div>
         </div>
         <form
           onSubmit={handleSubmit}
           className="flex flex-col items-center w-full h-full"
         >
-          <div className="flex w-full h-full gap-2">
+          <div className="flex gap-2 w-full h-full">
             <div className="relative flex flex-col space-y-2 bg-white border-1 border-mountain-200 rounded-md w-[70%] h-[calc(100vh-14.5rem)]">
               {editor && (
-                <div className="flex flex-wrap items-center h-12 gap-2 px-2 bg-white border-b border-mountain-200 rounded-t-md shrink-0">
-                  <div className="flex flex-wrap items-center h-12 gap-2 px-2 bg-white border-b border-mountain-200 rounded-t-md text-mountain-800">
+                <div className="flex flex-wrap items-center gap-2 bg-white px-2 border-mountain-200 border-b rounded-t-md h-12 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 bg-white px-2 border-mountain-200 border-b rounded-t-md h-12 text-mountain-800">
                     <Edit className="size-4" />
                     <span>Post Description</span>
                   </div>
@@ -117,12 +118,12 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
                   >
                     U
                   </button>
-                  <div className="relative flex w-64 h-8 ml-auto text-xs text-gray-400 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50">
+                  <div className="relative flex bg-gradient-to-r from-indigo-50 to-purple-50 ml-auto rounded-full w-64 h-8 text-gray-400 text-xs">
                     <Input
                       placeholder="Ask AI Assisant"
                       className="flex items-center shadow-none py-1.5 focus-visible:border-0 border-none rounded-full outline-none focus:outline-0 focus-visible:ring-0 focus-visible:ring-ring/0 w-96 h-fit"
                     />
-                    <button className="absolute right-0 flex items-center justify-center w-8 h-8 -translate-y-1/2 bg-white border rounded-full top-1/2 border-mountain-200">
+                    <button className="top-1/2 right-0 absolute flex justify-center items-center bg-white border border-mountain-200 rounded-full w-8 h-8 -translate-y-1/2">
                       <Bot className="size-5" />
                     </button>
                   </div>
@@ -162,7 +163,7 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
               )}
             </div>
             <div className="flex flex-col space-y-4 bg-mountain-50 border border-mountain-200 rounded-lg w-[30%] h-[calc(100vh-14.5rem)]">
-              <div className="flex flex-wrap items-center h-12 gap-2 px-2 bg-white border-b border-mountain-200 rounded-t-md text-mountain-800">
+              <div className="flex flex-wrap items-center gap-2 bg-white px-2 border-mountain-200 border-b rounded-t-md h-12 text-mountain-800">
                 <Image className="size-4" />
                 <span>Post Image</span>
               </div>
@@ -170,7 +171,7 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
                 <div className="flex justify-center w-full">
                   <label
                     htmlFor="imageUpload"
-                    className="flex flex-col items-center w-48 px-4 py-2 mx-2 space-y-2 text-sm font-medium text-center bg-white rounded-md shadow-sm cursor-pointer text-mountain-950"
+                    className="flex flex-col items-center space-y-2 bg-white shadow-sm mx-2 px-4 py-2 rounded-md w-48 font-medium text-mountain-950 text-sm text-center cursor-pointer"
                   >
                     <Upload />
                     <p>Choose Image</p>
@@ -188,27 +189,27 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
                 {imagePreviews.map((src, index) => (
                   <div
                     key={index}
-                    className="relative w-full overflow-hidden bg-white rounded-md group aspect-video"
+                    className="group relative bg-white rounded-md w-full aspect-video overflow-hidden"
                   >
                     <img
                       src={src}
                       alt={`Preview ${index}`}
-                      className="object-cover w-full h-full"
+                      className="w-full h-full object-cover"
                     />
-                    <div className="absolute hidden p-2 bg-white rounded-full cursor-pointer top-2 right-2 group-hover:flex">
+                    <div className="hidden top-2 right-2 absolute group-hover:flex bg-white p-2 rounded-full cursor-pointer">
                       <Edit className="size-4" />
                     </div>
-                    <div className="absolute hidden p-2 bg-white rounded-full cursor-pointer right-2 bottom-2 group-hover:flex">
+                    <div className="hidden right-2 bottom-2 absolute group-hover:flex bg-white p-2 rounded-full cursor-pointer">
                       <Trash2 className="size-4" />
                     </div>
                   </div>
                 ))}
               </div>
               {imagePreviews.length > 1 && (
-                <div className="justify-center hidden w-full rounded-full group-hover:flex">
+                <div className="hidden group-hover:flex justify-center rounded-full w-full">
                   <label
                     htmlFor="imageUpload"
-                    className="flex items-center gap-2 px-4 py-2 mx-2 text-sm font-medium text-center bg-white rounded-md shadow-sm cursor-pointer text-mountain-950"
+                    className="flex items-center gap-2 bg-white shadow-sm mx-2 px-4 py-2 rounded-md font-medium text-mountain-950 text-sm text-center cursor-pointer"
                   >
                     <Upload />
                     <span>Add More</span>
@@ -218,32 +219,32 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
             </div>
           </div>
         </form>
-        <div className="absolute bottom-0 right-0 flex">
+        <div className="right-0 bottom-0 absolute flex">
           <button
             type="submit"
-            className="flex items-center justify-center w-56 px-4 py-2 mt-4 space-x-2 transition bg-white rounded-md cursor-pointer hover:bg-mountain-200/80 border-1 border-mountain-200 text-mountain-950"
+            className="flex justify-center items-center space-x-2 bg-white hover:bg-mountain-200/80 mt-4 px-4 py-2 border-1 border-mountain-200 rounded-md w-56 text-mountain-950 transition cursor-pointer"
           >
             <ScreenShare />
             <p>Preview on Facebook</p>
           </button>
         </div>
       </div>
-      <hr className="w-full h-1 border-mountain-200 border-t-1" />
-      <div className="flex items-center justify-center w-16 bg-white border-indigo-600 rounded-md cursor-pointer select-none border-1 h-14 shrink-0">
-        <p className="text-sm text-mountain-600">Post 1</p>
+      <hr className="border-mountain-200 border-t-1 w-full h-1" />
+      <div className="flex justify-center items-center bg-white border-1 border-indigo-600 rounded-md w-16 h-14 cursor-pointer select-none shrink-0">
+        <p className="text-mountain-600 text-sm">Post 1</p>
       </div>
-      <div className="flex items-center justify-center w-16 bg-white rounded-md cursor-pointer select-none border-1 border-mountain-200 h-14 shrink-0">
-        <p className="text-sm text-mountain-600">Post 2</p>
+      <div className="flex justify-center items-center bg-white border-1 border-mountain-200 rounded-md w-16 h-14 cursor-pointer select-none shrink-0">
+        <p className="text-mountain-600 text-sm">Post 2</p>
       </div>
       <form
         onSubmit={handleSubmit}
         className="flex flex-col items-center w-full h-full"
       >
-        <div className="flex w-full h-full gap-2">
+        <div className="flex gap-2 w-full h-full">
           <div className="relative flex flex-col space-y-2 bg-white border-1 border-mountain-200 rounded-md w-[70%] h-[calc(100vh-14.5rem)]">
             {editor && (
-              <div className="flex flex-wrap items-center h-12 gap-2 px-2 bg-white border-b border-mountain-200 rounded-t-md shrink-0">
-                <div className="flex flex-wrap items-center h-12 gap-2 px-2 bg-white border-b border-mountain-200 rounded-t-md text-mountain-800">
+              <div className="flex flex-wrap items-center gap-2 bg-white px-2 border-mountain-200 border-b rounded-t-md h-12 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 bg-white px-2 border-mountain-200 border-b rounded-t-md h-12 text-mountain-800">
                   <Edit className="size-4" />
                   <span>Post Description</span>
                 </div>
@@ -266,12 +267,12 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
                 >
                   U
                 </button>
-                <div className="relative flex w-64 h-8 ml-auto text-xs text-gray-400 rounded-full bg-gradient-to-r from-indigo-50 to-purple-50">
+                <div className="relative flex bg-gradient-to-r from-indigo-50 to-purple-50 ml-auto rounded-full w-64 h-8 text-gray-400 text-xs">
                   <Input
                     placeholder="Ask AI Assisant"
                     className="flex items-center shadow-none py-1.5 focus-visible:border-0 border-none rounded-full outline-none focus:outline-0 focus-visible:ring-0 focus-visible:ring-ring/0 w-96 h-fit"
                   />
-                  <button className="absolute right-0 flex items-center justify-center w-8 h-8 -translate-y-1/2 bg-white border rounded-full top-1/2 border-mountain-200">
+                  <button className="top-1/2 right-0 absolute flex justify-center items-center bg-white border border-mountain-200 rounded-full w-8 h-8 -translate-y-1/2">
                     <Bot className="size-5" />
                   </button>
                 </div>
@@ -311,7 +312,7 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
             )}
           </div>
           <div className="flex flex-col space-y-4 bg-mountain-50 border border-mountain-200 rounded-lg w-[30%] h-[calc(100vh-14.5rem)]">
-            <div className="flex flex-wrap items-center h-12 gap-2 px-2 bg-white border-b border-mountain-200 rounded-t-md text-mountain-800">
+            <div className="flex flex-wrap items-center gap-2 bg-white px-2 border-mountain-200 border-b rounded-t-md h-12 text-mountain-800">
               <Image className="size-4" />
               <span>Post Image</span>
             </div>
@@ -319,7 +320,7 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
               <div className="flex justify-center w-full">
                 <label
                   htmlFor="imageUpload"
-                  className="flex flex-col items-center w-48 px-4 py-2 mx-2 space-y-2 text-sm font-medium text-center bg-white rounded-md shadow-sm cursor-pointer text-mountain-950"
+                  className="flex flex-col items-center space-y-2 bg-white shadow-sm mx-2 px-4 py-2 rounded-md w-48 font-medium text-mountain-950 text-sm text-center cursor-pointer"
                 >
                   <Upload />
                   <p>Choose Image</p>
@@ -337,27 +338,27 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
               {imagePreviews.map((src, index) => (
                 <div
                   key={index}
-                  className="relative w-full overflow-hidden bg-white rounded-md group aspect-video"
+                  className="group relative bg-white rounded-md w-full aspect-video overflow-hidden"
                 >
                   <img
                     src={src}
                     alt={`Preview ${index}`}
-                    className="object-cover w-full h-full"
+                    className="w-full h-full object-cover"
                   />
-                  <div className="absolute hidden p-2 bg-white rounded-full cursor-pointer top-2 right-2 group-hover:flex">
+                  <div className="hidden top-2 right-2 absolute group-hover:flex bg-white p-2 rounded-full cursor-pointer">
                     <Edit className="size-4" />
                   </div>
-                  <div className="absolute hidden p-2 bg-white rounded-full cursor-pointer right-2 bottom-2 group-hover:flex">
+                  <div className="hidden right-2 bottom-2 absolute group-hover:flex bg-white p-2 rounded-full cursor-pointer">
                     <Trash2 className="size-4" />
                   </div>
                 </div>
               ))}
             </div>
             {imagePreviews.length > 1 && (
-              <div className="justify-center hidden w-full rounded-full group-hover:flex">
+              <div className="hidden group-hover:flex justify-center rounded-full w-full">
                 <label
                   htmlFor="imageUpload"
-                  className="flex items-center gap-2 px-4 py-2 mx-2 text-sm font-medium text-center bg-white rounded-md shadow-sm cursor-pointer text-mountain-950"
+                  className="flex items-center gap-2 bg-white shadow-sm mx-2 px-4 py-2 rounded-md font-medium text-mountain-950 text-sm text-center cursor-pointer"
                 >
                   <Upload />
                   <span>Add More</span>
@@ -367,10 +368,10 @@ const ProjectPostEditForm: React.FC<ProjectPostCreateProp> = () => {
           </div>
         </div>
       </form>
-      <div className="absolute bottom-0 right-0 flex">
+      <div className="right-0 bottom-0 absolute flex">
         <button
           type="submit"
-          className="flex items-center justify-center w-56 px-4 py-2 mt-4 space-x-2 transition bg-white rounded-md cursor-pointer hover:bg-mountain-200/80 border-1 border-mountain-200 text-mountain-950"
+          className="flex justify-center items-center space-x-2 bg-white hover:bg-mountain-200/80 mt-4 px-4 py-2 border-1 border-mountain-200 rounded-md w-56 text-mountain-950 transition cursor-pointer"
         >
           <ScreenShare />
           <p>Preview on Facebook</p>
