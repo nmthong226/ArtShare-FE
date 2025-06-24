@@ -115,7 +115,7 @@ export const UserProfileCard = () => {
 
   const handleReport = (reason: string) => {
     reportUser(
-      { targetId: 1, userId: profileData?.id, reason },
+      { targetId: 1, userId: profileData?.id, reason, targetTitle: profileData?.username || "" },
       {
         onSuccess: () => {
           setDialogOpen(false);
