@@ -44,7 +44,7 @@ const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
 
   const handleReport = (reason: string) => {
     reportPost(
-      { targetId: postData?.id, reason, targetType: ReportTargetType.POST },
+      { targetId: postData?.id, reason, targetType: ReportTargetType.POST, targetTitle: postData?.title },
       {
         onSuccess: () => {
           setDialogOpen(false);

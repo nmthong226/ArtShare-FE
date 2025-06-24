@@ -14,6 +14,7 @@ export interface CreateReportDto {
   reason: string;
   user_id?: string;
   target_url: string;
+  target_title: string;
 }
 
 export enum ViewTab {
