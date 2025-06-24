@@ -15,7 +15,10 @@ export default defineConfig(({ mode }) => {
       open: true, // (optional) auto‑open browser
       headers: {
         "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
-        "Cross-Origin-Embedder-Policy": "unsafe-none",
+        // Use unsafe-none for development to allow Firebase popups
+        // In production, consider using "require-corp" for better security
+        "Cross-Origin-Embedder-Policy":
+          mode === "development" ? "unsafe-none" : "require-corp",
       },
     },
     plugins: [
