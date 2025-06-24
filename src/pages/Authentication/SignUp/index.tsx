@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
 import InstagramIcon from "/auth_logo_instagram.svg";
@@ -8,19 +8,34 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserProvider";
 import { AxiosError } from "axios";
-import { getAuth } from "firebase/auth";
-import { getUserProfile } from "@/api/authentication/auth";
 import { validatePassword, validateEmail } from "@/utils/validation";
 
 const SignUp = () => {
-  const { signUpWithEmail, authenWithGoogle, signUpWithFacebook } = useUser();
+  const {
+    signUpWithEmail,
+    authenWithGoogle,
+    signUpWithFacebook,
+    user,
+    loading,
+  } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate(); // To navigate after signup
+  const navigate = useNavigate();
+
+  // Navigate when user state changes after successful login/signup
+  useEffect(() => {
+    if (user && !loading) {
+      if (!user.is_onboard) {
+        navigate("/onboarding");
+      } else {
+        navigate("/explore");
+      }
+    }
+  }, [user, loading, navigate]); // To navigate after signup
 
   // Handle password change with validation
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,10 +107,8 @@ const SignUp = () => {
   const handleGoogleLogin = async () => {
     try {
       await authenWithGoogle();
-      const user = getAuth();
-      const data = await getUserProfile(user.currentUser!.uid);
-      if (!data.is_onboard) navigate("/onboarding");
-      navigate("/explore"); // Redirect after successful login
+      // The UserProvider will handle fetching profile and setting user state
+      // We'll navigate after the user state is updated
     } catch (error) {
       let message = "Something went wrong. Please try again.";
       if (error instanceof AxiosError) {
