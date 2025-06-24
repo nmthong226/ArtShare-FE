@@ -13,6 +13,10 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173, // fixed port for the admin app
       open: true, // (optional) auto‑open browser
+      headers: {
+        "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+        "Cross-Origin-Embedder-Policy": "unsafe-none",
+      },
     },
     plugins: [
       react(),
