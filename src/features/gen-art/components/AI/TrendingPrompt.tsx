@@ -67,10 +67,7 @@ const TrendingPrompt: React.FC<TrendingPromptProps> = ({
 
   const [trending, setTrending] = useState<TrendingItem[]>([]);
 
-  const { data: profileData, isLoading: loadingProfile } = useQuery<
-    UserProfile,
-    Error
-  >({
+  const { data: profileData } = useQuery<UserProfile, Error>({
     queryKey: ["userProfile"],
     queryFn: () => getUserProfile(),
   });
