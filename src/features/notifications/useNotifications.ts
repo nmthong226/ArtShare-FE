@@ -54,6 +54,7 @@ export function useNotifications(userId: string): UseNotificationsReturn {
         return;
       }
 
+      if (notification.type === "report_created") return;
       notificationIdsRef.current.add(notification.id);
       setNotifications((prev) => [notification, ...prev]);
     },
@@ -83,9 +84,12 @@ export function useNotifications(userId: string): UseNotificationsReturn {
       );
 
       // Update both state and Set
-      setNotifications(fetchedNotifications);
+      const filteredNotifications = fetchedNotifications.filter(
+        (notification) => notification.type !== "report_created",
+      );
+      setNotifications(filteredNotifications);
       notificationIdsRef.current = new Set(
-        fetchedNotifications.map((n) => n.id),
+        filteredNotifications.map((n) => n.id),
       );
     } catch (err) {
       const errorMessage =
