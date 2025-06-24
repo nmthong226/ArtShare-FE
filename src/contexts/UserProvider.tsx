@@ -42,6 +42,11 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
+// Constants for better maintainability
+const BACKEND_TOKEN_PROCESSING_DELAY_MS = 100;
+const AUTH_RETRY_DELAY_MS = 500;
+const LOADING_DELAY_MS = 1000;
+
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -49,27 +54,68 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    console.log("🔐 UserProvider: Setting up auth listener");
     const unsubscribe = auth.onIdTokenChanged(
       async (firebaseUser) => {
         if (firebaseUser) {
+          console.log(
+            "🔐 UserProvider: Firebase user detected, fetching backend token",
+          );
           try {
             const fbToken = await firebaseUser.getIdToken();
             const { access_token } = await login(fbToken);
-            localStorage.setItem('accessToken', access_token);
+            localStorage.setItem("accessToken", access_token);
+            api.defaults.headers.common["Authorization"] =
+              `Bearer ${access_token}`;
+
+            console.log(
+              "🔐 UserProvider: Token set, waiting 100ms before fetching profile",
+            );
+            // Add a small delay to ensure the backend has processed the token
+            await new Promise((resolve) =>
+              setTimeout(resolve, BACKEND_TOKEN_PROCESSING_DELAY_MS),
+            );
+
+            console.log("🔐 UserProvider: Fetching user profile");
             const data = await getUserProfile();
             setUser(data);
+            console.log("🔐 UserProvider: User profile set successfully");
           } catch (err) {
-            console.error('Error retrieving user token:', err);
-            setError('Failed to retrieve user token.');
+            console.error("🔐 UserProvider: Error retrieving user token:", err);
+
+            // If it's an authentication error, retry once after a short delay
+            if (
+              err instanceof Error &&
+              err.message.includes("not authenticated yet")
+            ) {
+              console.log("🔐 UserProvider: Auth not ready, retrying in 500ms");
+              setTimeout(async () => {
+                try {
+                  const data = await getUserProfile();
+                  setUser(data);
+                  console.log("🔐 UserProvider: Retry successful");
+                } catch (retryErr) {
+                  console.error("🔐 UserProvider: Retry failed:", retryErr);
+                  setError("Failed to retrieve user profile after retry.");
+                }
+              }, AUTH_RETRY_DELAY_MS);
+            } else {
+              setError("Failed to retrieve user token.");
+            }
           }
         } else {
+          console.log("🔐 UserProvider: No Firebase user, clearing state");
           setUser(null);
+          // Clear authorization header when user logs out
+          delete api.defaults.headers.common["Authorization"];
+          localStorage.removeItem("accessToken");
         }
         setTimeout(() => {
           setLoading(false);
-        }, 1000);
+        }, LOADING_DELAY_MS);
       },
       (err) => {
+        console.error("🔐 UserProvider: Auth listener error:", err);
         setError(err.message);
         setLoading(false);
       },
@@ -116,9 +162,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         throw new Error(errMsg);
       }
 
-      const data = await getUserProfile();
-      setUser(data);
-
+      // Don't call getUserProfile here - let onIdTokenChanged handle it
       const token = await user.getIdToken();
       const backendResponse = await login(token);
       if (backendResponse) {
@@ -153,8 +197,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const loginResponse = await login(googleToken);
       localStorage.setItem('accessToken', loginResponse.access_token);
 
-      const data = await getUserProfile();
-      setUser(data);
+      // Don't call getUserProfile here - let onIdTokenChanged handle it
     } catch (error) {
       setError((error as Error).message);
       console.error('Google sign-in error:', error);

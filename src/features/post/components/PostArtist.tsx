@@ -44,7 +44,7 @@ const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
 
   const handleReport = (reason: string) => {
     reportPost(
-      { targetId: postData?.id, reason, targetType: ReportTargetType.POST },
+      { targetId: postData?.id, reason, targetType: ReportTargetType.POST, targetTitle: postData?.title },
       {
         onSuccess: () => {
           setDialogOpen(false);
@@ -93,11 +93,11 @@ const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
         }
       />
       <CardContent
-        className="flex flex-col gap-4 p-0 cursor-pointer"
+        className="flex flex-col gap-4 p-0 cursor-pointer group hover:bg-gray-50 dark:hover:bg-mountain-800/50 rounded-lg p-2 transition-colors duration-200"
         onClick={() => navigate(`/${artist.username}`)}
       >
         <div className="flex gap-4 cursor-pointer">
-          <div className="flex-shrink-0 rounded-full overflow-hidden">
+          <div className="flex-shrink-0 rounded-full overflow-hidden ring-2 ring-transparent group-hover:ring-blue-500/30 transition-all duration-200">
             {artist.profile_picture_url ? (
               <img
                 src={artist.profile_picture_url}
@@ -109,15 +109,17 @@ const PostArtist = ({ artist, postData }: { artist: User; postData: Post }) => {
                 name={artist.username || "Unknown"}
                 colors={["#84bfc3", "#ff9b62", "#d96153"]}
                 variant="beam"
-                size={48} // Note: In your code this was 48, image was w-20 h-20. Ensure consistency if intended.
+                size={80} // Fixed size to match the image dimensions
               />
             )}
           </div>
           <div className="flex flex-col pt-0.5">
-            <div className="font-bold text-xl">
+            <div className="font-bold text-xl group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
               {artist.full_name || "Unknown fullname"}
             </div>
-            <div className="text-sm line-clamp-1">@{artist.username}</div>
+            <div className="text-sm line-clamp-1 group-hover:text-blue-500 dark:group-hover:text-blue-300 transition-colors duration-200">
+              @{artist.username}
+            </div>
           </div>
         </div>
       </CardContent>
