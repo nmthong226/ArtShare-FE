@@ -121,8 +121,33 @@ const Login = () => {
       // The UserProvider will handle fetching profile and setting user state
       // We'll navigate after the user state is updated
     } catch (error) {
+      console.error("Google login error:", error);
       let message = "Something went wrong. Please try again.";
-      if (error instanceof AxiosError) {
+
+      if (error instanceof Error) {
+        // Handle Firebase Auth errors and our custom errors
+        if (error.message.includes("popup-closed-by-user")) {
+          message =
+            "Login was cancelled. You closed the popup before signing in.";
+        } else if (error.message.includes("popup-blocked")) {
+          message =
+            "The login popup was blocked by your browser. Please enable popups and try again.";
+        } else if (error.message.includes("cancelled-popup-request")) {
+          message = "Login was interrupted by another popup request.";
+        } else if (
+          error.message.includes("account-exists-with-different-credential")
+        ) {
+          message =
+            "An account already exists with a different sign-in method. Try logging in using that method.";
+        } else if (error.message.includes("network-request-failed")) {
+          message =
+            "Network error. Please check your connection and try again.";
+        } else if (error.message.includes("Failed to create account")) {
+          message = error.message; // Use our custom error message
+        } else {
+          message = error.message;
+        }
+      } else if (error instanceof AxiosError) {
         const code = error.code;
         switch (code) {
           case "auth/popup-closed-by-user":
