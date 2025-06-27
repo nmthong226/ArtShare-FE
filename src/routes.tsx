@@ -63,9 +63,24 @@ const ProjectEditorPage = lazy(
   () => import('@/features/media-automation/projects/routes/ProjectEditorPage'),
 );
 
-const AutoPostEditorPage = lazy(
+const AutoPostsManagerPage = lazy(
   () =>
-    import('@/features/media-automation/auto-posts/routes/AutoPostEditorPage'),
+    import(
+      '@/features/media-automation/auto-posts/routes/AutoPostsManagerPage'
+    ),
+);
+
+const GenerateAutoPostForm = lazy(
+  () =>
+    import(
+      '@/features/media-automation/auto-posts/components/GenerateAutoPostForm'
+    ),
+);
+const EditAutoPostForm = lazy(
+  () =>
+    import(
+      '@/features/media-automation/auto-posts/components/EditAutoPostForm'
+    ),
 );
 
 const NotFoundPage = lazy(() => import('@/components/NotFoundPage'));
@@ -179,10 +194,16 @@ const routeConfig: RouteObject[] = [
                   { path: 'edit', element: <ProjectEditorPage /> },
                   {
                     path: 'posts',
-                    element: <Outlet />,
+                    element: <AutoPostsManagerPage />,
                     children: [
-                      { path: 'new', element: <AutoPostEditorPage /> },
-                      { path: ':postId/edit', element: <AutoPostEditorPage /> },
+                      {
+                        path: 'new',
+                        element: <GenerateAutoPostForm />,
+                      },
+                      {
+                        path: ':postId/edit',
+                        element: <EditAutoPostForm />,
+                      },
                     ],
                   },
                 ],
