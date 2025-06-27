@@ -81,7 +81,7 @@ function ProjectTableHead(props: EnhancedTableProps) {
 
   return (
     <TableHead>
-      <TableRow className="border-mountain-100 border-b-2">
+      <TableRow className="border-b-2 border-mountain-100">
         <TableCell padding="checkbox">
           <Checkbox
             color="primary"
@@ -348,7 +348,7 @@ export default function ProjectTable({
                           navigate(`/auto/projects/${row.id}/details`)
                         }
                         sx={{ cursor: 'pointer' }}
-                        className="hover:bg-mountain-50 border-mountain-100 border-b-2"
+                        className="border-b-2 hover:bg-mountain-50 border-mountain-100"
                       >
                         <TableCell padding="checkbox">
                           <Checkbox
@@ -366,7 +366,7 @@ export default function ProjectTable({
                         <TableCell align="right">
                           <div className="flex flex-wrap justify-end gap-2">
                             {
-                              <div className="bg-mountain-100 px-2 py-1 rounded">
+                              <div className="px-2 py-1 rounded bg-mountain-100">
                                 {/* CHANGE: Using the helper function here */}
                                 {formatToTitleCase(row.platform.name)}
                               </div>
@@ -375,7 +375,7 @@ export default function ProjectTable({
                         </TableCell>
                         <TableCell align="right">{row.postCount}</TableCell>
                         <TableCell align="right">
-                          <span className="flex justify-end items-center gap-2 text-sm">
+                          <span className="flex items-center justify-end gap-2 text-sm">
                             <span
                               className={`w-2 h-2 rounded-full ${getStatusColor(
                                 row.status,
@@ -397,7 +397,7 @@ export default function ProjectTable({
                         >
                           <Tooltip title="Edit">
                             <Button
-                              className="bg-indigo-50 border-1 border-mountain-200 font-normal"
+                              className="font-normal bg-indigo-50 border-1 border-mountain-200"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigate(`/auto/projects/${row.id}/edit`);
@@ -409,7 +409,7 @@ export default function ProjectTable({
                           <Tooltip title="Delete">
                             <Button
                               color="error"
-                              className="bg-red-50 border-1 border-mountain-200 font-normal"
+                              className="font-normal bg-red-50 border-1 border-mountain-200"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onDelete([row.id]);
@@ -435,7 +435,7 @@ export default function ProjectTable({
           page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          className="flex-shrink-0 border-mountain-100 border-t-2 overflow-hidden"
+          className="flex-shrink-0 overflow-hidden border-t-2 border-mountain-100"
         />
       </div>
     </div>

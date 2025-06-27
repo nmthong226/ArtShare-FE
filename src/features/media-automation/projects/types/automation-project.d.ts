@@ -6,7 +6,7 @@ export type Order = 'asc' | 'desc';
 export type SortableKeys = 'title' | 'status' | 'nextPostAt' | 'postCount';
 
 export interface HeadCell {
-  id: SortableKeys | 'platform' | 'actions'; // The unique ID for the column. Can be non-sortable.
+  id: SortableKeys | 'platform' | 'actions';
   label: string;
   numeric: boolean;
   disablePadding: boolean;
@@ -47,6 +47,17 @@ type ProjectDialogProps = {
   openDiaLog: boolean;
   setOpenDialog: Dispatch<SetStateAction<boolean>>;
   selectedRow: Data;
+};
+
+type PostStatus = 'draft' | 'scheduled' | 'posted' | 'canceled';
+
+type AutoPost = {
+  id: number;
+  content: string;
+  imageUrl?: string[];
+  status: PostStatus;
+  createdAt: Date;
+  scheduledTime?: Date;
 };
 
 type AutomationProjectDetail = {
@@ -136,4 +147,11 @@ export interface ProjectSummaryStats {
   active: number;
   completed: number;
   cancelledOrFailed: number;
+}
+
+export interface CreateAutoProjectPayload {
+  title: string;
+  description: string;
+  platform_id: number;
+  auto_post_meta_list: AutoPostMeta[];
 }

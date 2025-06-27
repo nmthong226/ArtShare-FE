@@ -1,3 +1,8 @@
+interface ProjectInfo {
+  id: number;
+  title: string;
+}
+
 export interface Platform {
   id: number;
   name: 'FACEBOOK' | 'INSTAGRAM';
@@ -8,4 +13,6 @@ export interface Platform {
   };
   status: PlatformStatus;
   token_expires_at: string | null;
+  picture_url?: string | null;
+  autoProjects: ProjectInfo[];
 }
