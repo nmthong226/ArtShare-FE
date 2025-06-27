@@ -282,7 +282,7 @@ const Post: React.FC = () => {
     setCommentCount((prev) => Math.max(prev - 1, 0));
     if (postData) {
       postData.comment_count -= 1;
-      refetchPostData;
+      refetchPostData();
     }
   };
 
