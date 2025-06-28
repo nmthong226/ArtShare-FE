@@ -5,10 +5,10 @@ import React, { useState } from 'react';
 const InAppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [expandSideBar, setExpandSideBar] = useState(true);
   return (
-    <div className={`relative flex flex-row w-full h-screen`}>
+    <div className={`relative flex h-screen min-h-0 w-full flex-row`}>
       <Sidebar expand={expandSideBar} setExpand={setExpandSideBar} />
       <div
-        className={`flex flex-col z-50 flex-1 flex-shrink px-2 w-[calc(100vw-16rem)]`}
+        className={`z-50 flex h-screen w-[calc(100vw-16rem)] flex-1 flex-col px-2`}
       >
         <Header />
         <div className="flex-1 bg-gradient-to-b from-mountain-50 dark:from-mountain-1000 to-white dark:to-mountain-900 border border-mountain-100 dark:border-black rounded-t-3xl transition-shadow duration-300">

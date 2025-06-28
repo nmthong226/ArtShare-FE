@@ -60,21 +60,6 @@ const ProjectEditorPage = () => {
     return <div>Project not found or an error occurred.</div>;
   }
 
-  const validationSchema = Yup.object().shape({
-    projectName: Yup.string()
-      .min(5, 'Project name must be at least 5 characters')
-      .required('Project name is required'),
-    description: Yup.string()
-      .min(5, 'Description must be at least 5 characters')
-      .required('Description is required'),
-    platform: Yup.object().shape({
-      id: Yup.number()
-        .min(1, 'Please select a platform account')
-        .required('Platform is required'),
-      name: Yup.string(),
-    }),
-  });
-
   return (
     <Box className="relative flex justify-center items-center p-4 w-full h-full">
       {isLoadingProject && <Loading />}
@@ -165,3 +150,18 @@ const ProjectEditorPage = () => {
 };
 
 export default ProjectEditorPage;
+
+const validationSchema = Yup.object().shape({
+  projectName: Yup.string()
+    .min(5, 'Project name must be at least 5 characters')
+    .required('Project name is required'),
+  description: Yup.string()
+    .min(5, 'Description must be at least 5 characters')
+    .required('Description is required'),
+  platform: Yup.object().shape({
+    id: Yup.number()
+      .min(1, 'Please select a platform account')
+      .required('Platform is required'),
+    name: Yup.string(),
+  }),
+});

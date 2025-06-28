@@ -7,39 +7,6 @@ import {
   ItemTableProps,
 } from '../../../projects/types/automation-project';
 
-const headCells: readonly HeadCellItemTable[] = [
-  {
-    id: 'content',
-    numeric: false,
-    disablePadding: true,
-    label: 'Content',
-  },
-  {
-    id: 'imageUrl',
-    numeric: true,
-    disablePadding: false,
-    label: 'Images Number',
-  },
-  {
-    id: 'status',
-    numeric: true,
-    disablePadding: false,
-    label: 'Status',
-  },
-  {
-    id: 'scheduledTime',
-    numeric: true,
-    disablePadding: false,
-    label: 'Scheduled Time',
-  },
-  {
-    id: 'createdAt',
-    numeric: true,
-    disablePadding: false,
-    label: 'Created At',
-  },
-];
-
 function AutoPostsTableHeader(props: ItemTableProps) {
   const { onSelectAllClick, numSelected, rowCount } = props;
 
@@ -73,3 +40,43 @@ function AutoPostsTableHeader(props: ItemTableProps) {
 }
 
 export default AutoPostsTableHeader;
+
+const headCells: readonly HeadCellItemTable[] = [
+  // {
+  //   id: 'content',
+  //   numeric: false,
+  //   disablePadding: true,
+  //   label: 'Content',
+  //   width: 200,
+  // },
+  {
+    id: 'id',
+    numeric: true,
+    disablePadding: false,
+    label: 'Id',
+  },
+  {
+    id: 'imageUrl',
+    numeric: true,
+    disablePadding: false,
+    label: 'Images Number',
+  },
+  {
+    id: 'status',
+    numeric: true,
+    disablePadding: false,
+    label: 'Status',
+  },
+  {
+    id: 'scheduledTime',
+    numeric: true,
+    disablePadding: false,
+    label: 'Scheduled Time',
+  },
+  {
+    id: 'createdAt',
+    numeric: true,
+    disablePadding: false,
+    label: 'Created At',
+  },
+];

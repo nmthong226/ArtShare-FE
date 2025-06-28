@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { getProjectDetails } from '../api/projects.api';
 
 export const useGetProjectDetails = (
@@ -17,5 +17,6 @@ export const useGetProjectDetails = (
 
     enabled: !!numericId && (options?.enabled ?? true),
     staleTime: 1000 * 60 * 5, // 5 minutes
+    placeholderData: keepPreviousData,
   });
 };

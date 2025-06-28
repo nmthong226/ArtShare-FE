@@ -1,5 +1,8 @@
+import Loading from '@/components/loading/Loading';
 import { useGetProjectDetails } from '@/features/media-automation/projects/hooks/useGetProjectDetails';
 import { getStatusChipProps } from '@/features/media-automation/projects/utils';
+import { useNumericParam } from '@/hooks/useNumericParam';
+import { formatDate, formatDateTime } from '@/utils/date.util';
 import {
   Button,
   Checkbox,
@@ -11,7 +14,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Order,
   SortableKeysItemTable,
@@ -20,7 +23,7 @@ import { useGetAutoPosts } from '../../hooks/useGetAutoPosts';
 import PostsTableHeader from './AutoPostsTableHeader';
 
 const AutoPostsTable = () => {
-  const { projectId } = useParams<{ projectId: string }>();
+  const projectId = useNumericParam('projectId');
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<SortableKeysItemTable>('content');
   const [selected, setSelected] = useState<readonly number[]>([]);
@@ -30,13 +33,8 @@ const AutoPostsTable = () => {
 
   const { data: projectDetails } = useGetProjectDetails(projectId);
 
-  if (!projectDetails) {
-    return <div>Loading project details...</div>;
-  }
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { data: fetchedPostsResponse } = useGetAutoPosts({
-    projectId: projectDetails?.id,
+  const { data: fetchedPostsResponse, isLoading } = useGetAutoPosts({
+    projectId: projectId,
     orderBy,
     order,
     page,
@@ -86,8 +84,16 @@ const AutoPostsTable = () => {
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - posts.length) : 0;
 
   const handleAddPostClick = () => {
-    navigate(`/auto/projects/${projectDetails.id}/posts/new`);
+    navigate(`/auto/projects/${projectDetails!.id}/posts/new`);
   };
+
+  const handleRowClick = (postId: number) => {
+    navigate(`/auto/projects/${projectDetails!.id}/posts/${postId}/edit`);
+  };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="flex flex-col space-y-2 w-full">
