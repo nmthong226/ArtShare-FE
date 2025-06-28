@@ -5,7 +5,7 @@ import React, { useRef, useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa6';
 import { FiSearch } from 'react-icons/fi';
 import { TiDeleteOutline } from 'react-icons/ti';
-import { matchPath, useLocation, useNavigate } from 'react-router-dom';
+import { matchPath, useLocation, useNavigate, useParams } from 'react-router-dom';
 import UserInAppConfigs from '../popovers/UserInAppConfigs';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -19,14 +19,20 @@ function findMatchedRoute(pathname: string) {
 
 function buildBreadcrumbTrail(
   route: HeaderRoute | null,
+  params: Record<string, string>
 ): { path: string; label: string }[] {
   const trail = [];
   while (route) {
-    trail.unshift({ path: route.path, label: route.label });
+    let label = route.label;
+
+    // Replace :params in label if needed
+    if (route.path.includes(':username') && params.username) {
+      label = params.username;
+    }
+
+    trail.unshift({ path: route.path, label });
     if (route.parent) {
-      const parentRoute = routesForHeaders.find(
-        (r) => r.path === route!.parent,
-      );
+      const parentRoute = routesForHeaders.find((r) => r.path === route!.parent);
       route = parentRoute ?? null;
     } else {
       route = null;
@@ -35,11 +41,17 @@ function buildBreadcrumbTrail(
   return trail;
 }
 
+
 function useBreadcrumbs() {
   const location = useLocation();
+  const params = useParams(); // 👈 get dynamic URL segments
   const matchedRoute = findMatchedRoute(location.pathname);
   if (!matchedRoute) return [];
-  return buildBreadcrumbTrail(matchedRoute);
+  // Convert params to Record<string, string> by replacing undefined with ''
+  const safeParams: Record<string, string> = Object.fromEntries(
+    Object.entries(params).map(([k, v]) => [k, v ?? ''])
+  );
+  return buildBreadcrumbTrail(matchedRoute, safeParams);
 }
 
 const Header: React.FC = () => {
@@ -55,7 +67,7 @@ const Header: React.FC = () => {
 
   return (
     <nav
-      className={`py-4 top-0 z-50 sticky flex justify-between items-center dark:bg-mountain-950 dark:border-b-mountain-700 w-full h-16`}
+      className={`py-4 pr-4 top-0 z-50 sticky flex justify-between items-center dark:bg-mountain-950 dark:border-b-mountain-700 w-full h-16`}
     >
       <div className="flex items-center h-full">
         <div className="flex items-center h-full">
@@ -74,7 +86,7 @@ const Header: React.FC = () => {
                 <React.Fragment key={crumb.path}>
                   {index > 0 && <span className="px-1 text-gray-400">/</span>}
                   <span
-                    className={`${index === breadcrumbs.length - 1 ? 'font-medium text-foreground' : ''} font-thin text-base`}
+                    className={`font-normal text-base`}
                   >
                     {crumb.label}
                   </span>
@@ -94,7 +106,7 @@ const Header: React.FC = () => {
               ref={inputRef}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
-              className="bg-white shadow-inner pl-8 rounded-2xl w-full"
+              className="bg-mountain-50 shadow-inner pl-8 rounded-2xl w-full"
               placeholder="Search"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}

@@ -60,13 +60,13 @@ const UserPosts = () => {
   }
 
   return (
-    <div className="gap-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 3xl:grid-cols-8 4xl:grid-cols-10 p-1 w-full">
+    <div className="gap-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 2xl:grid-cols-7 3xl:grid-cols-8 4xl:grid-cols-10 xl:grid-cols-6 p-1 pb-20 w-full">
       {posts.map((post) => (
         <Link
           component={RouterLink}
           to={`/posts/${post.id}`}
           key={post.id}
-          className="group relative hover:shadow-[0_8px_12px_-4px_rgba(0,0,0,0.4)] aspect-h-1 aspect-w-1 min-h-[160px] overflow-hidden transition-shadow duration-300"
+          className="group relative hover:shadow-[0_8px_12px_-4px_rgba(0,0,0,0.4)] min-h-[160px] aspect-h-1 aspect-w-1 overflow-hidden transition-shadow duration-300"
           underline="none"
         >
           <img

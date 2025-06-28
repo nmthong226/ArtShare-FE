@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
 
   return (
     <aside
-      className={`${expand ? 'w-60' : 'w-16'} h-screen transition-all ease-in-out duration-500 top-0 z-20 sticky xs:flex flex-col border-r-1 border-indigo-200 flex-shrink-0 flex-none justify-between dark:bg-mountain-950 dark:border-r-mountain-700 overflow-hidden`}
+      className={`${expand ? 'w-60' : 'w-16'} h-screen transition-all ease-in-out duration-500 top-0 z-20 sticky xs:flex flex-col flex-shrink-0 flex-none justify-between dark:bg-mountain-950 dark:border-r-mountain-700 overflow-hidden`}
     >
       <div className="flex flex-col">
         {/* Sidebar Header */}
@@ -87,20 +87,28 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                 >
                   <Link
                     to={item.href}
-                    className={`
-                      group flex items-center px-4 rounded-md w-full h-10 hover:cursor-pointer transition-colors duration-150
+                    className={`group flex hover:bg-mountain-50 items-center px-4 rounded-md w-full h-10 cursor-pointer
                       ${isActive
-                        ? 'from-indigo-200 to-purple-200 bg-gradient-to-r text-indigo-700 dark:text-indigo-700 font-medium'
-                        : 'text-violet-900 dark:text-[#7986cb]  dark:hover:bg-mountain-800 hover:text-violet-950 dark:hover:text-white'
-                      }
-                    `}
+                        ? 'text-white'
+                        : 'text-violet-900'}
+                      `}
+                    style={
+                      isActive
+                        ? {
+                          backgroundImage:
+                            'linear-gradient(to right, #a855f7, #6366f1, #3b82f6, #06b6d4)',
+                        }
+                        : undefined
+                    }
                   >
                     <item.icon className="flex-shrink-0 size-5" />
                     <div
-                      className={`overflow-hidden transition-all duration-500 origin-left ${expand ? 'ml-2 w-auto' : 'w-0'}`}
+                      className={`overflow-hidden transition-all duration-500 origin-left ${expand ? 'ml-2 w-auto' : 'w-0'
+                        }`}
                     >
                       <p
-                        className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'} ${isActive ? 'font-medium' : 'font-normal'}`}
+                        className={`text-nowrap transition-opacity duration-500 ${expand ? 'opacity-100' : 'opacity-0'
+                          } ${isActive ? 'font-medium' : 'font-normal'}`}
                       >
                         {item.label}
                       </p>
@@ -134,12 +142,20 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                   <Link
                     to={item.href}
                     className={`
-                      group flex items-center px-4 rounded-md w-full h-10 hover:cursor-pointer transition-colors duration-150
+                      group flex items-center px-4 rounded-md w-full h-10 hover:bg-mountain-50 cursor-pointer
                       ${isActive
-                        ? 'from-indigo-200 to-purple-200 bg-gradient-to-r text-indigo-700 dark:text-indigo-700 font-medium' // Active state
-                        : 'text-violet-900 dark:text-[#7986cb]  dark:hover:bg-mountain-800 hover:text-violet-950 dark:hover:text-white' // Inactive state
+                        ? 'text-white'
+                        : 'text-violet-900'
                       }
                     `}
+                    style={
+                      isActive
+                        ? {
+                          backgroundImage:
+                            'linear-gradient(to right, #a855f7, #6366f1, #3b82f6, #06b6d4)',
+                        }
+                        : undefined
+                    }
                   >
                     <item.icon className="flex-shrink-0 size-5" />
                     <div
@@ -175,12 +191,20 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                   <Link
                     to={item.href}
                     className={`
-                      group flex items-center px-4 rounded-md w-full h-10 hover:cursor-pointer transition-colors duration-150
+                      group flex items-center px-4 rounded-md hover:bg-mountain-50 w-full h-10 cursor-pointer
                       ${isActive
-                        ? 'from-indigo-200 to-purple-200 bg-gradient-to-r text-indigo-700 dark:text-indigo-700 font-medium' // Active state
-                        : 'text-violet-900 dark:text-[#7986cb]  dark:hover:bg-mountain-800 hover:text-violet-950 dark:hover:text-white' // Inactive state
+                        ? 'text-white'
+                        : 'text-violet-900'
                       }
                     `}
+                    style={
+                      isActive
+                        ? {
+                          backgroundImage:
+                            'linear-gradient(to right, #a855f7, #6366f1, #3b82f6, #06b6d4)',
+                        }
+                        : undefined
+                    }
                   >
                     <item.icon className="flex-shrink-0 size-5" />
                     <div
@@ -221,12 +245,20 @@ const Sidebar: React.FC<SidebarProps> = ({ expand, setExpand }) => {
                   <Link
                     to={item.href}
                     className={`
-                      group flex items-center px-4 rounded-md w-full h-10 hover:cursor-pointer transition-colors duration-150
+                      group flex items-center px-4 rounded-md w-full h-10 cursor-pointer hover:bg-mountain-50
                       ${isActive
-                        ? 'from-indigo-200 to-purple-200 bg-gradient-to-r text-indigo-700 dark:text-indigo-700 font-medium' // Active state
-                        : 'text-violet-900 dark:text-[#7986cb]  dark:hover:bg-mountain-800 hover:text-violet-950 dark:hover:text-white' // Inactive state
+                        ? 'text-white'
+                        : 'text-violet-900'
                       }
                     `}
+                    style={
+                      isActive
+                        ? {
+                          backgroundImage:
+                            'linear-gradient(to right, #a855f7, #6366f1, #3b82f6, #06b6d4)',
+                        }
+                        : undefined
+                    }
                   >
                     <item.icon className="flex-shrink-0 size-5" />
                     <div

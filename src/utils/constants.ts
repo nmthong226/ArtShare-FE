@@ -133,7 +133,7 @@ export const routesForHeaders: HeaderRoute[] = [
   {
     path: '/:username',
     label: 'My Profile',
-    description: 'This place is yours',
+    description: 'This place is yours to showcase your creations',
   },
   {
     path: '/auto/social-links',

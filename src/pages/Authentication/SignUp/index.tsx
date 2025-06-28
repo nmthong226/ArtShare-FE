@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebookF } from "react-icons/fa";
-import InstagramIcon from "/auth_logo_instagram.svg";
-import { FaApple } from "react-icons/fa";
+// import { FaFacebookF } from "react-icons/fa";
+// import InstagramIcon from "/auth_logo_instagram.svg";
+// import { FaApple } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ const SignUp = () => {
   const {
     signUpWithEmail,
     authenWithGoogle,
-    signUpWithFacebook,
+    // signUpWithFacebook,
     user,
     loading,
   } = useUser();
@@ -137,14 +137,14 @@ const SignUp = () => {
     }
   };
 
-  const handleFacebookLogin = async () => {
-    try {
-      await signUpWithFacebook(); // Call Facebook login function from UserProvider
-      navigate("/home"); // Redirect after successful login
-    } catch (error) {
-      setError((error as Error).message); // Handle errors from Facebook login
-    }
-  };
+  // const handleFacebookLogin = async () => {
+  //   try {
+  //     await signUpWithFacebook(); // Call Facebook login function from UserProvider
+  //     navigate("/home"); // Redirect after successful login
+  //   } catch (error) {
+  //     setError((error as Error).message); // Handle errors from Facebook login
+  //   }
+  // };
 
   return (
     <div className="flex-1 space-y-4 px-10 md:px-0 lg:px-20 py-8">
@@ -173,7 +173,7 @@ const SignUp = () => {
         </div>
 
         {/* Facebook, Instagram, Apple Login */}
-        <div className="flex justify-between w-full">
+        {/* <div className="flex justify-between w-full">
           <Button
             variant={"outline"}
             className="flex justify-center items-center hover:brightness-115 px-4 py-3 border border-mountain-950 dark:border-mountain-700 rounded-lg focus:outline-none focus:ring-2 w-[32%] h-10 font-normal text-mountain-950 dark:text-mountain-50 text-sm hover:cursor-pointer"
@@ -196,7 +196,7 @@ const SignUp = () => {
             <FaApple className="size-5" />
             <span>Apple</span>
           </Button>
-        </div>
+        </div> */}
       </div>
 
       <div className="flex items-center space-x-4 mt-6 text-center">
@@ -237,13 +237,12 @@ const SignUp = () => {
           <Input
             type="password"
             placeholder="Enter your password"
-            className={`dark:bg-mountain-900 shadow-sm mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 w-full h-10 text-mountain-950 dark:text-mountain-50 ${
-              passwordError
-                ? "border-red-500 focus:ring-red-500"
-                : password && !passwordError
-                  ? "border-green-500 focus:ring-green-500"
-                  : "border-mountain-800 focus:ring-blue-500"
-            }`}
+            className={`dark:bg-mountain-900 shadow-sm mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 w-full h-10 text-mountain-950 dark:text-mountain-50 ${passwordError
+              ? "border-red-500 focus:ring-red-500"
+              : password && !passwordError
+                ? "border-green-500 focus:ring-green-500"
+                : "border-mountain-800 focus:ring-blue-500"
+              }`}
             value={password}
             onChange={handlePasswordChange}
           />
@@ -254,8 +253,8 @@ const SignUp = () => {
           )}
           {password && !passwordError ? (
             <div className="flex items-center gap-2 mt-1">
-              <div className="h-2 w-2 rounded-full bg-green-500"></div>
-              <p className="text-green-600 dark:text-green-400 text-xs font-medium">
+              <div className="bg-green-500 rounded-full w-2 h-2"></div>
+              <p className="font-medium text-green-600 dark:text-green-400 text-xs">
                 Password requirements satisfied!
               </p>
             </div>

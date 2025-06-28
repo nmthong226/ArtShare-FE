@@ -1,4 +1,4 @@
-import api from '@/api/baseApi';
+// import api from '@/api/baseApi';
 import InlineErrorMessage from '@/components/InlineErrorMessage';
 import {
   Select,
@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SharePlatformName } from '@/features/media-automation/types';
-import { useSnackbar } from '@/hooks/useSnackbar';
+// import { useSnackbar } from '@/hooks/useSnackbar';
 import { Typography } from '@mui/material';
 import { ErrorMessage, useFormikContext } from 'formik';
 import { useEffect, useState } from 'react';
@@ -20,6 +20,7 @@ import { PiArrowsClockwise } from 'react-icons/pi';
 import fb_icon from '/fb_icon.svg';
 import ins_icon from '/ins_icon.svg';
 import { Link } from 'react-router-dom';
+import { useFacebookAccountInfo } from '../../social-links/hooks/useFacebook';
 
 const name = 'platform';
 
@@ -28,7 +29,7 @@ type PlatformSelectionProps = {
 };
 const PlatformSelection = ({ isEditMode = false }: PlatformSelectionProps) => {
   const { setFieldValue, getFieldMeta } = useFormikContext<ProjectFormValues>();
-  const { showSnackbar } = useSnackbar();
+  // const { showSnackbar } = useSnackbar();
   // const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const initialPlatform = getFieldMeta(name).initialValue as FormPlatform;
@@ -105,32 +106,32 @@ const PlatformSelection = ({ isEditMode = false }: PlatformSelectionProps) => {
   //   handleMenuClose();
   // };
 
-  const handleReconnect = async (platform?: Platform) => {
-    try {
-      if (platform) {
-        console.log(
-          `Initiating reconnection for ${platform.name} page: ${platform.config.page_name}`,
-        );
-      }
-      const currentPageUrl = window.location.href;
-      const encodedRedirectUrl = encodeURIComponent(currentPageUrl);
+  // const handleReconnect = async (platform?: Platform) => {
+  //   try {
+  //     if (platform) {
+  //       console.log(
+  //         `Initiating reconnection for ${platform.name} page: ${platform.config.page_name}`,
+  //       );
+  //     }
+  //     const currentPageUrl = window.location.href;
+  //     const encodedRedirectUrl = encodeURIComponent(currentPageUrl);
 
-      console.log(
-        `Initiating reconnection. Will redirect to: ${currentPageUrl}`,
-      );
+  //     console.log(
+  //       `Initiating reconnection. Will redirect to: ${currentPageUrl}`,
+  //     );
 
-      const response = await api.get(
-        `/facebook-integration/initiate-connection-url?successUrl=${encodedRedirectUrl}&errorUrl=${encodedRedirectUrl}`,
-      );
-      const { facebookLoginUrl } = response.data;
-      if (facebookLoginUrl) {
-        window.location.href = facebookLoginUrl;
-      }
-    } catch (error) {
-      console.error('Failed to get reconnection URL', error);
-      showSnackbar('Could not initiate reconnection. Please try again later.');
-    }
-  };
+  //     const response = await api.get(
+  //       `/facebook-integration/initiate-connection-url?successUrl=${encodedRedirectUrl}&errorUrl=${encodedRedirectUrl}`,
+  //     );
+  //     const { facebookLoginUrl } = response.data;
+  //     if (facebookLoginUrl) {
+  //       window.location.href = facebookLoginUrl;
+  //     }
+  //   } catch (error) {
+  //     console.error('Failed to get reconnection URL', error);
+  //     showSnackbar('Could not initiate reconnection. Please try again later.');
+  //   }
+  // };
 
   const isTokenExpired = (expiryDate: string | null) => {
     if (!expiryDate) return false;
@@ -160,6 +161,16 @@ const PlatformSelection = ({ isEditMode = false }: PlatformSelectionProps) => {
     }
   }, []);
 
+  const { data: fbAccountInfo } = useFacebookAccountInfo();
+  const facebookProfile =
+    fbAccountInfo && fbAccountInfo.length > 0
+      ? {
+        name: fbAccountInfo[0].name,
+        profilePicture:
+          fbAccountInfo[0].picture_url || 'https://i.pravatar.cc/150',
+      }
+      : null;
+
   return (
     <div className="flex flex-col h-full">
       <div className="relative flex flex-col justify-start items-center w-xl h-full">
@@ -185,7 +196,7 @@ const PlatformSelection = ({ isEditMode = false }: PlatformSelectionProps) => {
           </ErrorMessage>
         </div>
         <div className='flex flex-col justify-center items-center space-y-2 w-full h-full'>
-          <div className='flex justify-center'>
+          <div className='flex justify-center w-full'>
             {isLoading &&
               <div className="group relative flex flex-col justify-center items-center p-4 w-xl h-42 text-center cursor-not-allowed">
                 <p>Loading platforms...</p>
@@ -208,8 +219,8 @@ const PlatformSelection = ({ isEditMode = false }: PlatformSelectionProps) => {
                   <div className="flex flex-col justify-center items-center space-y-2 w-full h-42">
                     <div className='flex flex-col items-center space-y-1'>
                       <div className='flex flex-col items-center space-y-2'>
-                        <img src={'https://i.pravatar.cc/150?img=37'} className='rounded-full size-20' />
-                        <span className='font-medium text-sm'>Tralalero Tralala</span>
+                        <img src={facebookProfile?.profilePicture} className='rounded-full size-20' />
+                        <span className='font-medium text-sm'>{facebookProfile?.name}</span>
                       </div>
                     </div>
                     {selectedPlatform && (

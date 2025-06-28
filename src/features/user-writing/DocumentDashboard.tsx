@@ -197,7 +197,7 @@ const DocumentDashboard = () => {
   };
 
   return (
-    <div className="flex flex-col items-center h-screen overflow-auto sidebar">
+    <div className="flex flex-col items-center bg-white rounded-t-3xl h-screen overflow-auto sidebar">
       {/* Top Templates Section */}
       <div className="flex justify-center border-mountain-50 dark:border-mountain-700 w-full h-fit">
         <div className="flex flex-col justify-center items-center space-y-2 p-4 w-fit h-full">
@@ -207,8 +207,8 @@ const DocumentDashboard = () => {
               className="flex flex-col justify-center space-y-4 cursor-pointer"
               onClick={() => createNewDocument()}
             >
-              <div className="flex justify-center items-center bg-mountain-50 dark:bg-mountain-800 border-1 border-white dark:border-mountain-600 hover:border-indigo-600 dark:hover:border-indigo-400 w-42 h-48 transition-colors">
-                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 to-purple-200 dark:from-indigo-700 dark:to-purple-700 rounded-full w-16 h-16">
+              <div className="flex justify-center items-center bg-mountain-50 dark:bg-mountain-800 border-1 border-white hover:border-indigo-600 dark:border-mountain-600 dark:hover:border-indigo-400 w-42 h-48 transition-colors">
+                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 dark:from-indigo-700 to-purple-200 dark:to-purple-700 rounded-full w-16 h-16">
                   <MdOutlineAdd className="size-10 text-gray-800 dark:text-gray-200" />
                 </div>
               </div>
@@ -216,14 +216,13 @@ const DocumentDashboard = () => {
                 Blank Document
               </p>
             </div>
-
             {/* Tutorial Template */}
             <div
               className="flex flex-col justify-center space-y-4 cursor-pointer"
               onClick={() => createTutorialDocument()}
             >
-              <div className="flex justify-center items-center bg-mountain-50 dark:bg-mountain-800 border-1 border-white dark:border-mountain-600 hover:border-indigo-600 dark:hover:border-indigo-400 w-42 h-48 transition-colors">
-                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 to-purple-200 dark:from-indigo-700 dark:to-purple-700 rounded-full w-16 h-16">
+              <div className="flex justify-center items-center bg-mountain-50 dark:bg-mountain-800 border-1 border-white hover:border-indigo-600 dark:border-mountain-600 dark:hover:border-indigo-400 w-42 h-48 transition-colors">
+                <div className="flex justify-center items-center bg-gradient-to-br from-indigo-200 dark:from-indigo-700 to-purple-200 dark:to-purple-700 rounded-full w-16 h-16">
                   <IoBookOutline className="size-10 text-gray-800 dark:text-gray-200" />
                 </div>
               </div>
@@ -236,10 +235,10 @@ const DocumentDashboard = () => {
       </div>
 
       {/* Documents Section */}
-      <div className="flex flex-col space-y-6 w-full">
+      <div className="flex flex-col space-y-6 bg-mountain-50 w-full">
         {/* Header with Filter */}
-        <div className="top-0 sticky flex justify-between items-center bg-white dark:bg-mountain-800 shadow-md px-4 rounded-t-3xl w-full h-fit">
-          <p className="font-medium text-lg text-gray-900 dark:text-gray-100">
+        <div className="top-0 sticky flex justify-between items-center bg-white dark:bg-mountain-800 shadow-md px-4 w-full h-fit">
+          <p className="font-medium text-gray-900 dark:text-gray-100 text-lg">
             Recent projects
           </p>
           <div className="flex items-center">
@@ -302,7 +301,7 @@ const DocumentDashboard = () => {
                   <MenuItem value={"last7days"}>Last 7 days</MenuItem>
                   <MenuItem value={"last30days"}>Last 30 days</MenuItem>
                 </Select>
-                <IoFilter className="top-1/2 left-4 absolute -translate-y-1/2 text-gray-600 dark:text-gray-400" />
+                <IoFilter className="top-1/2 left-4 absolute text-gray-600 dark:text-gray-400 -translate-y-1/2" />
               </FormControl>
             </div>
           </div>
@@ -335,7 +334,7 @@ const DocumentDashboard = () => {
             userBlogs.map((blog) => (
               <div
                 key={blog.id}
-                className="flex flex-col justify-center items-center space-y-4 bg-white dark:bg-mountain-800 pb-2 border border-mountain-200 dark:border-mountain-600 hover:border-indigo-600 dark:hover:border-indigo-400 rounded-lg cursor-pointer transition-colors duration-200"
+                className="flex flex-col justify-center items-center space-y-4 bg-white dark:bg-mountain-800 pb-2 border border-mountain-200 hover:border-indigo-600 dark:border-mountain-600 dark:hover:border-indigo-400 rounded-lg transition-colors duration-200 cursor-pointer"
                 onClick={() => handleDocumentClick(blog.id)}
               >
                 {/* Document Thumbnail */}
@@ -365,7 +364,7 @@ const DocumentDashboard = () => {
                     </p>
                     <IconButton
                       onClick={(event) => handleMenuClick(event, blog.id)}
-                      className="bg-white dark:bg-mountain-800 hover:bg-mountain-50 dark:hover:bg-mountain-700 mr-2 w-6 h-6 text-mountain-600 dark:text-mountain-400 cursor-pointer"
+                      className="bg-white hover:bg-mountain-50 dark:bg-mountain-800 dark:hover:bg-mountain-700 mr-2 w-6 h-6 text-mountain-600 dark:text-mountain-400 cursor-pointer"
                       size="small"
                     >
                       <IoMdMore className="size-5" />

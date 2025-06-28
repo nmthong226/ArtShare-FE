@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebookF } from "react-icons/fa";
-import InstagramIcon from "/auth_logo_instagram.svg";
-import { FaApple } from "react-icons/fa";
+// import { FaFacebookF } from "react-icons/fa";
+// import InstagramIcon from "/auth_logo_instagram.svg";
+// import { FaApple } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ const Login = () => {
   const {
     loginWithEmail,
     authenWithGoogle,
-    signUpWithFacebook,
+    // signUpWithFacebook,
     user,
     loading,
   } = useUser();
@@ -148,14 +148,14 @@ const Login = () => {
     }
   };
 
-  const handleFacebookLogin = async () => {
-    try {
-      await signUpWithFacebook(); // Call Facebook login function from UserProvider
-      navigate("/explore"); // Redirect after successful login
-    } catch (error) {
-      setError((error as Error).message);
-    }
-  };
+  // const handleFacebookLogin = async () => {
+  //   try {
+  //     await signUpWithFacebook(); // Call Facebook login function from UserProvider
+  //     navigate("/explore"); // Redirect after successful login
+  //   } catch (error) {
+  //     setError((error as Error).message);
+  //   }
+  // };
 
   function handleEmailChange(e: React.ChangeEvent<HTMLInputElement>) {
     const emailValue = e.target.value;
@@ -277,7 +277,7 @@ const Login = () => {
             <span>Continue with Google</span>
           </Button>
         </div>
-        <div className="flex justify-between w-full">
+        {/* <div className="flex justify-between w-full">
           <Button
             variant={"outline"}
             className="flex justify-center items-center hover:brightness-115 px-4 py-3 border border-mountain-950 dark:border-mountain-700 rounded-lg w-[32%] h-10 font-normal text-mountain-950 dark:text-mountain-50 text-sm hover:cursor-pointer"
@@ -300,7 +300,7 @@ const Login = () => {
             <FaApple className="size-5" />
             <span>Apple</span>
           </Button>
-        </div>
+        </div> */}
       </div>
 
       <div className="mt-6 text-left">

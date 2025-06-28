@@ -1,4 +1,5 @@
 import { login, signup } from '@/api/authentication/auth';
+import api from '@/api/baseApi';
 import { getUserProfile } from '@/features/user-profile-private/api/get-user-profile';
 import { auth } from '@/firebase';
 import { User } from '@/types';
