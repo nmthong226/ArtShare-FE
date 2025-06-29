@@ -26,7 +26,7 @@ const ProjectDashboardPage = () => {
   }
 
   return (
-    <div className="h-full flex flex-col items-center space-y-6 p-4 w-full text-sm">
+    <div className="flex flex-col items-center space-y-6 p-4 w-full text-sm">
       <div className="relative flex items-end gap-6 pb-4 border-mountain-200 border-b w-full">
         <div className="flex flex-col space-y-1 w-96">
           <p className="text-muted-foreground text-sm">Automation Project</p>
@@ -65,7 +65,6 @@ const ProjectDashboardPage = () => {
           </Button>
         </div>
       </div>
-
       <AutoPostsTable />
     </div>
   );

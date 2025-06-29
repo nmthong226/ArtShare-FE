@@ -156,22 +156,22 @@ const UserInAppConfigs = () => {
               to={`/${user.username}`}
               className="flex items-center space-x-2 hover:bg-mountain-50 dark:hover:bg-mountain-800 p-3"
             >
-              <FaRegCircleUser className="text-mountain-600"/>
+              <FaRegCircleUser className="text-mountain-600" />
               <p className="text-sm">My Profile</p>
             </Link>
             <div className="xs:hidden flex hover:bg-mountain-50 dark:hover:bg-mountain-800 p-3 py-2 w-full hover:cursor-pointer">
-              <MdMailOutline className=""/>
+              <MdMailOutline className="" />
               <p className="text-sm">Messages</p>
             </div>
             <div className="flex items-center space-x-2 hover:bg-mountain-50 dark:hover:bg-mountain-800 p-3 py-2 w-full hover:cursor-pointer">
-              <LuSettings className="text-mountain-600"/>
+              <LuSettings className="text-mountain-600" />
               <p className="text-sm">Settings</p>
             </div>
             <Link
               to={'/app-subscription'}
               className="flex items-center space-x-2 hover:bg-mountain-50 dark:hover:bg-mountain-800 p-3"
             >
-              <TbChessQueen className="text-mountain-600"/>
+              <TbChessQueen className="text-mountain-600" />
               <p className="text-sm">App Subscription</p>
             </Link>
             <hr className="my-2 border-mountain-100 dark:border-mountain-800 border-t-1" />
