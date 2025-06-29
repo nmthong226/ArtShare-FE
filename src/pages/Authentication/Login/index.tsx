@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
 import InstagramIcon from "/auth_logo_instagram.svg";
@@ -8,11 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserProvider";
 import { AxiosError } from "axios";
-import { getAuth } from "firebase/auth";
-import { getUserProfile } from "@/api/authentication/auth";
 
 const Login = () => {
-  const { loginWithEmail, authenWithGoogle, signUpWithFacebook } = useUser();
+  const {
+    loginWithEmail,
+    authenWithGoogle,
+    signUpWithFacebook,
+    user,
+    loading,
+  } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -21,6 +25,17 @@ const Login = () => {
   const [message] = useState<string | null>(null);
   const navigate = useNavigate(); // To navigate after login
 
+  // Navigate when user state changes after successful login
+  useEffect(() => {
+    if (user && !loading) {
+      if (!user.is_onboard) {
+        navigate("/onboarding");
+      } else {
+        navigate("/explore");
+      }
+    }
+  }, [user, loading, navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -28,21 +43,20 @@ const Login = () => {
     setPasswordError("");
     try {
       await loginWithEmail(email, password);
-      const user = getAuth();
-      const data = await getUserProfile(user.currentUser!.uid);
-      if (!data.is_onboard) {
-        navigate("/onboarding");
-      } else {
-        navigate("/explore");
-      }
-    } catch (err) {
+      // The UserProvider will handle fetching profile and setting user state
+      // We'll navigate after the user state is updated
+    } catch (err: unknown) {
       let errorMessage = "";
-      if (err instanceof AxiosError) {
-        const code = err.code;
+
+      // Handle Firebase Auth errors (they have a .code property)
+      if (err && typeof err === "object" && "code" in err) {
+        const firebaseError = err as { code: string; message?: string };
+        const code = firebaseError.code;
         switch (code) {
           case "auth/invalid-credential":
+          case "auth/invalid-login-credentials":
             errorMessage =
-              "Invalid email or password. Try signing up if you don’t have an account.";
+              "Invalid email or password. Please check your credentials and try again.";
             break;
           case "auth/wrong-password":
             setPasswordError("Incorrect password. Please try again.");
@@ -52,15 +66,50 @@ const Login = () => {
             errorMessage = "Please verify your email before logging in.";
             break;
           case "auth/invalid-email":
-            setEmailError("Invalid email. Please try again");
+            setEmailError(
+              "Invalid email format. Please enter a valid email address.",
+            );
             break;
           case "auth/missing-password":
-            setPasswordError("Missing password. Please try again");
+            setPasswordError(
+              "Password is required. Please enter your password.",
+            );
+            break;
+          case "auth/user-not-found":
+            errorMessage =
+              "No account found with this email. Please sign up first.";
+            break;
+          case "auth/too-many-requests":
+            errorMessage =
+              "Too many failed login attempts. Please try again later.";
             break;
           default:
-            errorMessage = err.message;
+            errorMessage =
+              firebaseError.message || "Login failed. Please try again.";
         }
       }
+      // Handle Axios errors
+      else if (err instanceof AxiosError) {
+        errorMessage =
+          err.response?.data?.message ||
+          err.message ||
+          "Network error. Please try again.";
+      }
+      // Handle other errors including the INVALID_LOGIN_CREDENTIALS case
+      else if (err instanceof Error) {
+        if (
+          err.message?.includes("INVALID_LOGIN_CREDENTIALS") ||
+          err.message?.includes("invalid-login-credentials")
+        ) {
+          errorMessage =
+            "Invalid email or password. Please check your credentials and try again.";
+        } else {
+          errorMessage = err.message;
+        }
+      } else {
+        errorMessage = "An unexpected error occurred. Please try again.";
+      }
+
       setError(errorMessage);
     }
   };
@@ -69,13 +118,36 @@ const Login = () => {
     setError(""); // Clear previous error
     try {
       await authenWithGoogle(); // Call Google login function from UserProvider
-      const user = getAuth();
-      const data = await getUserProfile(user.currentUser!.uid);
-      if (!data.is_onboard) navigate("/onboarding");
-      else navigate("/explore");
+      // The UserProvider will handle fetching profile and setting user state
+      // We'll navigate after the user state is updated
     } catch (error) {
+      console.error("Google login error:", error);
       let message = "Something went wrong. Please try again.";
-      if (error instanceof AxiosError) {
+
+      if (error instanceof Error) {
+        // Handle Firebase Auth errors and our custom errors
+        if (error.message.includes("popup-closed-by-user")) {
+          message =
+            "Login was cancelled. You closed the popup before signing in.";
+        } else if (error.message.includes("popup-blocked")) {
+          message =
+            "The login popup was blocked by your browser. Please enable popups and try again.";
+        } else if (error.message.includes("cancelled-popup-request")) {
+          message = "Login was interrupted by another popup request.";
+        } else if (
+          error.message.includes("account-exists-with-different-credential")
+        ) {
+          message =
+            "An account already exists with a different sign-in method. Try logging in using that method.";
+        } else if (error.message.includes("network-request-failed")) {
+          message =
+            "Network error. Please check your connection and try again.";
+        } else if (error.message.includes("Failed to create account")) {
+          message = error.message; // Use our custom error message
+        } else {
+          message = error.message;
+        }
+      } else if (error instanceof AxiosError) {
         const code = error.code;
         switch (code) {
           case "auth/popup-closed-by-user":
@@ -114,13 +186,18 @@ const Login = () => {
     const emailValue = e.target.value;
     setEmail(emailValue);
 
-    // // Basic email validation
-    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // if (!emailRegex.test(emailValue)) {
-    //   setError("Please enter a valid email address.");
-    // } else {
-    //   setError(null); // Clear error if email is valid
-    // }
+    // Clear errors when user starts typing
+    if (emailError) setEmailError("");
+    if (error) setError("");
+  }
+
+  function handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const passwordValue = e.target.value;
+    setPassword(passwordValue);
+
+    // Clear errors when user starts typing
+    if (passwordError) setPasswordError("");
+    if (error) setError("");
   }
 
   return (
@@ -172,7 +249,7 @@ const Login = () => {
             placeholder="Enter your password"
             className="dark:bg-mountain-900 shadow-sm mt-1 p-3 border border-mountain-800 rounded-lg focus:ring-indigo-500 w-full h-10 text-mountain-950 dark:text-mountain-50"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
           />
           {/* Display error and success messages */}
           {passwordError && passwordError.length > 0 && (

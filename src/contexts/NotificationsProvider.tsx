@@ -94,7 +94,10 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
       if (res.status === 200 || res.status === 201) {
         const freshNotifications: Notification<ReportResolvedPayload>[] =
           res.data;
-        setNotifications(freshNotifications);
+        const filteredNotifications = freshNotifications.filter(
+            (notification) => notification.type !== "report_created",
+        );
+        setNotifications(filteredNotifications);
       }
     } catch (error) {
       console.error(

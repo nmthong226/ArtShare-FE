@@ -216,6 +216,7 @@ const BlogDetails = () => {
         targetId: blog.id,
         targetType: ReportTargetType.BLOG,
         reason: reason,
+        targetTitle: blog.title,
       },
       {
         onSuccess: () => {

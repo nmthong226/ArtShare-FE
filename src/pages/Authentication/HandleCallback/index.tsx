@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { validatePassword } from "@/utils/validation";
 
 const AuthAction = () => {
   const location = useLocation(); // Access the URL parameters (e.g., mode, oobCode)
@@ -36,7 +37,7 @@ const AuthAction = () => {
             setEmail(email); // Store the user's email for password reset
           })
           .catch((e) => {
-            if (e) setError("Invalid or expired reset code.", );
+            if (e) setError("Invalid or expired reset code.");
           });
       } else if (modeFromUrl === "verifyEmail") {
         console.log("Verify Email Mode");
@@ -56,12 +57,14 @@ const AuthAction = () => {
       }
     }
   }, [location, navigate]);
-
   // Handle password reset
   const handleSubmitPasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password || password.length < 6) {
-      setError("Password must be at least 6 characters.");
+
+    // Validate password using the validation function
+    const passwordValidationError = validatePassword(password);
+    if (passwordValidationError) {
+      setError(passwordValidationError);
       return;
     }
 
@@ -104,7 +107,7 @@ const AuthAction = () => {
               className="block font-semibold text-mountain-600 dark:text-mountain-50 text-sm"
             >
               New Password
-            </label>
+            </label>{" "}
             <Input
               type="password"
               id="password"
@@ -113,6 +116,9 @@ const AuthAction = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <p className="mt-1 text-mountain-500 dark:text-mountain-400 text-xs">
+              Password must be at least 8 characters with numbers & symbols
+            </p>
             <Button
               type="submit"
               className="bg-mountain-800 hover:bg-mountain-700 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full h-10 font-bold text-white"
