@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useRef, useMemo, memo } from "react";
-import { useInfiniteQuery, UseQueryResult } from "@tanstack/react-query";
-import { Button, Paper, ToggleButton, ToggleButtonGroup } from "@mui/material";
-import { Ellipsis, LoaderPinwheel } from "lucide-react";
-import { BsFilter } from "react-icons/bs";
 import {
   Categories,
   DataPopper,
 } from "@/components/carousels/categories/Categories";
 import IGallery, { GalleryPhoto } from "@/components/gallery/Gallery";
-import { Category, Post } from "@/types";
-import { fetchPosts } from "./api/get-post";
 import { CategoryTypeValues } from "@/constants";
 import { useCategories } from "@/hooks/useCategories";
+import { Category, Post } from "@/types";
+import { Button, Paper, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { useInfiniteQuery, UseQueryResult } from "@tanstack/react-query";
+import { Ellipsis, LoaderPinwheel } from "lucide-react";
+import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import { BsFilter } from "react-icons/bs";
+import { fetchPosts } from "./api/get-post";
 
 const getMediaDimensions = (
   url: string,
@@ -213,8 +213,8 @@ const Explore: React.FC = () => {
 
   return (
     <div className="relative flex flex-col h-screen overflow-hidden">
-      <div className="pt-3 z-10 sticky flex flex-col gap-4 bg-gradient-to-t dark:bg-gradient-to-t from-white dark:from-mountain-1000 to-mountain-50 dark:to-mountain-950 px-4 py-1 rounded-t-3xl">
-        <div className="flex items-center gap-6 w-full overflow-x-hidden categories-bar">
+      <div className="sticky z-10 flex flex-col gap-4 px-4 py-1 pt-3 bg-gradient-to-t dark:bg-gradient-to-t from-white dark:from-mountain-1000 to-mountain-50 dark:to-mountain-950 rounded-t-3xl">
+        <div className="flex items-center w-full gap-6 overflow-x-hidden categories-bar">
           <Button
             className="flex flex-shrink-0 gap-2 dark:bg-mountain-900 shadow-none p-2 rounded-lg min-w-auto aspect-[1/1] font-normal dark:text-mountain-50 normal-case all-channels-btn"
             variant="contained"
@@ -259,8 +259,7 @@ const Explore: React.FC = () => {
                   : "text-mountain-900 bg-mountain-200 dark:bg-mountain-800 dark:text-mountain-300"
               } `}
             >
-              <LoaderPinwheel size={16} />{" "}
-              {/* Consider a different icon for "All" */}
+              <LoaderPinwheel size={16} />
             </div>
             <span className="flex-shrink-0">All Channels</span>
           </Button>

@@ -15,11 +15,11 @@ export function createData(
 ): Data {
   return {
     id,
-    projectName,
+    title: projectName,
     platforms,
     numberOfPosts,
     status,
-    nextPostTime,
+    nextPostAt: nextPostTime,
     posts,
   };
 }
