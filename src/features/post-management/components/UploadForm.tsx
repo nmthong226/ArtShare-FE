@@ -1,15 +1,15 @@
 import {
   Box,
   FormControl,
-  FormHelperText,
   IconButton,
   TextField,
   Tooltip,
   Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
-import { MdCrop, MdErrorOutline, MdPhotoCameraBack } from 'react-icons/md';
+import { MdCrop, MdPhotoCameraBack } from 'react-icons/md';
 
+import InlineErrorMessage from '@/components/InlineErrorMessage';
 import { Checkbox } from '@/components/ui/checkbox';
 import ImageCropperModal from '@/components/ui/image-cropper-modal';
 import { MEDIA_TYPE } from '@/utils/constants';
@@ -84,17 +84,7 @@ const UploadForm: React.FC<{
             }}
           />
           <ErrorMessage name="title">
-            {(errorMsg) => (
-              <FormHelperText error className="flex items-start">
-                <MdErrorOutline
-                  size="1.5em"
-                  style={{
-                    marginRight: '0.4em',
-                  }}
-                />
-                {errorMsg}
-              </FormHelperText>
-            )}
+            {(errorMsg) => <InlineErrorMessage errorMsg={errorMsg} />}
           </ErrorMessage>
         </FormControl>
       </Box>
