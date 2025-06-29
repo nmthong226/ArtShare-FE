@@ -17,11 +17,11 @@ type PostStatus = 'canceled' | 'draft' | 'scheduled' | 'active';
 
 interface Data {
   id: number;
-  projectName: string;
+  title: string;
   platforms: string[];
   numberOfPosts: number;
   status: PostStatus;
-  nextPostTime: Date | null;
+  nextPostAt: Date | null;
   posts?: AutoPost[] | null;
 }
 
