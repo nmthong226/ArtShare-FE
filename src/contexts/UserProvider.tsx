@@ -1,26 +1,25 @@
+import { login, signup } from "@/api/authentication/auth";
+import api from "@/api/baseApi";
+import { getUserProfile } from "@/features/user-profile-private/api/get-user-profile";
+import { auth } from "@/firebase";
+import { User } from "@/types";
+import {
+  createUserWithEmailAndPassword,
+  FacebookAuthProvider,
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
 import {
   createContext,
-  useContext,
-  useState,
   ReactNode,
+  useContext,
   useEffect,
   useRef,
+  useState,
 } from "react";
-import { auth } from "@/firebase";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  GoogleAuthProvider,
-  signInWithPopup,
-  FacebookAuthProvider,
-  getAdditionalUserInfo,
-} from "firebase/auth";
-import { login, signup } from "@/api/authentication/auth";
-import { User } from "@/types";
-import { getUserProfile } from "@/features/user-profile-private/api/get-user-profile";
 import { useNavigate } from "react-router-dom";
-import api from "@/api/baseApi";
 
 interface UserContextType {
   user: User | null;
@@ -279,37 +278,49 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       // Configure popup to reduce COOP issues
       const result = await signInWithPopup(auth, provider);
       const { user: googleUser } = result;
-      const isNewUser = getAdditionalUserInfo(result)?.isNewUser;
+      const token = await googleUser.getIdToken();
 
-      console.log("🔐 Google auth successful, isNewUser:", isNewUser);
+      console.log("🔐 Google auth successful, attempting login");
 
-      // For new users, we need to create their backend account first
-      if (isNewUser) {
-        console.log("🔐 Creating new user in backend");
-        signupInProgressRef.current = true; // Set flag to prevent race condition
-        try {
-          await signup(
-            googleUser.uid,
-            googleUser.email!,
-            "",
-            googleUser.displayName || "",
-          );
-          console.log("🔐 Backend signup successful");
+      // Try to login first (like Facebook auth does)
+      try {
+        const backendResponse = await login(token);
+        if (backendResponse.success) {
+          console.log("🔐 Google login successful");
+          return; // Let onIdTokenChanged handle the rest
+        }
+      } catch (loginError) {
+        console.log("🔐 Google login failed, attempting signup:", loginError);
+      }
 
+      // If login fails, try to signup (user doesn't exist in backend)
+      console.log("🔐 Creating new Google user in backend");
+      signupInProgressRef.current = true; // Set flag to prevent race condition
+      try {
+        const signupResponse = await signup(
+          googleUser.uid,
+          googleUser.email!,
+          "",
+          googleUser.displayName || "",
+        );
+        if (signupResponse.success) {
+          console.log("🔐 Google signup successful");
           // Add a small delay to ensure backend user creation is fully propagated
           await new Promise((resolve) => setTimeout(resolve, 1000));
-        } catch (signupError) {
-          console.error("🔐 Backend signup failed:", signupError);
-          // If signup fails, sign out from Firebase to prevent inconsistent state
-          await signOut(auth);
-          throw new Error("Failed to create account. Please try again.");
-        } finally {
-          // Clear flag after a slight delay to ensure onIdTokenChanged can see it and wait
-          setTimeout(() => {
-            signupInProgressRef.current = false;
-            console.log("🔐 Signup flag cleared");
-          }, 500);
+        } else {
+          throw new Error("Failed to create account in backend");
         }
+      } catch (signupError) {
+        console.error("🔐 Backend signup failed:", signupError);
+        // If signup fails, sign out from Firebase to prevent inconsistent state
+        await signOut(auth);
+        throw new Error("Failed to create account. Please try again.");
+      } finally {
+        // Clear flag after a slight delay to ensure onIdTokenChanged can see it and wait
+        setTimeout(() => {
+          signupInProgressRef.current = false;
+          console.log("🔐 Signup flag cleared");
+        }, 500);
       }
 
       // Let onIdTokenChanged handle the login flow
