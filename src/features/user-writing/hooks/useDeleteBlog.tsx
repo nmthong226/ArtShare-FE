@@ -6,7 +6,6 @@ import { deleteBlog } from "../api/blog.api";
 type UseDeleteBlogOptions = {
   onSuccess?: (blogId: number) => void;
   onError?: (errorMessage: string) => void;
-  showConfirmation?: boolean; // Add option to control confirmation behavior
 };
 
 export const useDeleteBlog = (options: UseDeleteBlogOptions = {}) => {
